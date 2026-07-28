@@ -38,7 +38,7 @@ function SplashPage() {
       const { data } = await supabase.auth.getSession();
       const seen = localStorage.getItem(HAS_SEEN_ONBOARDING) === "true";
       const to = data.session ? "/home" : seen ? "/login" : "/onboarding";
-      const wait = Math.max(0, 1800 - (Date.now() - start));
+      const wait = Math.max(0, 3000 - (Date.now() - start));
       setTimeout(() => {
         if (!cancelled) navigate({ to, replace: true });
       }, wait);
