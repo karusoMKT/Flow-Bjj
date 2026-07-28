@@ -1,6 +1,6 @@
 import logoAsset from "@/assets/flow-logo.png.asset.json";
 
-export function Logo({ className = "" }: { className?: string }) {
+export function Logo({ className = "h-10 w-auto" }: { className?: string }) {
   return (
     <img
       src={logoAsset.url}
