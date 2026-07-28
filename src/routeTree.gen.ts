@@ -9,12 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
@@ -42,12 +48,14 @@ const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/home': typeof AuthenticatedHomeRoute
   '/perfil': typeof AuthenticatedPerfilRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/home': typeof AuthenticatedHomeRoute
   '/perfil': typeof AuthenticatedPerfilRoute
@@ -56,19 +64,21 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/checkin' | '/home' | '/perfil'
+  fullPaths: '/' | '/sitemap.xml' | '/checkin' | '/home' | '/perfil'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/checkin' | '/home' | '/perfil'
+  to: '/' | '/sitemap.xml' | '/checkin' | '/home' | '/perfil'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/sitemap.xml'
     | '/_authenticated/checkin'
     | '/_authenticated/home'
     | '/_authenticated/perfil'
@@ -77,10 +87,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated': {
       id: '/_authenticated'
       path: ''
@@ -137,6 +155,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
