@@ -64,7 +64,7 @@ function StatisticsPage() {
             >
               <ChevronLeft className="size-5" />
             </Link>
-            <h1 className="text-xl font-black italic">Estatísticas</h1>
+            <h1 className="font-sans text-xl font-semibold">Estatísticas</h1>
           </div>
 
           <div className="relative">
