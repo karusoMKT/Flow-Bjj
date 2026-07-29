@@ -56,7 +56,7 @@ function RankingPage() {
   return (
     <div className="min-h-screen bg-background pb-28">
       <main className="mx-auto max-w-md px-4 pt-6">
-        <h1 className="text-center text-xl font-black italic">Ranking</h1>
+        <h1 className="text-center font-sans text-lg font-semibold not-italic tracking-tight">Ranking</h1>
 
         <div className="mt-4 flex rounded-full bg-surface p-1">
           {TABS.map((t) => (
