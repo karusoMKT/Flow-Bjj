@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
+import { City, Country, State } from "country-state-city";
 import { supabase } from "@/integrations/supabase/client";
 import { BELTS } from "@/lib/feed";
 
@@ -30,7 +31,6 @@ const signupSchema = z.object({
   fullName: z.string().trim().min(2, { message: "Informe seu nome completo" }).max(100),
   email: z.string().trim().email({ message: "E-mail inválido" }).max(255),
   password: z.string().min(6, { message: "A senha precisa de ao menos 6 caracteres" }).max(72),
-  city: z.string().trim().max(80).optional(),
   team: z.string().trim().max(80).optional(),
   professor: z.string().trim().max(80).optional(),
 });
@@ -42,13 +42,36 @@ function SignupPage() {
     fullName: "",
     email: "",
     password: "",
-    city: "",
+    countryCode: "BR",
+    stateCode: "",
+    cityName: "",
     team: "",
     professor: "",
     belt: "Branca",
     degrees: 0,
     competitor: true,
   });
+
+  const countries = useMemo(() => Country.getAllCountries(), []);
+  const states = useMemo(
+    () => (form.countryCode ? State.getStatesOfCountry(form.countryCode) : []),
+    [form.countryCode],
+  );
+  const cities = useMemo(
+    () =>
+      form.countryCode && form.stateCode
+        ? City.getCitiesOfState(form.countryCode, form.stateCode)
+        : [],
+    [form.countryCode, form.stateCode],
+  );
+
+  const locationLabel = [
+    form.cityName,
+    form.stateCode,
+    countries.find((c) => c.isoCode === form.countryCode)?.name,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -71,7 +94,7 @@ function SignupPage() {
           data: {
             full_name: parsed.data.fullName,
             username: parsed.data.email.split("@")[0],
-            city: form.city,
+            city: locationLabel,
             team: form.team,
             professor: form.professor,
             belt: form.belt,
@@ -101,6 +124,8 @@ function SignupPage() {
   const inputClass =
     "mt-1.5 w-full rounded-xl border border-input bg-surface px-3 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-brand";
   const labelClass = "text-[11px] uppercase tracking-wide text-muted-foreground";
+  const selectClass =
+    "w-full appearance-none rounded-xl border border-white/10 bg-surface-2 px-3 py-3 text-sm text-foreground outline-none transition-colors focus:border-brand";
 
   return (
     <main className="flex min-h-screen flex-col bg-background px-6 py-8">
@@ -124,17 +149,69 @@ function SignupPage() {
               autoComplete="name"
             />
           </div>
-          <div>
-            <label htmlFor="city" className={labelClass}>
-              Cidade
-            </label>
-            <input
-              id="city"
-              value={form.city}
-              onChange={(e) => set("city", e.target.value)}
-              className={inputClass}
-              placeholder="Rio de Janeiro, RJ"
-            />
+          <div className="space-y-3 rounded-xl border border-white/10 bg-surface/60 p-3">
+            <span className={labelClass}>Localização</span>
+            <div>
+              <label htmlFor="country" className="sr-only">
+                País
+              </label>
+              <select
+                id="country"
+                value={form.countryCode}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, countryCode: e.target.value, stateCode: "", cityName: "" }))
+                }
+                className={selectClass}
+              >
+                <option value="">Selecione o país</option>
+                {countries.map((c) => (
+                  <option key={c.isoCode} value={c.isoCode} className="bg-surface">
+                    {c.flag} {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="state" className="sr-only">
+                Estado
+              </label>
+              <select
+                id="state"
+                value={form.stateCode}
+                disabled={!states.length}
+                onChange={(e) => setForm((f) => ({ ...f, stateCode: e.target.value, cityName: "" }))}
+                className={`${selectClass} disabled:opacity-50`}
+              >
+                <option value="">Selecione o estado</option>
+                {states.map((s) => (
+                  <option key={s.isoCode} value={s.isoCode} className="bg-surface">
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="cityName" className="sr-only">
+                Cidade
+              </label>
+              <select
+                id="cityName"
+                value={form.cityName}
+                disabled={!cities.length}
+                onChange={(e) => set("cityName", e.target.value)}
+                className={`${selectClass} disabled:opacity-50`}
+              >
+                <option value="">Selecione a cidade</option>
+                {cities.map((c) => (
+                  <option key={`${c.name}-${c.latitude}-${c.longitude}`} value={c.name} className="bg-surface">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {locationLabel && (
+              <p className="text-xs font-semibold text-brand">{locationLabel}</p>
+            )}
           </div>
           <div>
             <label htmlFor="team" className={labelClass}>
