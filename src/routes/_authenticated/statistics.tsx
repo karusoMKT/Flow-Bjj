@@ -143,7 +143,7 @@ function StatisticsPage() {
         <section className="card-elevated mt-4 rounded-2xl p-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Treinos por tipo</h2>
 
-          <div className="mt-4 flex items-center gap-4">
+          <div className="mt-4 flex items-center gap-6">
             <ul className="flex-1 space-y-3">
               {TYPES.map((t) => (
                 <li key={t.label}>
