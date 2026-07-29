@@ -54,13 +54,8 @@ function SplashPage() {
     <main className="flex min-h-screen flex-col items-center justify-center bg-background px-8">
       <h1 className="sr-only">Flow Jiu-Jitsu</h1>
       <div className="animate-in fade-in zoom-in-95 duration-700">
-        <Logo className="scale-125" />
+        <Logo className="h-40 w-auto" />
       </div>
-      <p className="mt-10 text-center text-xs font-bold uppercase tracking-[0.35em] text-foreground">
-        Every roll
-        <br />
-        <span className="text-brand">tells a story.</span>
-      </p>
       <div className="absolute bottom-12 h-1 w-24 overflow-hidden rounded-full bg-surface-2">
         <div className="h-full w-1/2 animate-pulse rounded-full bg-brand" />
       </div>
