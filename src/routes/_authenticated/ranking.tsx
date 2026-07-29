@@ -36,12 +36,8 @@ const DATA: Record<Tab, Athlete[]> = {
   ],
 };
 
-const initials = (name: string) =>
-  name
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("");
+const avatarUrl = (name: string) =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1f1f22&color=d7ff3e&bold=true&size=160`;
 
 const PODIUM_STYLE = [
   { ring: "ring-brand", chip: "bg-brand text-brand-foreground", size: "size-20", order: "order-2" },
@@ -60,7 +56,7 @@ function RankingPage() {
   return (
     <div className="min-h-screen bg-background pb-28">
       <main className="mx-auto max-w-md px-4 pt-6">
-        <h1 className="text-center text-xl font-black italic">Ranking</h1>
+        <h1 className="text-center font-sans text-lg font-semibold not-italic tracking-tight">Ranking</h1>
 
         <div className="mt-4 flex rounded-full bg-surface p-1">
           {TABS.map((t) => (
@@ -85,11 +81,12 @@ function RankingPage() {
             return (
               <div key={athlete.name} className={`flex flex-1 flex-col items-center ${style.order}`}>
                 {rank === 1 && <Crown className="mb-1 size-5 text-brand" />}
-                <div
-                  className={`flex ${style.size} items-center justify-center rounded-full bg-surface-2 text-sm font-bold ring-2 ${style.ring}`}
-                >
-                  {initials(athlete.name)}
-                </div>
+                <img
+                  src={avatarUrl(athlete.name)}
+                  alt={athlete.name}
+                  loading="lazy"
+                  className={`${style.size} rounded-full object-cover ring-2 ${style.ring}`}
+                />
                 <span
                   className={`-mt-2 rounded-full px-2 py-0.5 text-[10px] font-black ${style.chip}`}
                 >
@@ -102,21 +99,24 @@ function RankingPage() {
           })}
         </section>
 
-        <ul className="mt-7 space-y-2">
+        <ul className="mt-7">
           {rest.map((athlete, i) => (
             <li
               key={athlete.name}
-              className="card-elevated flex items-center gap-3 rounded-2xl px-3 py-2.5"
+              className="flex items-center gap-3 border-b border-white/5 px-1 py-3 transition-colors last:border-b-0 hover:bg-white/5"
             >
               <span className="w-4 text-center text-xs font-bold text-muted-foreground">{i + 4}</span>
-              <span className="flex size-9 items-center justify-center rounded-full bg-surface-2 text-[11px] font-bold">
-                {initials(athlete.name)}
-              </span>
+              <img
+                src={avatarUrl(athlete.name)}
+                alt={athlete.name}
+                loading="lazy"
+                className="size-9 rounded-full object-cover"
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{athlete.name}</p>
                 <p className="truncate text-[11px] text-muted-foreground">{athlete.team}</p>
               </div>
-              <span className="text-xs font-bold text-brand">
+              <span className="ml-auto shrink-0 text-right text-xs font-bold tabular-nums text-brand">
                 {athlete.xp.toLocaleString("pt-BR")} XP
               </span>
             </li>
