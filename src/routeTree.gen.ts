@@ -21,6 +21,8 @@ import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedExplorarRouteImport } from './routes/_authenticated/explorar'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
+import { Route as AuthenticatedChallengesRouteImport } from './routes/_authenticated/challenges'
+import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -81,6 +83,17 @@ const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
   path: '/checkin',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChallengesRoute = AuthenticatedChallengesRouteImport.update({
+  id: '/challenges',
+  path: '/challenges',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAchievementsRoute =
+  AuthenticatedAchievementsRouteImport.update({
+    id: '/achievements',
+    path: '/achievements',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -88,6 +101,8 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/achievements': typeof AuthenticatedAchievementsRoute
+  '/challenges': typeof AuthenticatedChallengesRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -101,6 +116,8 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/achievements': typeof AuthenticatedAchievementsRoute
+  '/challenges': typeof AuthenticatedChallengesRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
@@ -116,6 +133,8 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
+  '/_authenticated/challenges': typeof AuthenticatedChallengesRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
   '/_authenticated/explorar': typeof AuthenticatedExplorarRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
@@ -131,6 +150,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/sitemap.xml'
+    | '/achievements'
+    | '/challenges'
     | '/checkin'
     | '/explorar'
     | '/home'
@@ -144,6 +165,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/sitemap.xml'
+    | '/achievements'
+    | '/challenges'
     | '/checkin'
     | '/explorar'
     | '/home'
@@ -158,6 +181,8 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/sitemap.xml'
+    | '/_authenticated/achievements'
+    | '/_authenticated/challenges'
     | '/_authenticated/checkin'
     | '/_authenticated/explorar'
     | '/_authenticated/home'
@@ -261,10 +286,26 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCheckinRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/challenges': {
+      id: '/_authenticated/challenges'
+      path: '/challenges'
+      fullPath: '/challenges'
+      preLoaderRoute: typeof AuthenticatedChallengesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/achievements': {
+      id: '/_authenticated/achievements'
+      path: '/achievements'
+      fullPath: '/achievements'
+      preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAchievementsRoute: typeof AuthenticatedAchievementsRoute
+  AuthenticatedChallengesRoute: typeof AuthenticatedChallengesRoute
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
   AuthenticatedExplorarRoute: typeof AuthenticatedExplorarRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
@@ -274,6 +315,8 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAchievementsRoute: AuthenticatedAchievementsRoute,
+  AuthenticatedChallengesRoute: AuthenticatedChallengesRoute,
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedExplorarRoute: AuthenticatedExplorarRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,

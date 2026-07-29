@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut, Pencil, Settings, Flame, Clock, Dumbbell, Trophy } from "lucide-react";
+import { LogOut, Pencil, Settings, Flame, Clock, Dumbbell, Trophy, Medal, Target } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { beltClass } from "@/lib/feed";
@@ -191,6 +191,34 @@ function Perfil() {
             className="mt-3 flex items-center justify-center rounded-xl border border-white/10 bg-surface-2/60 py-2 text-xs font-semibold text-brand"
           >
             Ver estatísticas
+          </Link>
+        </section>
+
+        <section className="mt-4 grid grid-cols-2 gap-3">
+          <Link
+            to="/achievements"
+            className="card-elevated flex items-center justify-between rounded-2xl p-3.5 transition-colors hover:border-white/10"
+          >
+            <div>
+              <p className="text-xs font-semibold text-foreground">Conquistas</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">12 / 15 emblemas</p>
+            </div>
+            <div className="grid size-9 place-items-center rounded-full bg-brand/10 text-brand">
+              <Medal className="size-5" />
+            </div>
+          </Link>
+
+          <Link
+            to="/challenges"
+            className="card-elevated flex items-center justify-between rounded-2xl p-3.5 transition-colors hover:border-white/10"
+          >
+            <div>
+              <p className="text-xs font-semibold text-foreground">Desafios</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">4 ativos</p>
+            </div>
+            <div className="grid size-9 place-items-center rounded-full bg-brand/10 text-brand">
+              <Target className="size-5" />
+            </div>
           </Link>
         </section>
 
