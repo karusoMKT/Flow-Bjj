@@ -51,13 +51,25 @@ function SplashPage() {
   }, [navigate]);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background px-8">
+    <main
+      className="relative flex min-h-screen flex-col items-center justify-center bg-black px-8"
+      style={{ backgroundColor: "#000000" }}
+    >
       <h1 className="sr-only">Flow Jiu-Jitsu</h1>
-      <div className="animate-in fade-in zoom-in-95 duration-700">
-        <Logo className="h-40 w-auto" />
+      <div className="flex flex-col items-center gap-8">
+        <div className="animate-in fade-in zoom-in-95 duration-700">
+          <Logo
+            className="h-52 w-auto sm:h-60"
+            style={{ mixBlendMode: "lighten" }}
+          />
+        </div>
+        <p className="text-center text-[11px] font-semibold uppercase tracking-[0.4em] text-white sm:text-xs">
+          Every roll tells a{" "}
+          <span className="text-brand">Story</span>
+        </p>
       </div>
-      <div className="absolute bottom-12 h-1 w-24 overflow-hidden rounded-full bg-surface-2">
-        <div className="h-full w-1/2 animate-pulse rounded-full bg-brand" />
+      <div className="absolute bottom-16 left-1/2 h-1 w-28 -translate-x-1/2 overflow-hidden rounded-full bg-white/10">
+        <div className="h-full w-1/2 animate-pulse rounded-full bg-brand shadow-[0_0_12px_var(--color-brand)]" />
       </div>
     </main>
   );
