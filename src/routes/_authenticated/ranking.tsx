@@ -99,7 +99,6 @@ function RankingPage() {
           })}
         </section>
 
-        <ul className="mt-7 space-y-2">
         <ul className="mt-7">
           {rest.map((athlete, i) => (
             <li
