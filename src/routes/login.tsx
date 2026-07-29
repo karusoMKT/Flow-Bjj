@@ -86,7 +86,9 @@ function LoginPage() {
 
         <div className="mt-16 flex flex-col items-center">
           <div className="flex flex-col items-center">
-            <span className="text-5xl font-black italic text-white">FLOW</span>
+            <span className="text-5xl font-black italic text-white">
+              <span className="text-brand">F</span>LOW
+            </span>
             <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.3em] text-brand">JIU-JITSU</span>
           </div>
           <h1 className="mt-10 text-lg font-semibold">Bem-vindo de volta!</h1>
