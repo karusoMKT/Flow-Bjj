@@ -94,7 +94,7 @@ function SignupPage() {
           data: {
             full_name: parsed.data.fullName,
             username: parsed.data.email.split("@")[0],
-            city: form.city,
+            city: locationLabel,
             team: form.team,
             professor: form.professor,
             belt: form.belt,
