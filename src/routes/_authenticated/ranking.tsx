@@ -81,11 +81,12 @@ function RankingPage() {
             return (
               <div key={athlete.name} className={`flex flex-1 flex-col items-center ${style.order}`}>
                 {rank === 1 && <Crown className="mb-1 size-5 text-brand" />}
-                <div
-                  className={`flex ${style.size} items-center justify-center rounded-full bg-surface-2 text-sm font-bold ring-2 ${style.ring}`}
-                >
-                  {initials(athlete.name)}
-                </div>
+                <img
+                  src={avatarUrl(athlete.name)}
+                  alt={athlete.name}
+                  loading="lazy"
+                  className={`${style.size} rounded-full object-cover ring-2 ${style.ring}`}
+                />
                 <span
                   className={`-mt-2 rounded-full px-2 py-0.5 text-[10px] font-black ${style.chip}`}
                 >
