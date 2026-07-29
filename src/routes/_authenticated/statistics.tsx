@@ -106,15 +106,18 @@ function StatisticsPage() {
             </div>
           </div>
 
-          <div className="mt-3 flex gap-2">
-            <div className="flex flex-col justify-between py-[2px] text-[9px] text-muted-foreground">
+          <div className="mt-3 flex gap-1">
+            <div className="flex shrink-0 flex-col gap-[3px]">
               {WEEKDAYS.map((d) => (
-                <span key={d} className="leading-none">
+                <span
+                  key={d}
+                  className="flex h-[9px] items-center text-[9px] leading-none text-muted-foreground"
+                >
                   {d}
                 </span>
               ))}
             </div>
-            <div className="min-w-0 flex-1 overflow-x-auto">
+            <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide">
               <div className="flex flex-col gap-[3px]">
                 {heatmap.map((row, day) => (
                   <div key={day} className="flex gap-[3px]">
