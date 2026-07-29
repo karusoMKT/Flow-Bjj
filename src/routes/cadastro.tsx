@@ -147,17 +147,69 @@ function SignupPage() {
               autoComplete="name"
             />
           </div>
-          <div>
-            <label htmlFor="city" className={labelClass}>
-              Cidade
-            </label>
-            <input
-              id="city"
-              value={form.city}
-              onChange={(e) => set("city", e.target.value)}
-              className={inputClass}
-              placeholder="Rio de Janeiro, RJ"
-            />
+          <div className="space-y-3 rounded-xl border border-white/10 bg-surface/60 p-3">
+            <span className={labelClass}>Localização</span>
+            <div>
+              <label htmlFor="country" className="sr-only">
+                País
+              </label>
+              <select
+                id="country"
+                value={form.countryCode}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, countryCode: e.target.value, stateCode: "", cityName: "" }))
+                }
+                className={selectClass}
+              >
+                <option value="">Selecione o país</option>
+                {countries.map((c) => (
+                  <option key={c.isoCode} value={c.isoCode} className="bg-surface">
+                    {c.flag} {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="state" className="sr-only">
+                Estado
+              </label>
+              <select
+                id="state"
+                value={form.stateCode}
+                disabled={!states.length}
+                onChange={(e) => setForm((f) => ({ ...f, stateCode: e.target.value, cityName: "" }))}
+                className={`${selectClass} disabled:opacity-50`}
+              >
+                <option value="">Selecione o estado</option>
+                {states.map((s) => (
+                  <option key={s.isoCode} value={s.isoCode} className="bg-surface">
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="cityName" className="sr-only">
+                Cidade
+              </label>
+              <select
+                id="cityName"
+                value={form.cityName}
+                disabled={!cities.length}
+                onChange={(e) => set("cityName", e.target.value)}
+                className={`${selectClass} disabled:opacity-50`}
+              >
+                <option value="">Selecione a cidade</option>
+                {cities.map((c) => (
+                  <option key={`${c.name}-${c.latitude}-${c.longitude}`} value={c.name} className="bg-surface">
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {locationLabel && (
+              <p className="text-xs font-semibold text-brand">{locationLabel}</p>
+            )}
           </div>
           <div>
             <label htmlFor="team" className={labelClass}>
