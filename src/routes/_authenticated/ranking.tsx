@@ -100,20 +100,24 @@ function RankingPage() {
         </section>
 
         <ul className="mt-7 space-y-2">
+        <ul className="mt-7">
           {rest.map((athlete, i) => (
             <li
               key={athlete.name}
-              className="card-elevated flex items-center gap-3 rounded-2xl px-3 py-2.5"
+              className="flex items-center gap-3 border-b border-white/5 px-1 py-3 transition-colors last:border-b-0 hover:bg-white/5"
             >
               <span className="w-4 text-center text-xs font-bold text-muted-foreground">{i + 4}</span>
-              <span className="flex size-9 items-center justify-center rounded-full bg-surface-2 text-[11px] font-bold">
-                {initials(athlete.name)}
-              </span>
+              <img
+                src={avatarUrl(athlete.name)}
+                alt={athlete.name}
+                loading="lazy"
+                className="size-9 rounded-full object-cover"
+              />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-semibold">{athlete.name}</p>
                 <p className="truncate text-[11px] text-muted-foreground">{athlete.team}</p>
               </div>
-              <span className="text-xs font-bold text-brand">
+              <span className="ml-auto shrink-0 text-right text-xs font-bold tabular-nums text-brand">
                 {athlete.xp.toLocaleString("pt-BR")} XP
               </span>
             </li>
