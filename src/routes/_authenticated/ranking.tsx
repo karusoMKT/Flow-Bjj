@@ -36,12 +36,8 @@ const DATA: Record<Tab, Athlete[]> = {
   ],
 };
 
-const initials = (name: string) =>
-  name
-    .split(" ")
-    .slice(0, 2)
-    .map((n) => n[0])
-    .join("");
+const avatarUrl = (name: string) =>
+  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1f1f22&color=d7ff3e&bold=true&size=160`;
 
 const PODIUM_STYLE = [
   { ring: "ring-brand", chip: "bg-brand text-brand-foreground", size: "size-20", order: "order-2" },
