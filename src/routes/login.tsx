@@ -85,7 +85,7 @@ function LoginPage() {
         </Link>
 
         <div className="mt-16 flex flex-col items-center">
-          <Logo className="scale-110" />
+          <Logo className="h-28 w-auto" />
           <h1 className="mt-12 text-lg font-semibold">Bem-vindo de volta!</h1>
         </div>
 
