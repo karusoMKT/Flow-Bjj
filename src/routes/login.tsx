@@ -85,16 +85,19 @@ function LoginPage() {
         </Link>
 
         <div className="mt-16 flex flex-col items-center">
-          <Logo className="h-28 w-auto" />
-          <h1 className="mt-12 text-lg font-semibold">Bem-vindo de volta!</h1>
+          <div className="flex flex-col items-center">
+            <span className="text-5xl font-black italic text-white">FLOW</span>
+            <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.3em] text-brand">JIU-JITSU</span>
+          </div>
+          <h1 className="mt-10 text-lg font-semibold">Bem-vindo de volta!</h1>
         </div>
 
         {!showForm ? (
-          <div className="mt-8 space-y-3">
+          <div className="mt-10 space-y-3">
             <button
               type="button"
               onClick={() => setShowForm(true)}
-              className="flex w-full items-center justify-center gap-3 rounded-xl bg-surface-2 py-3.5 text-sm font-semibold"
+              className="flex w-full items-center justify-center gap-3 rounded-xl border border-white/15 bg-surface-2/60 py-3.5 text-sm font-semibold shadow-sm transition-colors hover:bg-surface-2"
             >
               <Mail className="h-4 w-4" />
               Entrar com e-mail
