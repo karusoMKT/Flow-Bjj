@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { City, Country, State } from "country-state-city";
 import { supabase } from "@/integrations/supabase/client";
+import { TeamCombobox } from "@/components/TeamCombobox";
 import { BELTS } from "@/lib/feed";
 
 export const Route = createFileRoute("/cadastro")({
@@ -217,10 +218,10 @@ function SignupPage() {
             <label htmlFor="team" className={labelClass}>
               Equipe
             </label>
-            <input
+            <TeamCombobox
               id="team"
               value={form.team}
-              onChange={(e) => set("team", e.target.value)}
+              onChange={(v) => set("team", v)}
               className={inputClass}
               placeholder="Alliance"
             />
