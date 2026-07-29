@@ -186,7 +186,14 @@ function Perfil() {
           <p className="mt-2 text-[11px] text-muted-foreground">
             Faltam {xpToNext - xpInLevel} XP para o nível {level + 1}
           </p>
+          <Link
+            to="/statistics"
+            className="mt-3 flex items-center justify-center rounded-xl border border-white/10 bg-surface-2/60 py-2 text-xs font-semibold text-brand"
+          >
+            Ver estatísticas
+          </Link>
         </section>
+
 
         <section className="mt-8">
           <div className="flex items-center justify-between">
