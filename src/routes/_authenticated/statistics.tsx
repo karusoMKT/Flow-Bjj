@@ -64,7 +64,7 @@ function StatisticsPage() {
             >
               <ChevronLeft className="size-5" />
             </Link>
-            <h1 className="text-xl font-black italic">Estatísticas</h1>
+            <h1 className="font-sans text-xl font-semibold">Estatísticas</h1>
           </div>
 
           <div className="relative">
@@ -106,15 +106,18 @@ function StatisticsPage() {
             </div>
           </div>
 
-          <div className="mt-3 flex gap-2">
-            <div className="flex flex-col justify-between py-[2px] text-[9px] text-muted-foreground">
+          <div className="mt-3 flex gap-1">
+            <div className="flex shrink-0 flex-col gap-[3px]">
               {WEEKDAYS.map((d) => (
-                <span key={d} className="leading-none">
+                <span
+                  key={d}
+                  className="flex h-[9px] items-center text-[9px] leading-none text-muted-foreground"
+                >
                   {d}
                 </span>
               ))}
             </div>
-            <div className="min-w-0 flex-1 overflow-x-auto">
+            <div className="min-w-0 flex-1 overflow-x-auto scrollbar-hide">
               <div className="flex flex-col gap-[3px]">
                 {heatmap.map((row, day) => (
                   <div key={day} className="flex gap-[3px]">
@@ -140,7 +143,7 @@ function StatisticsPage() {
         <section className="card-elevated mt-4 rounded-2xl p-4">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Treinos por tipo</h2>
 
-          <div className="mt-4 flex items-center gap-4">
+          <div className="mt-4 flex items-center gap-6">
             <ul className="flex-1 space-y-3">
               {TYPES.map((t) => (
                 <li key={t.label}>
