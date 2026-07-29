@@ -124,6 +124,8 @@ function SignupPage() {
   const inputClass =
     "mt-1.5 w-full rounded-xl border border-input bg-surface px-3 py-3 text-sm outline-none placeholder:text-muted-foreground focus:border-brand";
   const labelClass = "text-[11px] uppercase tracking-wide text-muted-foreground";
+  const selectClass =
+    "w-full appearance-none rounded-xl border border-white/10 bg-surface-2 px-3 py-3 text-sm text-foreground outline-none transition-colors focus:border-brand";
 
   return (
     <main className="flex min-h-screen flex-col bg-background px-6 py-8">
