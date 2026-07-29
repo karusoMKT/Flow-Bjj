@@ -120,9 +120,7 @@ const CHALLENGES: Challenge[] = [
 ];
 
 function ChallengeCard({ challenge }: { challenge: Challenge }) {
-  const Icon = challenge.icon;
   const progress = Math.min(100, (challenge.current / challenge.target) * 100);
-  const isCompleted = challenge.status === "Concluídos";
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-surface p-4 transition-colors hover:border-white/10">
@@ -144,10 +142,7 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
               )}
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-2">
-              <div
-                className={`h-full rounded-full transition-all ${isCompleted ? "bg-brand" : "bg-brand"}`}
-                style={{ width: `${progress}%` }}
-              />
+              <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
             </div>
           </div>
         </div>
