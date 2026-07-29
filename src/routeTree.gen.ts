@@ -17,6 +17,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
+import { Route as AuthenticatedExplorarRouteImport } from './routes/_authenticated/explorar'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -58,6 +59,11 @@ const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   path: '/home',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedExplorarRoute = AuthenticatedExplorarRouteImport.update({
+  id: '/explorar',
+  path: '/explorar',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
   id: '/checkin',
   path: '/checkin',
@@ -71,6 +77,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/checkin': typeof AuthenticatedCheckinRoute
+  '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
   '/perfil': typeof AuthenticatedPerfilRoute
 }
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/checkin': typeof AuthenticatedCheckinRoute
+  '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
   '/perfil': typeof AuthenticatedPerfilRoute
 }
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
+  '/_authenticated/explorar': typeof AuthenticatedExplorarRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
 }
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sitemap.xml'
     | '/checkin'
+    | '/explorar'
     | '/home'
     | '/perfil'
   fileRoutesByTo: FileRoutesByTo
@@ -115,6 +125,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sitemap.xml'
     | '/checkin'
+    | '/explorar'
     | '/home'
     | '/perfil'
   id:
@@ -126,6 +137,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sitemap.xml'
     | '/_authenticated/checkin'
+    | '/_authenticated/explorar'
     | '/_authenticated/home'
     | '/_authenticated/perfil'
   fileRoutesById: FileRoutesById
@@ -197,6 +209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedHomeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/explorar': {
+      id: '/_authenticated/explorar'
+      path: '/explorar'
+      fullPath: '/explorar'
+      preLoaderRoute: typeof AuthenticatedExplorarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/checkin': {
       id: '/_authenticated/checkin'
       path: '/checkin'
@@ -209,12 +228,14 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
+  AuthenticatedExplorarRoute: typeof AuthenticatedExplorarRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
+  AuthenticatedExplorarRoute: AuthenticatedExplorarRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
 }
