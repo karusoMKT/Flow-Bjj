@@ -31,7 +31,6 @@ const signupSchema = z.object({
   fullName: z.string().trim().min(2, { message: "Informe seu nome completo" }).max(100),
   email: z.string().trim().email({ message: "E-mail inválido" }).max(255),
   password: z.string().min(6, { message: "A senha precisa de ao menos 6 caracteres" }).max(72),
-  city: z.string().trim().max(80).optional(),
   team: z.string().trim().max(80).optional(),
   professor: z.string().trim().max(80).optional(),
 });
@@ -43,13 +42,36 @@ function SignupPage() {
     fullName: "",
     email: "",
     password: "",
-    city: "",
+    countryCode: "BR",
+    stateCode: "",
+    cityName: "",
     team: "",
     professor: "",
     belt: "Branca",
     degrees: 0,
     competitor: true,
   });
+
+  const countries = useMemo(() => Country.getAllCountries(), []);
+  const states = useMemo(
+    () => (form.countryCode ? State.getStatesOfCountry(form.countryCode) : []),
+    [form.countryCode],
+  );
+  const cities = useMemo(
+    () =>
+      form.countryCode && form.stateCode
+        ? City.getCitiesOfState(form.countryCode, form.stateCode)
+        : [],
+    [form.countryCode, form.stateCode],
+  );
+
+  const locationLabel = [
+    form.cityName,
+    form.stateCode,
+    countries.find((c) => c.isoCode === form.countryCode)?.name,
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   function set<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: value }));
