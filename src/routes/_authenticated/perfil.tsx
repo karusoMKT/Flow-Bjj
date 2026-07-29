@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut } from "lucide-react";
+import { LogOut, Pencil, Settings, Flame, Clock, Dumbbell, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
-import { beltClass, timeAgo } from "@/lib/feed";
+import { beltClass } from "@/lib/feed";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -11,17 +11,26 @@ export const Route = createFileRoute("/_authenticated/perfil")({
       { title: "Meu perfil | Flow Jiu-Jitsu" },
       {
         name: "description",
-        content: "Sua faixa, equipe, professor e o histórico completo dos seus treinos.",
+        content: "Sua faixa, equipe, professor, nível de XP e o histórico completo dos seus treinos.",
       },
       { property: "og:title", content: "Meu perfil | Flow Jiu-Jitsu" },
       {
         property: "og:description",
-        content: "Sua faixa, equipe, professor e o histórico completo dos seus treinos.",
+        content: "Sua faixa, equipe, professor, nível de XP e o histórico completo dos seus treinos.",
       },
     ],
   }),
   component: Perfil,
 });
+
+type SessionRow = {
+  id: string;
+  session_date: string;
+  session_type: string | null;
+  duration_minutes: number;
+  image_url: string | null;
+  gymName?: string;
+};
 
 async function fetchProfile() {
   const { data: auth } = await supabase.auth.getUser();
@@ -35,10 +44,11 @@ async function fetchProfile() {
       .select("*")
       .eq("user_id", uid)
       .order("session_date", { ascending: false })
-      .limit(20),
+      .limit(30),
   ]);
 
-  const gymIds = [...new Set((sessionsRes.data ?? []).map((s) => s.gym_id).filter(Boolean) as string[])];
+  const rows = sessionsRes.data ?? [];
+  const gymIds = [...new Set(rows.map((s) => s.gym_id).filter(Boolean) as string[])];
   const gymsRes = gymIds.length
     ? await supabase.from("gyms").select("id, name").in("id", gymIds)
     : { data: [] as { id: string; name: string }[] };
@@ -46,8 +56,22 @@ async function fetchProfile() {
 
   return {
     profile: profileRes.data,
-    sessions: (sessionsRes.data ?? []).map((s) => ({ ...s, gymName: s.gym_id ? gyms.get(s.gym_id) : undefined })),
+    sessions: rows.map((s) => ({ ...s, gymName: s.gym_id ? gyms.get(s.gym_id) : undefined })) as SessionRow[],
   };
+}
+
+/** Contagem de dias consecutivos de treino a partir das datas das sessões. */
+function currentStreak(dates: string[]): number {
+  const set = new Set(dates);
+  let streak = 0;
+  const cursor = new Date();
+  // tolera não ter treinado hoje ainda
+  if (!set.has(cursor.toISOString().slice(0, 10))) cursor.setDate(cursor.getDate() - 1);
+  while (set.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
 }
 
 function Perfil() {
@@ -65,84 +89,138 @@ function Perfil() {
   const profile = data?.profile;
   const sessions = data?.sessions ?? [];
   const totalMin = sessions.reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0);
+  const streak = currentStreak(sessions.map((s) => s.session_date));
+
+  // Gamificação — derivada dos treinos (mock até termos tabela de XP/conquistas)
+  const xp = sessions.length * 150 + Math.round(totalMin * 1.5);
+  const level = Math.max(1, Math.floor(xp / 250) + 1);
+  const xpInLevel = xp % 250;
+  const xpToNext = 250;
+  const achievements = Math.min(15, Math.floor(sessions.length / 2));
+
+  const identity = [profile?.belt && `Faixa ${profile.belt}`, profile?.team, profile?.professor]
+    .filter(Boolean)
+    .join(" • ");
+
+  const metrics = [
+    { icon: Dumbbell, label: "Treinos", value: String(sessions.length) },
+    { icon: Clock, label: "No tatame", value: `${Math.round(totalMin / 60)}h` },
+    { icon: Flame, label: "Dias seguidos", value: String(streak) },
+    { icon: Trophy, label: "Conquistas", value: String(achievements) },
+  ];
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      <main className="mx-auto max-w-md px-4 pt-6">
-        <div className="flex items-center gap-4">
-          <div className="size-20 overflow-hidden rounded-full bg-surface-2">
-            {profile?.avatar_url ? (
-              <img src={profile.avatar_url} alt={profile.full_name ?? "Perfil"} className="size-full object-cover" />
-            ) : null}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-bold">
-              {isLoading ? "Carregando..." : (profile?.full_name ?? profile?.username ?? "Atleta")}
-            </h1>
-            <p className="truncate text-sm text-muted-foreground">@{profile?.username ?? "—"}</p>
-            <span
-              className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold ${beltClass(profile?.belt)}`}
-            >
-              Faixa {profile?.belt ?? "—"}
-            </span>
-          </div>
-          <button
-            onClick={signOut}
-            aria-label="Sair"
-            className="rounded-xl bg-surface p-2.5 text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <LogOut className="size-5" />
-          </button>
-        </div>
+    <div className="min-h-screen bg-background pb-28">
+      <header className="mx-auto flex max-w-md items-center justify-between px-4 pt-6">
+        <button
+          aria-label="Configurações"
+          className="rounded-xl bg-surface p-2.5 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <Settings className="size-5" />
+        </button>
+        <h1 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Perfil</h1>
+        <button
+          onClick={signOut}
+          aria-label="Sair"
+          className="rounded-xl bg-surface p-2.5 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <LogOut className="size-5" />
+        </button>
+      </header>
 
-        <dl className="mt-6 grid grid-cols-2 gap-3">
-          {[
-            ["Equipe", profile?.team],
-            ["Professor", profile?.professor],
-            ["Cidade", profile?.city],
-            ["Peso", profile?.weight],
-          ].map(([label, value]) => (
-            <div key={label as string} className="card-elevated rounded-2xl p-3">
-              <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</dt>
-              <dd className="mt-1 truncate text-sm font-medium">{(value as string) || "—"}</dd>
+      <main className="mx-auto max-w-md px-4">
+        <section className="mt-6 flex flex-col items-center text-center">
+          <div className="relative">
+            <div className="size-24 overflow-hidden rounded-full bg-surface-2 ring-2 ring-brand/70">
+              {profile?.avatar_url ? (
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.full_name ?? "Foto de perfil"}
+                  className="size-full object-cover"
+                />
+              ) : null}
+            </div>
+            <button
+              aria-label="Editar perfil"
+              className="absolute -bottom-1 -right-1 rounded-full bg-brand p-1.5 text-brand-foreground"
+            >
+              <Pencil className="size-3.5" />
+            </button>
+          </div>
+
+          <h2 className="mt-4 text-2xl font-black italic">
+            {isLoading ? "Carregando..." : (profile?.full_name ?? profile?.username ?? "Atleta")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{identity || "—"}</p>
+          <p className="text-xs text-muted-foreground">{profile?.city ?? "—"}</p>
+          <span
+            className={`mt-3 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${beltClass(profile?.belt)}`}
+          >
+            @{profile?.username ?? "—"}
+          </span>
+        </section>
+
+        <section className="mt-6 grid grid-cols-4 gap-2">
+          {metrics.map(({ icon: Icon, label, value }) => (
+            <div key={label} className="card-elevated rounded-2xl px-2 py-3 text-center">
+              <Icon className="mx-auto size-4 text-brand" />
+              <p className="mt-1.5 text-lg font-bold leading-none">{value}</p>
+              <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{label}</p>
             </div>
           ))}
-        </dl>
+        </section>
 
-        <div className="mt-3 grid grid-cols-2 gap-3">
-          <div className="card-elevated rounded-2xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Treinos</p>
-            <p className="mt-1 text-2xl font-bold text-brand">{sessions.length}</p>
+        <section className="card-elevated mt-4 rounded-2xl p-4">
+          <div className="flex items-baseline justify-between">
+            <p className="text-sm font-bold uppercase tracking-wide text-brand">Nível {level}</p>
+            <p className="text-xs text-muted-foreground">
+              {xpInLevel} / {xpToNext} XP
+            </p>
           </div>
-          <div className="card-elevated rounded-2xl p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Horas no tatame</p>
-            <p className="mt-1 text-2xl font-bold text-brand">{Math.round(totalMin / 60)}h</p>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-2">
+            <div
+              className="h-full rounded-full bg-brand transition-all"
+              style={{ width: `${Math.min(100, (xpInLevel / xpToNext) * 100)}%` }}
+            />
           </div>
-        </div>
+          <p className="mt-2 text-[11px] text-muted-foreground">
+            Faltam {xpToNext - xpInLevel} XP para o nível {level + 1}
+          </p>
+        </section>
 
-        <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-          Histórico de treinos
-        </h2>
-        <ul className="mt-3 space-y-2">
-          {sessions.length === 0 && !isLoading && (
-            <li className="rounded-2xl bg-surface p-4 text-sm text-muted-foreground">
+        <section className="mt-8">
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Atividade recente</h3>
+            <span className="text-xs font-medium text-brand">Ver tudo</span>
+          </div>
+
+          {sessions.length === 0 && !isLoading ? (
+            <p className="mt-3 rounded-2xl bg-surface p-4 text-sm text-muted-foreground">
               Nenhum treino registrado ainda.
-            </li>
+            </p>
+          ) : (
+            <ul className="-mx-4 mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
+              {sessions.slice(0, 10).map((s) => (
+                <li
+                  key={s.id}
+                  className="card-elevated relative h-32 w-40 shrink-0 snap-start overflow-hidden rounded-2xl"
+                >
+                  {s.image_url ? (
+                    <img src={s.image_url} alt={s.session_type ?? "Treino"} className="size-full object-cover" />
+                  ) : (
+                    <div className="size-full bg-surface-2" />
+                  )}
+                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background to-transparent p-2.5">
+                    <p className="truncate text-xs font-semibold">{s.gymName ?? "Academia"}</p>
+                    <p className="truncate text-[10px] text-muted-foreground">
+                      {new Date(s.session_date).toLocaleDateString("pt-BR")} · {s.duration_minutes}min
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
-          {sessions.map((s) => (
-            <li key={s.id} className="card-elevated flex items-center justify-between rounded-2xl p-4">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{s.gymName ?? "Academia"}</p>
-                <p className="text-xs text-muted-foreground">
-                  {new Date(s.session_date).toLocaleDateString("pt-BR")} · {s.session_type ?? "Treino"}
-                </p>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {s.duration_minutes}min · {timeAgo(s.created_at)}
-              </span>
-            </li>
-          ))}
-        </ul>
+        </section>
       </main>
 
       <BottomNav />
