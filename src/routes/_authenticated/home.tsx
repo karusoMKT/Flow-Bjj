@@ -61,7 +61,7 @@ function HomeFeed() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
-        <Logo />
+        <Logo className="h-8 w-auto" />
         <Bell className="size-5 text-muted-foreground" />
       </header>
 
