@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, ChevronRight, Crown, Heart, MessageCircle, Sparkles } from "lucide-react";
+import { Bell, Bot, ChevronRight, Crown, Heart, MessageCircle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { Logo } from "@/components/Logo";
@@ -98,6 +98,26 @@ function HomeFeed() {
           </div>
           <ChevronRight className="size-4 shrink-0 text-brand" />
         </Link>
+
+        <Link
+          to="/coach"
+          className="mb-5 flex items-center gap-3 rounded-2xl border border-brand/40 bg-surface p-4 shadow-[0_0_24px_-12px_var(--brand)]"
+        >
+          <div className="grid size-11 shrink-0 place-items-center rounded-xl bg-brand/15 text-brand">
+            <Bot className="size-6" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold">IA Coach</p>
+            <p className="mt-0.5 text-xs leading-snug text-muted-foreground">
+              Analise seus treinos e monte sua estratégia
+            </p>
+          </div>
+          <span className="grid size-8 shrink-0 place-items-center rounded-full bg-brand text-brand-foreground">
+            <ChevronRight className="size-4" />
+          </span>
+        </Link>
+
+
 
 
         {isLoading && (
