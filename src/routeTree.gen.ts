@@ -26,6 +26,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedExplorarRouteImport } from './routes/_authenticated/explorar'
+import { Route as AuthenticatedCreateRouteImport } from './routes/_authenticated/create'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedChallengesRouteImport } from './routes/_authenticated/challenges'
@@ -121,6 +122,11 @@ const AuthenticatedExplorarRoute = AuthenticatedExplorarRouteImport.update({
   path: '/explorar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCreateRoute = AuthenticatedCreateRouteImport.update({
+  id: '/create',
+  path: '/create',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
   id: '/coach',
   path: '/coach',
@@ -175,6 +181,7 @@ export interface FileRoutesByFullPath {
   '/challenges': typeof AuthenticatedChallengesRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/coach': typeof AuthenticatedCoachRoute
+  '/create': typeof AuthenticatedCreateRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -201,6 +208,7 @@ export interface FileRoutesByTo {
   '/challenges': typeof AuthenticatedChallengesRoute
   '/checkin': typeof AuthenticatedCheckinRoute
   '/coach': typeof AuthenticatedCoachRoute
+  '/create': typeof AuthenticatedCreateRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -229,6 +237,7 @@ export interface FileRoutesById {
   '/_authenticated/challenges': typeof AuthenticatedChallengesRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
+  '/_authenticated/create': typeof AuthenticatedCreateRoute
   '/_authenticated/explorar': typeof AuthenticatedExplorarRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
@@ -257,6 +266,7 @@ export interface FileRouteTypes {
     | '/challenges'
     | '/checkin'
     | '/coach'
+    | '/create'
     | '/explorar'
     | '/home'
     | '/messages'
@@ -283,6 +293,7 @@ export interface FileRouteTypes {
     | '/challenges'
     | '/checkin'
     | '/coach'
+    | '/create'
     | '/explorar'
     | '/home'
     | '/messages'
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/challenges'
     | '/_authenticated/checkin'
     | '/_authenticated/coach'
+    | '/_authenticated/create'
     | '/_authenticated/explorar'
     | '/_authenticated/home'
     | '/_authenticated/messages'
@@ -456,6 +468,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExplorarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/create': {
+      id: '/_authenticated/create'
+      path: '/create'
+      fullPath: '/create'
+      preLoaderRoute: typeof AuthenticatedCreateRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/coach': {
       id: '/_authenticated/coach'
       path: '/coach'
@@ -521,6 +540,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChallengesRoute: typeof AuthenticatedChallengesRoute
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
+  AuthenticatedCreateRoute: typeof AuthenticatedCreateRoute
   AuthenticatedExplorarRoute: typeof AuthenticatedExplorarRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
@@ -543,6 +563,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChallengesRoute: AuthenticatedChallengesRoute,
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
+  AuthenticatedCreateRoute: AuthenticatedCreateRoute,
   AuthenticatedExplorarRoute: AuthenticatedExplorarRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
@@ -574,3 +595,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
