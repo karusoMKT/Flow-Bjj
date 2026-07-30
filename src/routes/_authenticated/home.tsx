@@ -1,22 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import {
-  Bell,
-  Bot,
-  Calendar,
-  ChevronRight,
-  Crown,
-  Hand,
-  Image as ImageIcon,
-  MapPin,
-  MessageCircle,
-  Share2,
-  Trophy,
-} from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { Bell, Heart, MessageCircle, MessageSquare, Play, Plus, Sparkles, Zap } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
-import { Logo } from "@/components/Logo";
-import { beltClass, timeAgo } from "@/lib/feed";
+import feedRoll from "@/assets/feed-roll.jpg";
 
 export const Route = createFileRoute("/_authenticated/home")({
   head: () => ({
@@ -38,234 +23,166 @@ export const Route = createFileRoute("/_authenticated/home")({
   component: HomeFeed,
 });
 
-const EVENTS = [
-  { id: "1", title: "Campeonato Regional", meta: "12 ago · São Paulo", icon: Trophy },
-  { id: "2", title: "Desafio 30 Dias", meta: "Faltam 11 dias", icon: Calendar },
-  { id: "3", title: "Open Interno", meta: "24 ago · Sua academia", icon: Trophy },
-  { id: "4", title: "Semana do Drill", meta: "Começa segunda", icon: Calendar },
+const avatar = (name: string) =>
+  `https://ui-avatars.com/api/?background=1f1f1f&color=d9ff3f&bold=true&name=${encodeURIComponent(name)}`;
+
+const STORIES = [
+  { id: "me", name: "Seu story", src: avatar("Você"), me: true },
+  { id: "joao", name: "João", src: avatar("João Santos") },
+  { id: "maria", name: "Maria", src: avatar("Maria Almeida") },
+  { id: "alliance", name: "Alliance", src: avatar("Alliance") },
+  { id: "lucas", name: "Lucas", src: avatar("Lucas") },
 ];
 
-async function fetchFeed() {
-  const { data: sessions, error } = await supabase
-    .from("sessions")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(30);
-  if (error) throw error;
-  const rows = sessions ?? [];
-
-  const userIds = [...new Set(rows.map((s) => s.user_id))];
-  const gymIds = [...new Set(rows.map((s) => s.gym_id).filter(Boolean) as string[])];
-
-  const [profilesRes, gymsRes] = await Promise.all([
-    userIds.length
-      ? supabase.from("profiles").select("id, username, full_name, belt, team, avatar_url").in("id", userIds)
-      : Promise.resolve({ data: [], error: null } as const),
-    gymIds.length
-      ? supabase.from("gyms").select("id, name, city").in("id", gymIds)
-      : Promise.resolve({ data: [], error: null } as const),
-  ]);
-
-  const profiles = new Map((profilesRes.data ?? []).map((p) => [p.id, p]));
-  const gyms = new Map((gymsRes.data ?? []).map((g) => [g.id, g]));
-
-  return rows.map((s) => ({
-    ...s,
-    profile: profiles.get(s.user_id),
-    gym: s.gym_id ? gyms.get(s.gym_id) : undefined,
-  }));
+function StoryRing({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="block rounded-full bg-gradient-to-tr from-brand via-brand/40 to-primary p-[2px]">
+      <span className="block rounded-full border-2 border-background">{children}</span>
+    </span>
+  );
 }
 
 function HomeFeed() {
-  const { data, isLoading, error } = useQuery({ queryKey: ["feed"], queryFn: fetchFeed });
-
   return (
     <div className="min-h-screen bg-background pb-24">
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
-        <Logo className="h-8 w-auto" />
-        <Link
-          to="/notifications"
-          aria-label="Ver notificações"
-          className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Bell className="size-5" />
-        </Link>
+      <header className="sticky top-0 z-40 flex items-center justify-between border-b border-white/5 bg-background/95 px-4 py-3 backdrop-blur">
+        <span className="select-none font-display text-2xl font-black italic tracking-tight text-brand">
+          FLOW
+        </span>
+        <div className="flex items-center gap-1">
+          <Link
+            to="/coach"
+            aria-label="IA Coach"
+            className="rounded-xl p-2 text-muted-foreground transition-colors hover:text-brand"
+          >
+            <Sparkles className="size-5" />
+          </Link>
+          <Link
+            to="/notifications"
+            aria-label="Notificações"
+            className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Bell className="size-5" />
+            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+          </Link>
+          <Link
+            to="/notifications"
+            aria-label="Mensagens"
+            className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <MessageSquare className="size-5" />
+            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+          </Link>
+        </div>
       </header>
 
-      <main className="mx-auto max-w-md px-4 py-4">
-        <h1 className="sr-only">Feed de treinos</h1>
+      <main className="mx-auto max-w-md">
+        <h1 className="sr-only">Feed</h1>
 
-        {/* Composer */}
-        <section className="rounded-2xl border border-white/5 bg-surface p-3.5">
-          <Link
-            to="/checkin"
-            className="block w-full rounded-xl bg-surface-2 px-3.5 py-2.5 text-left text-sm text-muted-foreground"
-          >
-            Compartilhe seu treino ou pensamento...
-          </Link>
-          <div className="mt-3 flex items-center gap-2">
-            <Link
-              to="/checkin"
-              className="flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ImageIcon className="size-4" /> Foto
-            </Link>
-            <Link
-              to="/checkin"
-              className="flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <MapPin className="size-4" /> Academia
-            </Link>
-            <Link
-              to="/checkin"
-              className="ml-auto rounded-full bg-brand px-4 py-1.5 text-[11px] font-bold text-brand-foreground"
-            >
-              Postar
-            </Link>
-          </div>
-        </section>
-
-        {/* Eventos */}
-        <section className="mt-5">
-          <h2 className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Próximos Desafios &amp; Eventos
-          </h2>
-          <ul className="scrollbar-hide -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
-            {EVENTS.map(({ id, title, meta, icon: Icon }) => (
-              <li key={id} className="shrink-0">
-                <Link
-                  to="/challenges"
-                  className="flex w-52 items-center gap-2.5 rounded-xl border border-white/5 bg-surface px-3 py-2.5"
-                >
-                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand/10 text-brand">
-                    <Icon className="size-4" />
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-xs font-semibold">{title}</span>
-                    <span className="block truncate text-[11px] text-muted-foreground">{meta}</span>
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-
-        <Link
-          to="/premium"
-          className="mt-5 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3.5"
-        >
-          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/15 text-brand">
-            <Crown className="size-5" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold">
-              Flow <span className="text-brand">Premium</span>
-            </p>
-            <p className="text-[11px] text-muted-foreground">IA Coach ilimitado e análise avançada.</p>
-          </div>
-          <ChevronRight className="size-4 shrink-0 text-brand" />
-        </Link>
-
-        {isLoading && (
-          <div className="mt-5 space-y-4">
-            {[0, 1, 2].map((i) => (
-              <div key={i} className="h-40 animate-pulse rounded-2xl bg-surface" />
-            ))}
-          </div>
-        )}
-
-        {error && (
-          <p className="mt-5 rounded-xl bg-surface p-4 text-sm text-destructive">
-            Não foi possível carregar o feed.
-          </p>
-        )}
-
-        {data && data.length === 0 && (
-          <div className="mt-5 rounded-2xl bg-surface p-6 text-center">
-            <p className="text-sm text-muted-foreground">
-              Nenhum treino registrado ainda. Faça o seu primeiro check-in!
-            </p>
-            <Link
-              to="/checkin"
-              className="mt-4 inline-flex rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground"
-            >
-              Fazer check-in
-            </Link>
-          </div>
-        )}
-
-        <ul className="mt-5 space-y-4">
-          {data?.map((s) => (
-            <li key={s.id} className="card-elevated overflow-hidden rounded-2xl">
-              <div className="flex items-center gap-3 p-4">
-                <div className="size-11 shrink-0 overflow-hidden rounded-full bg-surface-2">
-                  {s.profile?.avatar_url ? (
+        {/* Stories */}
+        <section aria-label="Stories" className="scrollbar-hide flex gap-4 overflow-x-auto px-4 py-4">
+          {STORIES.map((s) => (
+            <div key={s.id} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+              <div className="relative">
+                {s.me ? (
+                  <span className="block rounded-full border-2 border-white/10 p-[2px]">
                     <img
-                      src={s.profile.avatar_url}
-                      alt={s.profile.full_name ?? "Atleta"}
-                      className="size-full object-cover"
+                      src={s.src}
+                      alt={s.name}
+                      className="size-14 rounded-full object-cover"
                       loading="lazy"
                     />
-                  ) : null}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold">
-                    {s.profile?.full_name ?? s.profile?.username ?? "Atleta"}
-                  </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {s.gym?.name ?? "Academia"} · há {timeAgo(s.created_at)}
-                  </p>
-                </div>
-                <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${beltClass(s.profile?.belt)}`}>
-                  {s.profile?.belt ?? "Faixa"}
-                </span>
+                  </span>
+                ) : (
+                  <StoryRing>
+                    <img
+                      src={s.src}
+                      alt={s.name}
+                      className="size-14 rounded-full object-cover"
+                      loading="lazy"
+                    />
+                  </StoryRing>
+                )}
+                {s.me && (
+                  <Link
+                    to="/checkin"
+                    aria-label="Adicionar story"
+                    className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
+                  >
+                    <Plus className="size-3" strokeWidth={3} />
+                  </Link>
+                )}
               </div>
-
-              <div className="px-4">
-                <span className="inline-flex rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
-                  {s.session_type ?? "Treino"} · {s.duration_minutes} min
-                </span>
-              </div>
-
-              {s.notes && <p className="px-4 pt-3 text-sm leading-relaxed text-foreground/80">{s.notes}</p>}
-
-              {s.image_url && (
-                <img src={s.image_url} alt="Treino" className="mt-3 h-52 w-full object-cover" loading="lazy" />
-              )}
-
-              <div className="mt-1 flex items-center gap-1 border-t border-white/5 px-2 py-1.5">
-                <button
-                  type="button"
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-surface-2 hover:text-brand"
-                >
-                  <Hand className="size-4" /> Oss!
-                </button>
-                <button
-                  type="button"
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-                >
-                  <MessageCircle className="size-4" /> Comentar
-                </button>
-                <button
-                  type="button"
-                  className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-semibold text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground"
-                >
-                  <Share2 className="size-4" /> Compartilhar
-                </button>
-              </div>
-            </li>
+              <span className="w-full truncate text-center text-[10px] text-muted-foreground">
+                {s.name}
+              </span>
+            </div>
           ))}
+        </section>
+
+        {/* Feed */}
+        <ul className="flex flex-col gap-4 px-4">
+          {/* Card tipo 1 — treino com imagem */}
+          <li className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
+            <div className="flex items-start gap-3 p-3.5">
+              <img
+                src={avatar("João Santos")}
+                alt="João Santos"
+                className="size-10 shrink-0 rounded-full object-cover"
+                loading="lazy"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-semibold">João Santos</p>
+                <p className="truncate text-xs text-muted-foreground">Treinou 2h · Alliance Barra</p>
+                <p className="truncate text-xs text-muted-foreground">Técnica · Rolas</p>
+              </div>
+              <span className="shrink-0 text-xs text-muted-foreground">2h</span>
+            </div>
+
+            <img
+              src={feedRoll}
+              alt="Atletas treinando jiu-jitsu"
+              width={1024}
+              height={768}
+              loading="lazy"
+              className="h-60 w-full object-cover"
+            />
+
+            <div className="flex items-center gap-2 px-3.5 py-3">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                <Play className="size-3.5" /> 2h 12m
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                <Zap className="size-3.5" /> +80 XP
+              </span>
+              <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+                <button type="button" className="flex items-center gap-1.5 transition-colors hover:text-destructive">
+                  <Heart className="size-4 text-destructive" /> 128
+                </button>
+                <button type="button" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
+                  <MessageCircle className="size-4" /> 23
+                </button>
+              </div>
+            </div>
+          </li>
+
+          {/* Card tipo 2 — conquista */}
+          <li className="rounded-2xl border border-white/5 bg-surface p-3.5">
+            <div className="flex items-start gap-3">
+              <img
+                src={avatar("Maria Almeida")}
+                alt="Maria Almeida"
+                className="size-10 shrink-0 rounded-full object-cover"
+                loading="lazy"
+              />
+              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-foreground">
+                Maria Almeida conquistou sua faixa Azul!
+              </p>
+              <span className="shrink-0 text-xs text-muted-foreground">4h</span>
+            </div>
+          </li>
         </ul>
       </main>
-
-      <Link
-        to="/coach"
-        aria-label="Abrir IA Coach"
-        className="fixed bottom-24 right-4 z-50 grid size-14 place-items-center rounded-full bg-brand text-brand-foreground shadow-[0_10px_30px_-8px_var(--brand)]"
-      >
-        <span className="absolute inset-0 animate-ping rounded-full bg-brand/40" aria-hidden="true" />
-        <Bot className="relative size-6" />
-      </Link>
 
       <BottomNav />
     </div>
