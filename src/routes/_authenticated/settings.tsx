@@ -27,21 +27,22 @@ const MENU: { items: MenuItem[] }[] = [
   {
     items: [
       { icon: UserRound, label: "Editar perfil", to: "/perfil" },
-      { icon: Shield, label: "Privacidade", to: "/settings/privacy" },
+      { icon: Crown, label: "Flow Premium", to: "/premium", value: "Upgrade" },
       { icon: Bell, label: "Notificações", to: "/settings/notifications" },
     ],
   },
   {
     items: [
-      { icon: Globe, label: "Idioma", value: "Português", to: "/settings/language" },
-      { icon: Ruler, label: "Unidades", value: "Métrico", to: "/settings/units" },
-      { icon: Palette, label: "Tema", value: "Escuro", to: "/settings/theme" },
+      { icon: Shield, label: "Privacidade", value: "Em breve" },
+      { icon: Globe, label: "Idioma", value: "Português" },
+      { icon: Ruler, label: "Unidades", value: "Métrico" },
+      { icon: Palette, label: "Tema", value: "Escuro" },
     ],
   },
   {
     items: [
-      { icon: HelpCircle, label: "Ajuda e suporte", to: "/settings/help" },
-      { icon: Info, label: "Sobre o Flow", to: "/settings/about" },
+      { icon: HelpCircle, label: "Ajuda e suporte", value: "Em breve" },
+      { icon: Info, label: "Sobre o Flow", value: "v1.0" },
     ],
   },
 ];
