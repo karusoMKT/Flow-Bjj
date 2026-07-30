@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut, Pencil, Settings, Flame, Clock, Dumbbell, Trophy, Medal, Target } from "lucide-react";
+import { LogOut, Pencil, Settings, Flame, Clock, Crown, Dumbbell, Trophy, Medal, Target } from "lucide-react";
+import { DevRoutesMenu } from "@/components/DevRoutesMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { beltClass } from "@/lib/feed";
@@ -222,6 +223,24 @@ function Perfil() {
             </div>
           </Link>
         </section>
+
+        <Link
+          to="/premium"
+          className="mt-4 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3.5"
+        >
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/15 text-brand">
+            <Crown className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">
+              Flow <span className="text-brand">Premium</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">IA Coach ilimitado e análise avançada.</p>
+          </div>
+        </Link>
+
+        <DevRoutesMenu />
+
 
 
         <section className="mt-8">
