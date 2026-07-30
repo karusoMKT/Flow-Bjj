@@ -66,7 +66,7 @@ function HomeFeed() {
             <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
           </Link>
           <Link
-            to="/notifications"
+            to="/messages"
             aria-label="Mensagens"
             className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:text-foreground"
           >

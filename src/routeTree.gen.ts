@@ -23,6 +23,7 @@ import { Route as AuthenticatedRankingRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedExplorarRouteImport } from './routes/_authenticated/explorar'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
@@ -32,6 +33,7 @@ import { Route as AuthenticatedAnalysisRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings_.notifications'
 import { Route as AuthenticatedGymGymIdRouteImport } from './routes/_authenticated/gym.$gymId'
+import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat.$chatId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -104,6 +106,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -151,6 +158,11 @@ const AuthenticatedGymGymIdRoute = AuthenticatedGymGymIdRouteImport.update({
   path: '/gym/$gymId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChatChatIdRoute = AuthenticatedChatChatIdRouteImport.update({
+  id: '/chat/$chatId',
+  path: '/chat/$chatId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -165,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/coach': typeof AuthenticatedCoachRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/premium': typeof AuthenticatedPremiumRoute
@@ -173,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -189,6 +203,7 @@ export interface FileRoutesByTo {
   '/coach': typeof AuthenticatedCoachRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/premium': typeof AuthenticatedPremiumRoute
@@ -197,6 +212,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -215,6 +231,7 @@ export interface FileRoutesById {
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/explorar': typeof AuthenticatedExplorarRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
@@ -223,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/statistics': typeof AuthenticatedStatisticsRoute
   '/_authenticated/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/_authenticated/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/_authenticated/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/_authenticated/settings_/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -241,6 +259,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/explorar'
     | '/home'
+    | '/messages'
     | '/notifications'
     | '/perfil'
     | '/premium'
@@ -249,6 +268,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statistics'
     | '/training-plan'
+    | '/chat/$chatId'
     | '/gym/$gymId'
     | '/settings/notifications'
   fileRoutesByTo: FileRoutesByTo
@@ -265,6 +285,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/explorar'
     | '/home'
+    | '/messages'
     | '/notifications'
     | '/perfil'
     | '/premium'
@@ -273,6 +294,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statistics'
     | '/training-plan'
+    | '/chat/$chatId'
     | '/gym/$gymId'
     | '/settings/notifications'
   id:
@@ -290,6 +312,7 @@ export interface FileRouteTypes {
     | '/_authenticated/coach'
     | '/_authenticated/explorar'
     | '/_authenticated/home'
+    | '/_authenticated/messages'
     | '/_authenticated/notifications'
     | '/_authenticated/perfil'
     | '/_authenticated/premium'
@@ -298,6 +321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/statistics'
     | '/_authenticated/training-plan'
+    | '/_authenticated/chat/$chatId'
     | '/_authenticated/gym/$gymId'
     | '/_authenticated/settings_/notifications'
   fileRoutesById: FileRoutesById
@@ -411,6 +435,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/messages': {
+      id: '/_authenticated/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/home': {
       id: '/_authenticated/home'
       path: '/home'
@@ -474,6 +505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGymGymIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chat/$chatId': {
+      id: '/_authenticated/chat/$chatId'
+      path: '/chat/$chatId'
+      fullPath: '/chat/$chatId'
+      preLoaderRoute: typeof AuthenticatedChatChatIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -485,6 +523,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedExplorarRoute: typeof AuthenticatedExplorarRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
@@ -493,6 +532,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStatisticsRoute: typeof AuthenticatedStatisticsRoute
   AuthenticatedTrainingPlanRoute: typeof AuthenticatedTrainingPlanRoute
+  AuthenticatedChatChatIdRoute: typeof AuthenticatedChatChatIdRoute
   AuthenticatedGymGymIdRoute: typeof AuthenticatedGymGymIdRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -505,6 +545,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedExplorarRoute: AuthenticatedExplorarRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
@@ -513,6 +554,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStatisticsRoute: AuthenticatedStatisticsRoute,
   AuthenticatedTrainingPlanRoute: AuthenticatedTrainingPlanRoute,
+  AuthenticatedChatChatIdRoute: AuthenticatedChatChatIdRoute,
   AuthenticatedGymGymIdRoute: AuthenticatedGymGymIdRoute,
   AuthenticatedSettingsNotificationsRoute:
     AuthenticatedSettingsNotificationsRoute,
@@ -532,13 +574,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
