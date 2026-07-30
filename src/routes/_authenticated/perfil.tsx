@@ -112,12 +112,13 @@ function Perfil() {
   return (
     <div className="min-h-screen bg-background pb-28">
       <header className="mx-auto flex max-w-md items-center justify-between px-4 pt-6">
-        <button
+        <Link
+          to="/settings"
           aria-label="Configurações"
           className="rounded-xl bg-surface p-2.5 text-muted-foreground transition-colors hover:text-foreground"
         >
           <Settings className="size-5" />
-        </button>
+        </Link>
         <h1 className="text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">Perfil</h1>
         <button
           onClick={signOut}
