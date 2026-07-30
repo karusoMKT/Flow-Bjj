@@ -16,7 +16,14 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 
-const MENU = [
+type MenuItem = {
+  icon: React.ElementType;
+  label: string;
+  to: string;
+  value?: string;
+};
+
+const MENU: { items: MenuItem[] }[] = [
   {
     items: [
       { icon: UserRound, label: "Editar perfil", to: "/perfil" },
