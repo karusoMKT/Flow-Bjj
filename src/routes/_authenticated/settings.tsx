@@ -5,6 +5,7 @@ import {
   UserRound,
   Shield,
   Bell,
+  Crown,
   Globe,
   Ruler,
   Palette,
@@ -19,7 +20,7 @@ import { BottomNav } from "@/components/BottomNav";
 type MenuItem = {
   icon: React.ElementType;
   label: string;
-  to: string;
+  to?: string;
   value?: string;
 };
 
@@ -27,21 +28,22 @@ const MENU: { items: MenuItem[] }[] = [
   {
     items: [
       { icon: UserRound, label: "Editar perfil", to: "/perfil" },
-      { icon: Shield, label: "Privacidade", to: "/settings/privacy" },
+      { icon: Crown, label: "Flow Premium", to: "/premium", value: "Upgrade" },
       { icon: Bell, label: "Notificações", to: "/settings/notifications" },
     ],
   },
   {
     items: [
-      { icon: Globe, label: "Idioma", value: "Português", to: "/settings/language" },
-      { icon: Ruler, label: "Unidades", value: "Métrico", to: "/settings/units" },
-      { icon: Palette, label: "Tema", value: "Escuro", to: "/settings/theme" },
+      { icon: Shield, label: "Privacidade", value: "Em breve" },
+      { icon: Globe, label: "Idioma", value: "Português" },
+      { icon: Ruler, label: "Unidades", value: "Métrico" },
+      { icon: Palette, label: "Tema", value: "Escuro" },
     ],
   },
   {
     items: [
-      { icon: HelpCircle, label: "Ajuda e suporte", to: "/settings/help" },
-      { icon: Info, label: "Sobre o Flow", to: "/settings/about" },
+      { icon: HelpCircle, label: "Ajuda e suporte", value: "Em breve" },
+      { icon: Info, label: "Sobre o Flow", value: "v1.0" },
     ],
   },
 ];
@@ -70,24 +72,37 @@ function SettingsPage() {
         {MENU.map((group, groupIndex) => (
           <section key={groupIndex} className="mb-4 overflow-hidden rounded-2xl border border-white/5 bg-surface">
             <ul>
-              {group.items.map((item, index) => (
-                <li
-                  key={item.label}
-                  className={`${index !== group.items.length - 1 ? "border-b border-white/5" : ""}`}
-                >
-                  <Link
-                    to={item.to}
-                    className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.03]"
-                  >
+              {group.items.map((item, index) => {
+                const inner = (
+                  <>
                     <div className="grid size-8 place-items-center rounded-lg bg-surface-2 text-brand">
                       <item.icon className="size-4" strokeWidth={1.8} />
                     </div>
                     <span className="flex-1 text-[14px] font-medium text-foreground">{item.label}</span>
                     {item.value && <span className="text-[13px] text-muted-foreground">{item.value}</span>}
                     <ChevronRight className="size-4 text-muted-foreground" />
-                  </Link>
-                </li>
-              ))}
+                  </>
+                );
+                const className = "flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03]";
+
+                return (
+                  <li
+                    key={item.label}
+                    className={`${index !== group.items.length - 1 ? "border-b border-white/5" : ""}`}
+                  >
+                    {item.to ? (
+                      <Link to={item.to as "/perfil"} className={className}>
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div className={className} aria-disabled="true">
+                        {inner}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+
             </ul>
           </section>
         ))}

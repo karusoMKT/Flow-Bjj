@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Heart, MessageCircle } from "lucide-react";
+import { Bell, ChevronRight, Crown, Heart, MessageCircle, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { Logo } from "@/components/Logo";
@@ -62,17 +62,43 @@ function HomeFeed() {
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
         <Logo className="h-8 w-auto" />
-        <Link
-          to="/notifications"
-          aria-label="Ver notificações"
-          className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <Bell className="size-5" />
-        </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            to="/coach"
+            aria-label="Abrir IA Coach"
+            className="rounded-xl p-1.5 text-brand transition-opacity hover:opacity-80"
+          >
+            <Sparkles className="size-5" />
+          </Link>
+          <Link
+            to="/notifications"
+            aria-label="Ver notificações"
+            className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <Bell className="size-5" />
+          </Link>
+        </div>
       </header>
 
       <main className="mx-auto max-w-md px-4 py-4">
         <h1 className="sr-only">Feed de treinos</h1>
+
+        <Link
+          to="/premium"
+          className="mb-4 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3.5"
+        >
+          <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-brand/15 text-brand">
+            <Crown className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold">
+              Flow <span className="text-brand">Premium</span>
+            </p>
+            <p className="text-[11px] text-muted-foreground">IA Coach ilimitado e análise avançada.</p>
+          </div>
+          <ChevronRight className="size-4 shrink-0 text-brand" />
+        </Link>
+
 
         {isLoading && (
           <div className="space-y-4">

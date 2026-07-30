@@ -1,6 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
-import { ArrowUp, Bot, PlayCircle } from "lucide-react";
+import { ArrowUp, BarChart3, Bot, CalendarDays, PlayCircle } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 
 type Message = {
@@ -110,7 +110,35 @@ function CoachPage() {
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-4 pt-6">
+        <div className="grid grid-cols-2 gap-3">
+          <Link
+            to="/training-plan"
+            className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 transition-colors hover:border-brand/40"
+          >
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
+              <CalendarDays className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold">Plano de Treino</p>
+              <p className="truncate text-[10px] text-muted-foreground">Operação Faixa Azul</p>
+            </div>
+          </Link>
+          <Link
+            to="/analysis"
+            className="flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 transition-colors hover:border-brand/40"
+          >
+            <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
+              <BarChart3 className="size-4" />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-semibold">Análise</p>
+              <p className="truncate text-[10px] text-muted-foreground">Seus últimos 30 dias</p>
+            </div>
+          </Link>
+        </div>
+
         {messages.map((message) =>
+
           message.role === "assistant" ? (
             <AssistantBubble key={message.id} message={message} />
           ) : (
