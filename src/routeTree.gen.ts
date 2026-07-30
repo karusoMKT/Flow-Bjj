@@ -33,6 +33,7 @@ import { Route as AuthenticatedAnalysisRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings_.notifications'
 import { Route as AuthenticatedGymGymIdRouteImport } from './routes/_authenticated/gym.$gymId'
+import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat.$chatId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -157,6 +158,11 @@ const AuthenticatedGymGymIdRoute = AuthenticatedGymGymIdRouteImport.update({
   path: '/gym/$gymId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedChatChatIdRoute = AuthenticatedChatChatIdRouteImport.update({
+  id: '/chat/$chatId',
+  path: '/chat/$chatId',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -180,6 +186,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -205,6 +212,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -232,6 +240,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/statistics': typeof AuthenticatedStatisticsRoute
   '/_authenticated/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/_authenticated/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/_authenticated/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/_authenticated/settings_/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -259,6 +268,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statistics'
     | '/training-plan'
+    | '/chat/$chatId'
     | '/gym/$gymId'
     | '/settings/notifications'
   fileRoutesByTo: FileRoutesByTo
@@ -284,6 +294,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statistics'
     | '/training-plan'
+    | '/chat/$chatId'
     | '/gym/$gymId'
     | '/settings/notifications'
   id:
@@ -310,6 +321,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/statistics'
     | '/_authenticated/training-plan'
+    | '/_authenticated/chat/$chatId'
     | '/_authenticated/gym/$gymId'
     | '/_authenticated/settings_/notifications'
   fileRoutesById: FileRoutesById
@@ -493,6 +505,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGymGymIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/chat/$chatId': {
+      id: '/_authenticated/chat/$chatId'
+      path: '/chat/$chatId'
+      fullPath: '/chat/$chatId'
+      preLoaderRoute: typeof AuthenticatedChatChatIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -513,6 +532,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStatisticsRoute: typeof AuthenticatedStatisticsRoute
   AuthenticatedTrainingPlanRoute: typeof AuthenticatedTrainingPlanRoute
+  AuthenticatedChatChatIdRoute: typeof AuthenticatedChatChatIdRoute
   AuthenticatedGymGymIdRoute: typeof AuthenticatedGymGymIdRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -534,6 +554,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStatisticsRoute: AuthenticatedStatisticsRoute,
   AuthenticatedTrainingPlanRoute: AuthenticatedTrainingPlanRoute,
+  AuthenticatedChatChatIdRoute: AuthenticatedChatChatIdRoute,
   AuthenticatedGymGymIdRoute: AuthenticatedGymGymIdRoute,
   AuthenticatedSettingsNotificationsRoute:
     AuthenticatedSettingsNotificationsRoute,
@@ -553,3 +574,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
