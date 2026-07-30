@@ -72,24 +72,37 @@ function SettingsPage() {
         {MENU.map((group, groupIndex) => (
           <section key={groupIndex} className="mb-4 overflow-hidden rounded-2xl border border-white/5 bg-surface">
             <ul>
-              {group.items.map((item, index) => (
-                <li
-                  key={item.label}
-                  className={`${index !== group.items.length - 1 ? "border-b border-white/5" : ""}`}
-                >
-                  <Link
-                    to={item.to}
-                    className="flex items-center gap-3 px-4 py-3.5 transition-colors hover:bg-white/[0.03]"
-                  >
+              {group.items.map((item, index) => {
+                const inner = (
+                  <>
                     <div className="grid size-8 place-items-center rounded-lg bg-surface-2 text-brand">
                       <item.icon className="size-4" strokeWidth={1.8} />
                     </div>
                     <span className="flex-1 text-[14px] font-medium text-foreground">{item.label}</span>
                     {item.value && <span className="text-[13px] text-muted-foreground">{item.value}</span>}
                     <ChevronRight className="size-4 text-muted-foreground" />
-                  </Link>
-                </li>
-              ))}
+                  </>
+                );
+                const className = "flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-white/[0.03]";
+
+                return (
+                  <li
+                    key={item.label}
+                    className={`${index !== group.items.length - 1 ? "border-b border-white/5" : ""}`}
+                  >
+                    {item.to ? (
+                      <Link to={item.to as "/perfil"} className={className}>
+                        {inner}
+                      </Link>
+                    ) : (
+                      <div className={className} aria-disabled="true">
+                        {inner}
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+
             </ul>
           </section>
         ))}
