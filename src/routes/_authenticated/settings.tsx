@@ -5,6 +5,7 @@ import {
   UserRound,
   Shield,
   Bell,
+  Crown,
   Globe,
   Ruler,
   Palette,
@@ -19,7 +20,7 @@ import { BottomNav } from "@/components/BottomNav";
 type MenuItem = {
   icon: React.ElementType;
   label: string;
-  to: string;
+  to?: string;
   value?: string;
 };
 
