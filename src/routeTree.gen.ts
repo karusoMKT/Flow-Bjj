@@ -23,6 +23,7 @@ import { Route as AuthenticatedRankingRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedPremiumRouteImport } from './routes/_authenticated/premium'
 import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated/perfil'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedExplorarRouteImport } from './routes/_authenticated/explorar'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
@@ -104,6 +105,11 @@ const AuthenticatedNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMessagesRoute = AuthenticatedMessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedHomeRoute = AuthenticatedHomeRouteImport.update({
   id: '/home',
   path: '/home',
@@ -165,6 +171,7 @@ export interface FileRoutesByFullPath {
   '/coach': typeof AuthenticatedCoachRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/premium': typeof AuthenticatedPremiumRoute
@@ -189,6 +196,7 @@ export interface FileRoutesByTo {
   '/coach': typeof AuthenticatedCoachRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
+  '/messages': typeof AuthenticatedMessagesRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/perfil': typeof AuthenticatedPerfilRoute
   '/premium': typeof AuthenticatedPremiumRoute
@@ -215,6 +223,7 @@ export interface FileRoutesById {
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/explorar': typeof AuthenticatedExplorarRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
+  '/_authenticated/messages': typeof AuthenticatedMessagesRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/perfil': typeof AuthenticatedPerfilRoute
   '/_authenticated/premium': typeof AuthenticatedPremiumRoute
@@ -241,6 +250,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/explorar'
     | '/home'
+    | '/messages'
     | '/notifications'
     | '/perfil'
     | '/premium'
@@ -265,6 +275,7 @@ export interface FileRouteTypes {
     | '/coach'
     | '/explorar'
     | '/home'
+    | '/messages'
     | '/notifications'
     | '/perfil'
     | '/premium'
@@ -290,6 +301,7 @@ export interface FileRouteTypes {
     | '/_authenticated/coach'
     | '/_authenticated/explorar'
     | '/_authenticated/home'
+    | '/_authenticated/messages'
     | '/_authenticated/notifications'
     | '/_authenticated/perfil'
     | '/_authenticated/premium'
@@ -411,6 +423,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/messages': {
+      id: '/_authenticated/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof AuthenticatedMessagesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/home': {
       id: '/_authenticated/home'
       path: '/home'
@@ -485,6 +504,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedExplorarRoute: typeof AuthenticatedExplorarRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
+  AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedPerfilRoute: typeof AuthenticatedPerfilRoute
   AuthenticatedPremiumRoute: typeof AuthenticatedPremiumRoute
@@ -505,6 +525,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedExplorarRoute: AuthenticatedExplorarRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
+  AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedPerfilRoute: AuthenticatedPerfilRoute,
   AuthenticatedPremiumRoute: AuthenticatedPremiumRoute,
@@ -532,13 +553,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
