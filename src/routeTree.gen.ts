@@ -15,6 +15,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedTrainingPlanRouteImport } from './routes/_authenticated/training-plan'
 import { Route as AuthenticatedStatisticsRouteImport } from './routes/_authenticated/statistics'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedSearchRouteImport } from './routes/_authenticated/search'
@@ -23,8 +24,10 @@ import { Route as AuthenticatedPerfilRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedExplorarRouteImport } from './routes/_authenticated/explorar'
+import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
 import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticated/checkin'
 import { Route as AuthenticatedChallengesRouteImport } from './routes/_authenticated/challenges'
+import { Route as AuthenticatedAnalysisRouteImport } from './routes/_authenticated/analysis'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings_.notifications'
 import { Route as AuthenticatedGymGymIdRouteImport } from './routes/_authenticated/gym.$gymId'
@@ -58,6 +61,12 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedTrainingPlanRoute =
+  AuthenticatedTrainingPlanRouteImport.update({
+    id: '/training-plan',
+    path: '/training-plan',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedStatisticsRoute = AuthenticatedStatisticsRouteImport.update({
   id: '/statistics',
   path: '/statistics',
@@ -99,6 +108,11 @@ const AuthenticatedExplorarRoute = AuthenticatedExplorarRouteImport.update({
   path: '/explorar',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCoachRoute = AuthenticatedCoachRouteImport.update({
+  id: '/coach',
+  path: '/coach',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
   id: '/checkin',
   path: '/checkin',
@@ -107,6 +121,11 @@ const AuthenticatedCheckinRoute = AuthenticatedCheckinRouteImport.update({
 const AuthenticatedChallengesRoute = AuthenticatedChallengesRouteImport.update({
   id: '/challenges',
   path: '/challenges',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAnalysisRoute = AuthenticatedAnalysisRouteImport.update({
+  id: '/analysis',
+  path: '/analysis',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAchievementsRoute =
@@ -134,8 +153,10 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
+  '/analysis': typeof AuthenticatedAnalysisRoute
   '/challenges': typeof AuthenticatedChallengesRoute
   '/checkin': typeof AuthenticatedCheckinRoute
+  '/coach': typeof AuthenticatedCoachRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -144,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
+  '/training-plan': typeof AuthenticatedTrainingPlanRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -154,8 +176,10 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
+  '/analysis': typeof AuthenticatedAnalysisRoute
   '/challenges': typeof AuthenticatedChallengesRoute
   '/checkin': typeof AuthenticatedCheckinRoute
+  '/coach': typeof AuthenticatedCoachRoute
   '/explorar': typeof AuthenticatedExplorarRoute
   '/home': typeof AuthenticatedHomeRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -164,6 +188,7 @@ export interface FileRoutesByTo {
   '/search': typeof AuthenticatedSearchRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
+  '/training-plan': typeof AuthenticatedTrainingPlanRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -176,8 +201,10 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
+  '/_authenticated/analysis': typeof AuthenticatedAnalysisRoute
   '/_authenticated/challenges': typeof AuthenticatedChallengesRoute
   '/_authenticated/checkin': typeof AuthenticatedCheckinRoute
+  '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/explorar': typeof AuthenticatedExplorarRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -186,6 +213,7 @@ export interface FileRoutesById {
   '/_authenticated/search': typeof AuthenticatedSearchRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/statistics': typeof AuthenticatedStatisticsRoute
+  '/_authenticated/training-plan': typeof AuthenticatedTrainingPlanRoute
   '/_authenticated/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/_authenticated/settings_/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
@@ -198,8 +226,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sitemap.xml'
     | '/achievements'
+    | '/analysis'
     | '/challenges'
     | '/checkin'
+    | '/coach'
     | '/explorar'
     | '/home'
     | '/notifications'
@@ -208,6 +238,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/statistics'
+    | '/training-plan'
     | '/gym/$gymId'
     | '/settings/notifications'
   fileRoutesByTo: FileRoutesByTo
@@ -218,8 +249,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sitemap.xml'
     | '/achievements'
+    | '/analysis'
     | '/challenges'
     | '/checkin'
+    | '/coach'
     | '/explorar'
     | '/home'
     | '/notifications'
@@ -228,6 +261,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/statistics'
+    | '/training-plan'
     | '/gym/$gymId'
     | '/settings/notifications'
   id:
@@ -239,8 +273,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/sitemap.xml'
     | '/_authenticated/achievements'
+    | '/_authenticated/analysis'
     | '/_authenticated/challenges'
     | '/_authenticated/checkin'
+    | '/_authenticated/coach'
     | '/_authenticated/explorar'
     | '/_authenticated/home'
     | '/_authenticated/notifications'
@@ -249,6 +285,7 @@ export interface FileRouteTypes {
     | '/_authenticated/search'
     | '/_authenticated/settings'
     | '/_authenticated/statistics'
+    | '/_authenticated/training-plan'
     | '/_authenticated/gym/$gymId'
     | '/_authenticated/settings_/notifications'
   fileRoutesById: FileRoutesById
@@ -306,6 +343,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/training-plan': {
+      id: '/_authenticated/training-plan'
+      path: '/training-plan'
+      fullPath: '/training-plan'
+      preLoaderRoute: typeof AuthenticatedTrainingPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/statistics': {
       id: '/_authenticated/statistics'
       path: '/statistics'
@@ -362,6 +406,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExplorarRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/coach': {
+      id: '/_authenticated/coach'
+      path: '/coach'
+      fullPath: '/coach'
+      preLoaderRoute: typeof AuthenticatedCoachRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/checkin': {
       id: '/_authenticated/checkin'
       path: '/checkin'
@@ -374,6 +425,13 @@ declare module '@tanstack/react-router' {
       path: '/challenges'
       fullPath: '/challenges'
       preLoaderRoute: typeof AuthenticatedChallengesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/analysis': {
+      id: '/_authenticated/analysis'
+      path: '/analysis'
+      fullPath: '/analysis'
+      preLoaderRoute: typeof AuthenticatedAnalysisRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/achievements': {
@@ -402,8 +460,10 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAchievementsRoute: typeof AuthenticatedAchievementsRoute
+  AuthenticatedAnalysisRoute: typeof AuthenticatedAnalysisRoute
   AuthenticatedChallengesRoute: typeof AuthenticatedChallengesRoute
   AuthenticatedCheckinRoute: typeof AuthenticatedCheckinRoute
+  AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedExplorarRoute: typeof AuthenticatedExplorarRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -412,14 +472,17 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSearchRoute: typeof AuthenticatedSearchRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStatisticsRoute: typeof AuthenticatedStatisticsRoute
+  AuthenticatedTrainingPlanRoute: typeof AuthenticatedTrainingPlanRoute
   AuthenticatedGymGymIdRoute: typeof AuthenticatedGymGymIdRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAchievementsRoute: AuthenticatedAchievementsRoute,
+  AuthenticatedAnalysisRoute: AuthenticatedAnalysisRoute,
   AuthenticatedChallengesRoute: AuthenticatedChallengesRoute,
   AuthenticatedCheckinRoute: AuthenticatedCheckinRoute,
+  AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedExplorarRoute: AuthenticatedExplorarRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -428,6 +491,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSearchRoute: AuthenticatedSearchRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStatisticsRoute: AuthenticatedStatisticsRoute,
+  AuthenticatedTrainingPlanRoute: AuthenticatedTrainingPlanRoute,
   AuthenticatedGymGymIdRoute: AuthenticatedGymGymIdRoute,
   AuthenticatedSettingsNotificationsRoute:
     AuthenticatedSettingsNotificationsRoute,
