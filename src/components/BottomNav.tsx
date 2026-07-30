@@ -3,7 +3,7 @@ import { Compass, Home, Plus, Trophy, User } from "lucide-react";
 
 const items = [
   { to: "/home", label: "Início", icon: Home },
-  { to: "/search", label: "Explorar", icon: Compass },
+  { to: "/explore", label: "Explorar", icon: Compass },
   { to: "/create", label: "", icon: Plus, primary: true },
   { to: "/ranking", label: "Ranking", icon: Trophy },
   { to: "/perfil", label: "Perfil", icon: User },
