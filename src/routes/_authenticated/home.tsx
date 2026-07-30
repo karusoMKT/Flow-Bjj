@@ -62,7 +62,13 @@ function HomeFeed() {
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-background/95 px-4 py-3 backdrop-blur">
         <Logo className="h-8 w-auto" />
-        <Bell className="size-5 text-muted-foreground" />
+        <Link
+          to="/notifications"
+          aria-label="Ver notificações"
+          className="rounded-xl p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <Bell className="size-5" />
+        </Link>
       </header>
 
       <main className="mx-auto max-w-md px-4 py-4">

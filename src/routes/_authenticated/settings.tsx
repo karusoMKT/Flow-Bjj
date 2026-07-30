@@ -28,7 +28,7 @@ const MENU: { items: MenuItem[] }[] = [
     items: [
       { icon: UserRound, label: "Editar perfil", to: "/perfil" },
       { icon: Shield, label: "Privacidade", to: "/settings/privacy" },
-      { icon: Bell, label: "Notificações", to: "/notifications" },
+      { icon: Bell, label: "Notificações", to: "/settings/notifications" },
     ],
   },
   {
