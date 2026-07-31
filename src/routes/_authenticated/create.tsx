@@ -177,7 +177,9 @@ function CreatePost() {
         >
           <X className="size-5" />
         </button>
-        <h1 className="text-base font-semibold text-foreground">Registrar Treino</h1>
+        <h1 className="text-base font-semibold text-foreground">
+          {mode === "treino" ? "Registrar Treino" : "Registrar Competição"}
+        </h1>
         <button
           type="button"
           onClick={publish}
@@ -189,7 +191,34 @@ function CreatePost() {
       </header>
 
       <main className="mx-auto flex max-w-md flex-col gap-6 px-4 py-6">
+        {/* Tabs Treino / Competição */}
+        <div
+          role="tablist"
+          aria-label="Tipo de registro"
+          className="grid grid-cols-2 gap-1 rounded-2xl border border-white/5 bg-white/[0.04] p-1"
+        >
+          {(["treino", "competicao"] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              role="tab"
+              aria-selected={mode === m}
+              onClick={() => setMode(m)}
+              className={`rounded-xl py-2.5 text-sm font-semibold transition-all duration-300 ${
+                mode === m
+                  ? "bg-brand text-brand-foreground shadow-[0_6px_20px_-10px_var(--brand)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {m === "treino" ? "Treino" : "Competição"}
+            </button>
+          ))}
+        </div>
+
+        {mode === "treino" ? (
+          <div key="treino" className="flex flex-col gap-6 animate-fade-in">
         {/* Texto + mídia */}
+
         <section className="flex gap-3">
           <img
             src="https://ui-avatars.com/api/?background=1A1A1A&color=D7FF3E&bold=true&name=Voce"
