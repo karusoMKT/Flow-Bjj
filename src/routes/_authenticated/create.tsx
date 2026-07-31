@@ -141,6 +141,7 @@ function CreatePost() {
         training_type: type,
         intensity,
         notes,
+        location: trainLocation.trim() || null,
       })
       .select("id")
       .single();
