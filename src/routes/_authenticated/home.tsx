@@ -125,13 +125,14 @@ function HomeFeed() {
                   </StoryRing>
                 )}
                 {s.me && (
-                  <Link
-                    to="/checkin"
+                  <button
+                    type="button"
+                    onClick={() => setStorySoon(true)}
                     aria-label="Adicionar story"
                     className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
                   >
                     <Plus className="size-3" strokeWidth={3} />
-                  </Link>
+                  </button>
                 )}
               </div>
               <span className="w-full truncate text-center text-[10px] text-muted-foreground">
