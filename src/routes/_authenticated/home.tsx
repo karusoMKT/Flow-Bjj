@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, MessageSquare, Plus, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Bell, MessageSquare, Plus, Sparkles, X } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
@@ -47,6 +48,7 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 }
 
 function HomeFeed() {
+  const [storySoon, setStorySoon] = useState(false);
   const { data: posts, isLoading, error, refetch } = useQuery({
     queryKey: ["feed"],
     queryFn: async () => {
@@ -123,13 +125,14 @@ function HomeFeed() {
                   </StoryRing>
                 )}
                 {s.me && (
-                  <Link
-                    to="/checkin"
+                  <button
+                    type="button"
+                    onClick={() => setStorySoon(true)}
                     aria-label="Adicionar story"
                     className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
                   >
                     <Plus className="size-3" strokeWidth={3} />
-                  </Link>
+                  </button>
                 )}
               </div>
               <span className="w-full truncate text-center text-[10px] text-muted-foreground">
@@ -179,6 +182,41 @@ function HomeFeed() {
 
 
       </main>
+
+      {storySoon && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Adicionar Story"
+          onClick={() => setStorySoon(false)}
+          className="fixed inset-0 z-[60] grid place-items-center bg-black/80 px-6 backdrop-blur-sm animate-fade-in"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-xs rounded-3xl border border-brand/25 bg-surface p-7 text-center animate-pop-in"
+          >
+            <button
+              type="button"
+              onClick={() => setStorySoon(false)}
+              aria-label="Fechar"
+              className="absolute right-3 top-3 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+            <div className="mx-auto grid size-14 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand">
+              <Plus className="size-6" strokeWidth={2.5} />
+            </div>
+            <p className="mt-4 text-base font-bold text-foreground">Adicionar Story (Em breve)</p>
+            <button
+              type="button"
+              onClick={() => setStorySoon(false)}
+              className="mt-6 w-full rounded-2xl bg-brand py-3 text-sm font-black uppercase tracking-widest text-brand-foreground transition-opacity hover:opacity-90"
+            >
+              Ok
+            </button>
+          </div>
+        </div>
+      )}
 
       <BottomNav />
     </div>

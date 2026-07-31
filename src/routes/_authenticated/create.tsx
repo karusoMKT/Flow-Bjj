@@ -5,7 +5,16 @@ import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, MapPin, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
-import { checkAchievements, type Achievement } from "@/lib/achievements";
+import type { Achievement } from "@/lib/achievements";
+
+/** Conquista simulada (apenas UI, sem banco de dados por enquanto). */
+const DEMO_ACHIEVEMENT: Achievement = {
+  id: "demo-first-workout",
+  title: "Primeiro Treino",
+  description: "Você deu o primeiro passo na sua jornada!",
+  icon_name: "Trophy",
+  unlocked_at: new Date().toISOString(),
+};
 
 export const Route = createFileRoute("/_authenticated/create")({
   head: () => ({
@@ -105,8 +114,6 @@ function CreatePost() {
       notes,
     });
 
-    const newAchievements = await checkAchievements(uid);
-
     setSaving(false);
     if (postError) {
       toast.error("Treino salvo, mas não foi possível publicar no feed.");
@@ -115,13 +122,13 @@ function CreatePost() {
     toast.success("Treino publicado!");
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
-    queryClient.invalidateQueries({ queryKey: ["achievements"] });
 
-    if (newAchievements.length) {
-      setUnlocked(newAchievements[0]);
-      return;
-    }
-    navigate({ to: "/home" });
+    // Simulação de conquista (apenas UI): mostra o troféu e depois redireciona.
+    setUnlocked(DEMO_ACHIEVEMENT);
+    window.setTimeout(() => {
+      setUnlocked(null);
+      navigate({ to: "/home" });
+    }, 3500);
   }
 
   return (
