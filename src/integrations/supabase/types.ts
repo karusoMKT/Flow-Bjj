@@ -158,6 +158,54 @@ export type Database = {
           },
         ]
       }
+      posts: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          likes_count: number
+          updated_at: string
+          user_id: string
+          workout_id: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          updated_at?: string
+          user_id: string
+          workout_id?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          updated_at?: string
+          user_id?: string
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "posts_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -169,6 +217,7 @@ export type Database = {
           is_recovering: boolean | null
           professor: string | null
           team: string | null
+          total_xp: number
           username: string
           weight: string | null
         }
@@ -182,6 +231,7 @@ export type Database = {
           is_recovering?: boolean | null
           professor?: string | null
           team?: string | null
+          total_xp?: number
           username: string
           weight?: string | null
         }
@@ -195,6 +245,7 @@ export type Database = {
           is_recovering?: boolean | null
           professor?: string | null
           team?: string | null
+          total_xp?: number
           username?: string
           weight?: string | null
         }
@@ -250,6 +301,57 @@ export type Database = {
           },
           {
             foreignKeyName: "sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workouts: {
+        Row: {
+          created_at: string
+          duration_minutes: number
+          gym_id: string | null
+          id: string
+          intensity: string | null
+          notes: string | null
+          training_type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number
+          gym_id?: string | null
+          id?: string
+          intensity?: string | null
+          notes?: string | null
+          training_type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number
+          gym_id?: string | null
+          id?: string
+          intensity?: string | null
+          notes?: string | null
+          training_type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workouts_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
