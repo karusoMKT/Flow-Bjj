@@ -47,6 +47,7 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 }
 
 function HomeFeed() {
+  const [storySoon, setStorySoon] = useState(false);
   const { data: posts, isLoading, error, refetch } = useQuery({
     queryKey: ["feed"],
     queryFn: async () => {
