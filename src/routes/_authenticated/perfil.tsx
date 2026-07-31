@@ -238,7 +238,7 @@ function Perfil() {
           >
             <div>
               <p className="text-xs font-semibold text-foreground">Conquistas</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">{achievements} / 15 emblemas</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">{trophies.length} desbloqueadas</p>
             </div>
             <div className="grid size-9 place-items-center rounded-full bg-brand/10 text-brand">
               <Medal className="size-5" />
