@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut, Pencil, Settings, Flame, Clock, Crown, Dumbbell, Trophy, Medal, Target } from "lucide-react";
+import { LogOut, Pencil, Settings, Flame, Clock, Crown, Dumbbell, Trophy, Medal, Target, Zap } from "lucide-react";
 import { DevRoutesMenu } from "@/components/DevRoutesMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
+import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
 import { beltClass } from "@/lib/feed";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
@@ -24,49 +25,43 @@ export const Route = createFileRoute("/_authenticated/perfil")({
   component: Perfil,
 });
 
-type SessionRow = {
-  id: string;
-  session_date: string;
-  session_type: string | null;
-  duration_minutes: number;
-  image_url: string | null;
-  gymName?: string;
-};
-
-async function fetchProfile() {
+async function fetchProfileData() {
   const { data: auth } = await supabase.auth.getUser();
   const uid = auth.user?.id;
   if (!uid) throw new Error("Sem sessão");
 
-  const [profileRes, sessionsRes] = await Promise.all([
+  const [profileRes, workoutsRes, postsRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
+    supabase.from("workouts").select("id, duration_minutes, created_at").eq("user_id", uid),
     supabase
-      .from("sessions")
-      .select("*")
+      .from("posts")
+      .select(
+        "id, content, image_url, likes_count, created_at, profiles:user_id (full_name, username, avatar_url, belt), workouts:workout_id (duration_minutes, training_type, intensity)",
+      )
       .eq("user_id", uid)
-      .order("session_date", { ascending: false })
+      .order("created_at", { ascending: false })
       .limit(30),
   ]);
 
-  const rows = sessionsRes.data ?? [];
-  const gymIds = [...new Set(rows.map((s) => s.gym_id).filter(Boolean) as string[])];
-  const gymsRes = gymIds.length
-    ? await supabase.from("gyms").select("id, name").in("id", gymIds)
-    : { data: [] as { id: string; name: string }[] };
-  const gyms = new Map((gymsRes.data ?? []).map((g) => [g.id, g.name]));
+  if (profileRes.error) throw profileRes.error;
+  if (workoutsRes.error) throw workoutsRes.error;
+  if (postsRes.error) throw postsRes.error;
 
+  const workouts = workoutsRes.data ?? [];
   return {
     profile: profileRes.data,
-    sessions: rows.map((s) => ({ ...s, gymName: s.gym_id ? gyms.get(s.gym_id) : undefined })) as SessionRow[],
+    workouts,
+    totalWorkouts: workouts.length,
+    totalMinutes: workouts.reduce((acc, w) => acc + (w.duration_minutes ?? 0), 0),
+    posts: (postsRes.data ?? []) as unknown as FeedPost[],
   };
 }
 
-/** Contagem de dias consecutivos de treino a partir das datas das sessões. */
+/** Contagem de dias consecutivos de treino a partir das datas dos treinos. */
 function currentStreak(dates: string[]): number {
-  const set = new Set(dates);
+  const set = new Set(dates.map((d) => new Date(d).toISOString().slice(0, 10)));
   let streak = 0;
   const cursor = new Date();
-  // tolera não ter treinado hoje ainda
   if (!set.has(cursor.toISOString().slice(0, 10))) cursor.setDate(cursor.getDate() - 1);
   while (set.has(cursor.toISOString().slice(0, 10))) {
     streak += 1;
@@ -75,8 +70,15 @@ function currentStreak(dates: string[]): number {
   return streak;
 }
 
+function formatMat(minutes: number): string {
+  if (minutes < 60) return `${minutes}min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}h${String(m).padStart(2, "0")}` : `${h}h`;
+}
+
 function Perfil() {
-  const { data, isLoading } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
+  const { data, isLoading, error, refetch } = useQuery({ queryKey: ["profile"], queryFn: fetchProfileData });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -88,26 +90,27 @@ function Perfil() {
   }
 
   const profile = data?.profile;
-  const sessions = data?.sessions ?? [];
-  const totalMin = sessions.reduce((acc, s) => acc + (s.duration_minutes ?? 0), 0);
-  const streak = currentStreak(sessions.map((s) => s.session_date));
+  const posts = data?.posts ?? [];
+  const totalWorkouts = data?.totalWorkouts ?? 0;
+  const totalMinutes = data?.totalMinutes ?? 0;
+  const streak = currentStreak((data?.workouts ?? []).map((w) => w.created_at));
 
-  // Gamificação — derivada dos treinos (mock até termos tabela de XP/conquistas)
-  const xp = sessions.length * 150 + Math.round(totalMin * 1.5);
-  const level = Math.max(1, Math.floor(xp / 250) + 1);
-  const xpInLevel = xp % 250;
+  const xp = profile?.total_xp ?? 0;
   const xpToNext = 250;
-  const achievements = Math.min(15, Math.floor(sessions.length / 2));
+  const level = Math.max(1, Math.floor(xp / xpToNext) + 1);
+  const xpInLevel = xp % xpToNext;
+  const achievements = Math.min(15, Math.floor(totalWorkouts / 2));
 
+  const name = profile?.full_name ?? profile?.username ?? "Atleta";
   const identity = [profile?.belt && `Faixa ${profile.belt}`, profile?.team, profile?.professor]
     .filter(Boolean)
     .join(" • ");
 
   const metrics = [
-    { icon: Dumbbell, label: "Treinos", value: String(sessions.length) },
-    { icon: Clock, label: "No tatame", value: `${Math.round(totalMin / 60)}h` },
+    { icon: Dumbbell, label: "Treinos", value: String(totalWorkouts) },
+    { icon: Clock, label: "No tatame", value: formatMat(totalMinutes) },
     { icon: Flame, label: "Dias seguidos", value: String(streak) },
-    { icon: Trophy, label: "Conquistas", value: String(achievements) },
+    { icon: Zap, label: "XP total", value: String(xp) },
   ];
 
   return (
@@ -131,17 +134,28 @@ function Perfil() {
       </header>
 
       <main className="mx-auto max-w-md px-4">
+        {error ? (
+          <div className="mt-6 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-center">
+            <p className="text-sm text-foreground">Não foi possível carregar seu perfil.</p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-3 rounded-xl bg-brand px-4 py-2 text-xs font-bold text-brand-foreground"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : null}
+
         <section className="mt-6 flex flex-col items-center text-center">
           <div className="relative">
-            <div className="size-24 overflow-hidden rounded-full bg-surface-2 ring-2 ring-brand/70">
-              {profile?.avatar_url ? (
-                <img
-                  src={profile.avatar_url}
-                  alt={profile.full_name ?? "Foto de perfil"}
-                  className="size-full object-cover"
-                />
-              ) : null}
-            </div>
+            {isLoading ? (
+              <div className="size-24 animate-pulse rounded-full bg-white/10" />
+            ) : (
+              <div className="rounded-full ring-2 ring-brand/70">
+                <AvatarBubble src={profile?.avatar_url} name={name} className="size-24 text-2xl" />
+              </div>
+            )}
             <button
               aria-label="Editar perfil"
               className="absolute -bottom-1 -right-1 rounded-full bg-brand p-1.5 text-brand-foreground"
@@ -150,23 +164,34 @@ function Perfil() {
             </button>
           </div>
 
-          <h2 className="mt-4 text-2xl font-black italic">
-            {isLoading ? "Carregando..." : (profile?.full_name ?? profile?.username ?? "Atleta")}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">{identity || "—"}</p>
-          <p className="text-xs text-muted-foreground">{profile?.city ?? "—"}</p>
-          <span
-            className={`mt-3 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${beltClass(profile?.belt)}`}
-          >
-            @{profile?.username ?? "—"}
-          </span>
+          {isLoading ? (
+            <>
+              <div className="mt-4 h-6 w-40 animate-pulse rounded bg-white/10" />
+              <div className="mt-2 h-3 w-52 animate-pulse rounded bg-white/5" />
+            </>
+          ) : (
+            <>
+              <h2 className="mt-4 text-2xl font-black italic">{name}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">{identity || "—"}</p>
+              <p className="text-xs text-muted-foreground">{profile?.city ?? "—"}</p>
+              <span
+                className={`mt-3 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${beltClass(profile?.belt)}`}
+              >
+                @{profile?.username ?? "—"}
+              </span>
+            </>
+          )}
         </section>
 
         <section className="mt-6 grid grid-cols-4 gap-2">
           {metrics.map(({ icon: Icon, label, value }) => (
             <div key={label} className="card-elevated rounded-2xl px-2 py-3 text-center">
               <Icon className="mx-auto size-4 text-brand" />
-              <p className="mt-1.5 text-lg font-bold leading-none">{value}</p>
+              {isLoading ? (
+                <div className="mx-auto mt-2 h-4 w-8 animate-pulse rounded bg-white/10" />
+              ) : (
+                <p className="mt-1.5 text-lg font-bold leading-none">{value}</p>
+              )}
               <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{label}</p>
             </div>
           ))}
@@ -203,7 +228,7 @@ function Perfil() {
           >
             <div>
               <p className="text-xs font-semibold text-foreground">Conquistas</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">12 / 15 emblemas</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">{achievements} / 15 emblemas</p>
             </div>
             <div className="grid size-9 place-items-center rounded-full bg-brand/10 text-brand">
               <Medal className="size-5" />
@@ -241,37 +266,34 @@ function Perfil() {
 
         <DevRoutesMenu />
 
-
-
         <section className="mt-8">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Atividade recente</h3>
-            <span className="text-xs font-medium text-brand">Ver tudo</span>
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Meus treinos</h3>
+            <span className="text-xs font-medium text-brand">
+              <Trophy className="mr-1 inline size-3.5" />
+              {posts.length}
+            </span>
           </div>
 
-          {sessions.length === 0 && !isLoading ? (
-            <p className="mt-3 rounded-2xl bg-surface p-4 text-sm text-muted-foreground">
-              Nenhum treino registrado ainda.
-            </p>
+          {isLoading ? (
+            <ul className="mt-3 flex flex-col gap-4" aria-busy="true">
+              <PostCardSkeleton />
+              <PostCardSkeleton />
+            </ul>
+          ) : posts.length === 0 ? (
+            <div className="mt-3 rounded-2xl border border-white/5 bg-surface p-6 text-center">
+              <p className="text-sm text-muted-foreground">Nenhum treino registrado ainda.</p>
+              <Link
+                to="/create"
+                className="mt-3 inline-block rounded-xl bg-brand px-4 py-2 text-xs font-bold text-brand-foreground"
+              >
+                Fazer check-in
+              </Link>
+            </div>
           ) : (
-            <ul className="-mx-4 mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
-              {sessions.slice(0, 10).map((s) => (
-                <li
-                  key={s.id}
-                  className="card-elevated relative h-32 w-40 shrink-0 snap-start overflow-hidden rounded-2xl"
-                >
-                  {s.image_url ? (
-                    <img src={s.image_url} alt={s.session_type ?? "Treino"} className="size-full object-cover" />
-                  ) : (
-                    <div className="size-full bg-surface-2" />
-                  )}
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-background to-transparent p-2.5">
-                    <p className="truncate text-xs font-semibold">{s.gymName ?? "Academia"}</p>
-                    <p className="truncate text-[10px] text-muted-foreground">
-                      {new Date(s.session_date).toLocaleDateString("pt-BR")} · {s.duration_minutes}min
-                    </p>
-                  </div>
-                </li>
+            <ul className="mt-3 flex flex-col gap-4">
+              {posts.map((p) => (
+                <PostCard key={p.id} post={p} />
               ))}
             </ul>
           )}

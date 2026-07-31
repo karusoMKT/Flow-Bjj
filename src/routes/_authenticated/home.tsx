@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Heart, MessageCircle, MessageSquare, Play, Plus, Sparkles, Zap } from "lucide-react";
+import { Bell, MessageSquare, Plus, Sparkles } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
-import { timeAgo, beltClass } from "@/lib/feed";
+import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
+
 
 
 export const Route = createFileRoute("/_authenticated/home")({
@@ -141,18 +142,9 @@ function HomeFeed() {
         {/* Feed */}
         {isLoading ? (
           <ul className="flex flex-col gap-4 px-4" aria-busy="true">
-            {[0, 1, 2].map((i) => (
-              <li key={i} className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
-                <div className="flex items-start gap-3 p-3.5">
-                  <div className="size-10 shrink-0 animate-pulse rounded-full bg-white/10" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-3 w-1/3 animate-pulse rounded bg-white/10" />
-                    <div className="h-3 w-1/2 animate-pulse rounded bg-white/5" />
-                  </div>
-                </div>
-                <div className="h-40 w-full animate-pulse bg-white/[0.04]" />
-              </li>
-            ))}
+            <PostCardSkeleton />
+            <PostCardSkeleton />
+            <PostCardSkeleton />
           </ul>
         ) : error ? (
           <div className="mx-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-center">
@@ -179,77 +171,12 @@ function HomeFeed() {
           </div>
         ) : (
           <ul className="flex flex-col gap-4 px-4">
-            {posts.map((post) => {
-              const author = post.profiles;
-              const name = author?.full_name ?? author?.username ?? "Atleta";
-              const workout = post.workouts;
-              return (
-                <li key={post.id} className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
-                  <div className="flex items-start gap-3 p-3.5">
-                    <img
-                      src={author?.avatar_url ?? avatar(name)}
-                      alt={name}
-                      className="size-10 shrink-0 rounded-full object-cover"
-                      loading="lazy"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className="truncate text-sm font-semibold">{name}</p>
-                        {author?.belt && (
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${beltClass(author.belt)}`}>
-                            {author.belt}
-                          </span>
-                        )}
-                      </div>
-                      {workout ? (
-                        <p className="truncate text-xs text-muted-foreground">
-                          Treinou {workout.duration_minutes} min
-                          {workout.training_type ? ` · ${workout.training_type}` : ""}
-                        </p>
-                      ) : null}
-                      {post.content && (
-                        <p className="mt-1 text-sm leading-snug text-foreground">{post.content}</p>
-                      )}
-                    </div>
-                    <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
-                  </div>
-
-                  {post.image_url && (
-                    <img
-                      src={post.image_url}
-                      alt={`Treino de ${name}`}
-                      loading="lazy"
-                      className="h-60 w-full object-cover"
-                    />
-                  )}
-
-                  <div className="flex items-center gap-2 px-3.5 py-3">
-                    {workout && (
-                      <>
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
-                          <Play className="size-3.5" /> {workout.duration_minutes} min
-                        </span>
-                        {workout.intensity && (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
-                            <Zap className="size-3.5" /> {workout.intensity}
-                          </span>
-                        )}
-                      </>
-                    )}
-                    <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1.5">
-                        <Heart className="size-4 text-destructive" /> {post.likes_count ?? 0}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <MessageCircle className="size-4" /> 0
-                      </span>
-                    </div>
-                  </div>
-                </li>
-              );
-            })}
+            {(posts as unknown as FeedPost[]).map((post) => (
+              <PostCard key={post.id} post={post} />
+            ))}
           </ul>
         )}
+
 
       </main>
 
