@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, Heart, MessageCircle, MessageSquare, Play, Plus, Sparkles, Zap } from "lucide-react";
+import { Bell, MessageSquare, Plus, Sparkles } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
-import { timeAgo, beltClass } from "@/lib/feed";
+import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
+
 
 
 export const Route = createFileRoute("/_authenticated/home")({
