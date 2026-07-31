@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
 import { beltClass } from "@/lib/feed";
+import { AchievementIcon } from "@/components/AchievementModal";
+import { fetchAchievements } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
