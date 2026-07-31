@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Bell, MessageSquare, Plus, Sparkles } from "lucide-react";
+import { useState } from "react";
+import { Bell, MessageSquare, Plus, Sparkles, X } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
