@@ -281,6 +281,14 @@ function CreatePost() {
           {saving ? "Publicando..." : "Publicar treino"}
         </button>
       </main>
+
+      <AchievementModal
+        achievement={unlocked}
+        onClose={() => {
+          setUnlocked(null);
+          navigate({ to: "/home" });
+        }}
+      />
     </div>
   );
 }
