@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 /** Conquista simulada (apenas UI, sem banco de dados por enquanto). */
 const DEMO_ACHIEVEMENT: Achievement = {
