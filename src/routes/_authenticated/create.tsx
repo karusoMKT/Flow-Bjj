@@ -410,16 +410,13 @@ function CreatePost() {
               <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Localização
               </h2>
-              <div className="relative">
-                <MapPin className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-brand" />
-                <input
-                  value={compLocation}
-                  onChange={(e) => setCompLocation(e.target.value)}
-                  aria-label="Localização do campeonato"
-                  placeholder="Ex: Ginásio do Ibirapuera, São Paulo"
-                  className="w-full rounded-2xl border border-white/5 bg-white/[0.04] py-4 pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand/40 focus:outline-none"
-                />
-              </div>
+              <LocationAutocomplete
+                value={compLocation}
+                onChange={setCompLocation}
+                ariaLabel="Localização do campeonato"
+                placeholder="Ex: Ginásio do Ibirapuera, São Paulo"
+              />
+
             </section>
 
             <section className="flex flex-col gap-3">
