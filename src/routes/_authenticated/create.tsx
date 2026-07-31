@@ -43,6 +43,7 @@ function CreatePost() {
   const [type, setType] = useState("Kimono");
   const [duration, setDuration] = useState("90");
   const [intensity, setIntensity] = useState("Moderado");
+  const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState<Achievement | null>(null);
 
   const { data: gyms } = useQuery({
