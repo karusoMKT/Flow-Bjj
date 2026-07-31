@@ -81,6 +81,14 @@ function formatMat(minutes: number): string {
 
 function Perfil() {
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ["profile"], queryFn: fetchProfileData });
+  const { data: trophies = [], isLoading: trophiesLoading } = useQuery({
+    queryKey: ["achievements"],
+    queryFn: async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user?.id) return [];
+      return fetchAchievements(auth.user.id);
+    },
+  });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
