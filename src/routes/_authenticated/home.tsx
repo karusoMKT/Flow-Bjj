@@ -124,67 +124,114 @@ function HomeFeed() {
         </section>
 
         {/* Feed */}
-        <ul className="flex flex-col gap-4 px-4">
-          {/* Card tipo 1 — treino com imagem */}
-          <li className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
-            <div className="flex items-start gap-3 p-3.5">
-              <img
-                src={avatar("João Santos")}
-                alt="João Santos"
-                className="size-10 shrink-0 rounded-full object-cover"
-                loading="lazy"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">João Santos</p>
-                <p className="truncate text-xs text-muted-foreground">Treinou 2h · Alliance Barra</p>
-                <p className="truncate text-xs text-muted-foreground">Técnica · Rolas</p>
-              </div>
-              <span className="shrink-0 text-xs text-muted-foreground">2h</span>
-            </div>
+        {isLoading ? (
+          <ul className="flex flex-col gap-4 px-4" aria-busy="true">
+            {[0, 1, 2].map((i) => (
+              <li key={i} className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
+                <div className="flex items-start gap-3 p-3.5">
+                  <div className="size-10 shrink-0 animate-pulse rounded-full bg-white/10" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-1/3 animate-pulse rounded bg-white/10" />
+                    <div className="h-3 w-1/2 animate-pulse rounded bg-white/5" />
+                  </div>
+                </div>
+                <div className="h-40 w-full animate-pulse bg-white/[0.04]" />
+              </li>
+            ))}
+          </ul>
+        ) : error ? (
+          <div className="mx-4 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-center">
+            <p className="text-sm text-foreground">Não foi possível carregar o feed.</p>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="mt-3 rounded-xl bg-brand px-4 py-2 text-xs font-bold text-brand-foreground"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        ) : !posts?.length ? (
+          <div className="mx-4 rounded-2xl border border-white/5 bg-surface p-6 text-center">
+            <p className="text-sm text-muted-foreground">Nenhum treino publicado ainda.</p>
+            <Link
+              to="/create"
+              className="mt-3 inline-block rounded-xl bg-brand px-4 py-2 text-xs font-bold text-brand-foreground"
+            >
+              Registrar treino
+            </Link>
+          </div>
+        ) : (
+          <ul className="flex flex-col gap-4 px-4">
+            {posts.map((post) => {
+              const author = post.profiles;
+              const name = author?.full_name ?? author?.username ?? "Atleta";
+              const workout = post.workouts;
+              return (
+                <li key={post.id} className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
+                  <div className="flex items-start gap-3 p-3.5">
+                    <img
+                      src={author?.avatar_url ?? avatar(name)}
+                      alt={name}
+                      className="size-10 shrink-0 rounded-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold">{name}</p>
+                        {author?.belt && (
+                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${beltClass(author.belt)}`}>
+                            {author.belt}
+                          </span>
+                        )}
+                      </div>
+                      {workout ? (
+                        <p className="truncate text-xs text-muted-foreground">
+                          Treinou {workout.duration_minutes} min
+                          {workout.training_type ? ` · ${workout.training_type}` : ""}
+                        </p>
+                      ) : null}
+                      {post.content && (
+                        <p className="mt-1 text-sm leading-snug text-foreground">{post.content}</p>
+                      )}
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+                  </div>
 
-            <img
-              src={feedRoll}
-              alt="Atletas treinando jiu-jitsu"
-              width={1024}
-              height={768}
-              loading="lazy"
-              className="h-60 w-full object-cover"
-            />
+                  {post.image_url && (
+                    <img
+                      src={post.image_url}
+                      alt={`Treino de ${name}`}
+                      loading="lazy"
+                      className="h-60 w-full object-cover"
+                    />
+                  )}
 
-            <div className="flex items-center gap-2 px-3.5 py-3">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
-                <Play className="size-3.5" /> 2h 12m
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
-                <Zap className="size-3.5" /> +80 XP
-              </span>
-              <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-                <button type="button" className="flex items-center gap-1.5 transition-colors hover:text-destructive">
-                  <Heart className="size-4 text-destructive" /> 128
-                </button>
-                <button type="button" className="flex items-center gap-1.5 transition-colors hover:text-foreground">
-                  <MessageCircle className="size-4" /> 23
-                </button>
-              </div>
-            </div>
-          </li>
+                  {workout && (
+                    <div className="flex items-center gap-2 px-3.5 py-3">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                        <Play className="size-3.5" /> {workout.duration_minutes} min
+                      </span>
+                      {workout.intensity && (
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                          <Zap className="size-3.5" /> {workout.intensity}
+                        </span>
+                      )}
+                      <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1.5">
+                          <Heart className="size-4 text-destructive" /> {post.likes_count ?? 0}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                          <MessageCircle className="size-4" /> 0
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
 
-          {/* Card tipo 2 — conquista */}
-          <li className="rounded-2xl border border-white/5 bg-surface p-3.5">
-            <div className="flex items-start gap-3">
-              <img
-                src={avatar("Maria Almeida")}
-                alt="Maria Almeida"
-                className="size-10 shrink-0 rounded-full object-cover"
-                loading="lazy"
-              />
-              <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-foreground">
-                Maria Almeida conquistou sua faixa Azul!
-              </p>
-              <span className="shrink-0 text-xs text-muted-foreground">4h</span>
-            </div>
-          </li>
-        </ul>
       </main>
 
       <BottomNav />
