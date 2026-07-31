@@ -313,6 +313,85 @@ function CreatePost() {
             })}
           </div>
         </section>
+          </div>
+        ) : (
+          <div key="competicao" className="flex flex-col gap-6 animate-fade-in">
+            <section className="flex flex-col gap-3">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Nome do campeonato
+              </h2>
+              <div className="relative">
+                <Trophy className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-brand" />
+                <input
+                  value={event}
+                  onChange={(e) => setEvent(e.target.value)}
+                  aria-label="Nome do campeonato"
+                  placeholder="Ex: Copa Sul Brasileiro de Jiu-Jitsu"
+                  className="w-full rounded-2xl border border-white/5 bg-white/[0.04] py-4 pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand/40 focus:outline-none"
+                />
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-3">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Colocação
+              </h2>
+              <div className="relative">
+                <ChevronRight className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
+                <select
+                  value={placement}
+                  onChange={(e) => setPlacement(e.target.value)}
+                  aria-label="Colocação"
+                  className="w-full appearance-none rounded-2xl border border-white/5 bg-white/[0.04] px-4 py-4 pr-12 text-sm text-foreground focus:border-brand/40 focus:outline-none"
+                >
+                  {PLACEMENTS.map((p) => (
+                    <option key={p.value} value={p.value}>
+                      {p.value}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-3">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Localização
+              </h2>
+              <div className="relative">
+                <MapPin className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-brand" />
+                <input
+                  value={compLocation}
+                  onChange={(e) => setCompLocation(e.target.value)}
+                  aria-label="Localização do campeonato"
+                  placeholder="Ex: Ginásio do Ibirapuera, São Paulo"
+                  className="w-full rounded-2xl border border-white/5 bg-white/[0.04] py-4 pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand/40 focus:outline-none"
+                />
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-3">
+              <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Resumo das lutas
+              </h2>
+              <textarea
+                value={compSummary}
+                onChange={(e) => setCompSummary(e.target.value)}
+                rows={5}
+                aria-label="Resumo das lutas"
+                placeholder="Conte como foram as lutas, finalizações, aprendizados..."
+                className="w-full resize-none rounded-2xl border border-white/5 bg-white/[0.04] p-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand/40 focus:outline-none"
+              />
+            </section>
+
+            <button
+              type="button"
+              className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 text-muted-foreground transition-colors hover:border-brand/40 hover:text-foreground"
+            >
+              <ImagePlus className="size-6" />
+              <span className="text-sm">Adicionar foto do evento</span>
+            </button>
+          </div>
+        )}
 
         <button
           type="button"
@@ -320,8 +399,9 @@ function CreatePost() {
           disabled={saving}
           className="mt-2 w-full rounded-2xl bg-brand py-4 text-sm font-bold text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
         >
-          {saving ? "Publicando..." : "Publicar treino"}
+          {saving ? "Publicando..." : mode === "treino" ? "Publicar treino" : "Publicar competição"}
         </button>
+
       </main>
 
       <AchievementModal
