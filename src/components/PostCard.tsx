@@ -1,5 +1,6 @@
-import { Heart, MessageCircle, Play, Zap } from "lucide-react";
+import { Heart, MapPin, Medal, MessageCircle, Play, Trophy, Zap } from "lucide-react";
 import { timeAgo, beltClass } from "@/lib/feed";
+import { parseCompetition, placementTone } from "@/lib/competition";
 
 export type FeedPost = {
   id: string;
@@ -77,30 +78,65 @@ export function PostCard({ post }: { post: FeedPost }) {
   const author = post.profiles;
   const name = author?.full_name ?? author?.username ?? "Atleta";
   const workout = post.workouts;
+  const comp = parseCompetition(post.content);
 
   return (
-    <li className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
+    <li
+      className={`overflow-hidden rounded-2xl border bg-surface ${
+        comp ? "border-[oklch(0.85_0.16_92)]/35 shadow-[0_0_0_1px_oklch(0.85_0.16_92/0.08)]" : "border-white/5"
+      }`}
+    >
       <div className="flex items-start gap-3 p-3.5">
         <AvatarBubble src={author?.avatar_url} name={name} />
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-semibold">{name}</p>
+            {comp && <Medal className="size-4 shrink-0 text-[oklch(0.85_0.16_92)]" />}
             {author?.belt && (
               <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${beltClass(author.belt)}`}>
                 {author.belt}
               </span>
             )}
           </div>
-          {workout ? (
-            <p className="truncate text-xs text-muted-foreground">
-              Treinou {workout.duration_minutes} min
-              {workout.training_type ? ` · ${workout.training_type}` : ""}
-            </p>
-          ) : null}
-          {post.content && <p className="mt-1 text-sm leading-snug text-foreground">{post.content}</p>}
+          {comp ? (
+            <div className="mt-1">
+              <p className="flex items-center gap-1.5 text-sm font-bold text-foreground">
+                <Trophy className="size-4 text-[oklch(0.85_0.16_92)]" />
+                <span className="truncate">{comp.event}</span>
+              </p>
+              {comp.placement && (
+                <span
+                  className={`mt-1.5 inline-block rounded-full border px-2.5 py-1 text-[11px] font-black uppercase tracking-wide ${placementTone(
+                    comp.placement,
+                  )}`}
+                >
+                  {comp.placement}
+                </span>
+              )}
+              {comp.summary && (
+                <p className="mt-2 text-sm leading-snug text-foreground">{comp.summary}</p>
+              )}
+              {comp.location && (
+                <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="size-3.5" /> {comp.location}
+                </p>
+              )}
+            </div>
+          ) : (
+            <>
+              {workout ? (
+                <p className="truncate text-xs text-muted-foreground">
+                  Treinou {workout.duration_minutes} min
+                  {workout.training_type ? ` · ${workout.training_type}` : ""}
+                </p>
+              ) : null}
+              {post.content && <p className="mt-1 text-sm leading-snug text-foreground">{post.content}</p>}
+            </>
+          )}
         </div>
         <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
       </div>
+
 
       {post.image_url && (
         <img src={post.image_url} alt={`Treino de ${name}`} loading="lazy" className="h-60 w-full object-cover" />
