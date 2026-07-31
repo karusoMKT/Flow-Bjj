@@ -105,6 +105,8 @@ function CreatePost() {
       notes,
     });
 
+    const newAchievements = await checkAchievements(uid);
+
     setSaving(false);
     if (postError) {
       toast.error("Treino salvo, mas não foi possível publicar no feed.");
@@ -113,6 +115,12 @@ function CreatePost() {
     toast.success("Treino publicado!");
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["achievements"] });
+
+    if (newAchievements.length) {
+      setUnlocked(newAchievements[0]);
+      return;
+    }
     navigate({ to: "/home" });
   }
 
