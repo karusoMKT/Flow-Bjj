@@ -1,5 +1,6 @@
-import { Heart, MessageCircle, Play, Zap } from "lucide-react";
+import { Heart, MapPin, Medal, MessageCircle, Play, Trophy, Zap } from "lucide-react";
 import { timeAgo, beltClass } from "@/lib/feed";
+import { parseCompetition, placementTone } from "@/lib/competition";
 
 export type FeedPost = {
   id: string;
