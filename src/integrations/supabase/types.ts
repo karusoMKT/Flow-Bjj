@@ -345,6 +345,7 @@ export type Database = {
           gym_id: string | null
           id: string
           intensity: string | null
+          location: string | null
           notes: string | null
           training_type: string | null
           updated_at: string
@@ -356,6 +357,7 @@ export type Database = {
           gym_id?: string | null
           id?: string
           intensity?: string | null
+          location?: string | null
           notes?: string | null
           training_type?: string | null
           updated_at?: string
@@ -367,6 +369,7 @@ export type Database = {
           gym_id?: string | null
           id?: string
           intensity?: string | null
+          location?: string | null
           notes?: string | null
           training_type?: string | null
           updated_at?: string
