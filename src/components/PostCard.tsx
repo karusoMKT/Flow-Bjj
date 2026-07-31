@@ -18,6 +18,7 @@ export type FeedPost = {
     duration_minutes: number | null;
     training_type: string | null;
     intensity: string | null;
+    location?: string | null;
   } | null;
 };
 
