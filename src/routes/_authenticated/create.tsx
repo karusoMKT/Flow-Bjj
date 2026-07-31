@@ -68,6 +68,7 @@ function CreatePost() {
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState<Achievement | null>(null);
+  const [trainLocation, setTrainLocation] = useState("");
   // Competição
   const [event, setEvent] = useState("");
   const [placement, setPlacement] = useState<string>(PLACEMENTS[0].value);
