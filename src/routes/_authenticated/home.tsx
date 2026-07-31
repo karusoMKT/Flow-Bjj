@@ -167,12 +167,14 @@ function HomeFeed() {
           </div>
         ) : !posts?.length ? (
           <div className="mx-4 rounded-2xl border border-white/5 bg-surface p-6 text-center">
-            <p className="text-sm text-muted-foreground">Nenhum treino publicado ainda.</p>
+            <p className="text-sm text-muted-foreground">
+              Nenhum treino registrado ainda. Seja o primeiro a fazer o check-in!
+            </p>
             <Link
               to="/create"
               className="mt-3 inline-block rounded-xl bg-brand px-4 py-2 text-xs font-bold text-brand-foreground"
             >
-              Registrar treino
+              Fazer check-in
             </Link>
           </div>
         ) : (
@@ -221,26 +223,28 @@ function HomeFeed() {
                     />
                   )}
 
-                  {workout && (
-                    <div className="flex items-center gap-2 px-3.5 py-3">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
-                        <Play className="size-3.5" /> {workout.duration_minutes} min
-                      </span>
-                      {workout.intensity && (
+                  <div className="flex items-center gap-2 px-3.5 py-3">
+                    {workout && (
+                      <>
                         <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
-                          <Zap className="size-3.5" /> {workout.intensity}
+                          <Play className="size-3.5" /> {workout.duration_minutes} min
                         </span>
-                      )}
-                      <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1.5">
-                          <Heart className="size-4 text-destructive" /> {post.likes_count ?? 0}
-                        </span>
-                        <span className="flex items-center gap-1.5">
-                          <MessageCircle className="size-4" /> 0
-                        </span>
-                      </div>
+                        {workout.intensity && (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                            <Zap className="size-3.5" /> {workout.intensity}
+                          </span>
+                        )}
+                      </>
+                    )}
+                    <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+                      <span className="flex items-center gap-1.5">
+                        <Heart className="size-4 text-destructive" /> {post.likes_count ?? 0}
+                      </span>
+                      <span className="flex items-center gap-1.5">
+                        <MessageCircle className="size-4" /> 0
+                      </span>
                     </div>
-                  )}
+                  </div>
                 </li>
               );
             })}
