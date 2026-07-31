@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
@@ -67,6 +68,7 @@ function CreatePost() {
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState<Achievement | null>(null);
+  const [trainLocation, setTrainLocation] = useState("");
   // Competição
   const [event, setEvent] = useState("");
   const [placement, setPlacement] = useState<string>(PLACEMENTS[0].value);
@@ -139,6 +141,7 @@ function CreatePost() {
         training_type: type,
         intensity,
         notes,
+        location: trainLocation.trim() || null,
       })
       .select("id")
       .single();
@@ -287,6 +290,20 @@ function CreatePost() {
           )}
         </section>
 
+        {/* Onde você treinou (Nominatim) */}
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Onde você treinou hoje? (Opcional)
+          </h2>
+          <LocationAutocomplete
+            value={trainLocation}
+            onChange={setTrainLocation}
+            ariaLabel="Local do treino"
+            placeholder="Ex: Rio de Janeiro, Copacabana..."
+          />
+        </section>
+
+
         {/* Tipo de treino */}
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tipo de treino</h2>
@@ -407,16 +424,13 @@ function CreatePost() {
               <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Localização
               </h2>
-              <div className="relative">
-                <MapPin className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-brand" />
-                <input
-                  value={compLocation}
-                  onChange={(e) => setCompLocation(e.target.value)}
-                  aria-label="Localização do campeonato"
-                  placeholder="Ex: Ginásio do Ibirapuera, São Paulo"
-                  className="w-full rounded-2xl border border-white/5 bg-white/[0.04] py-4 pl-12 pr-4 text-sm text-foreground placeholder:text-muted-foreground focus:border-brand/40 focus:outline-none"
-                />
-              </div>
+              <LocationAutocomplete
+                value={compLocation}
+                onChange={setCompLocation}
+                ariaLabel="Localização do campeonato"
+                placeholder="Ex: Ginásio do Ibirapuera, São Paulo"
+              />
+
             </section>
 
             <section className="flex flex-col gap-3">

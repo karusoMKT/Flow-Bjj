@@ -55,7 +55,7 @@ function HomeFeed() {
       const { data, error: err } = await supabase
         .from("posts")
         .select(
-          "id, content, image_url, likes_count, created_at, profiles:user_id (full_name, username, avatar_url, belt), workouts:workout_id (duration_minutes, training_type, intensity)",
+          "id, content, image_url, likes_count, created_at, profiles:user_id (full_name, username, avatar_url, belt), workouts:workout_id (duration_minutes, training_type, intensity, location)",
         )
         .order("created_at", { ascending: false })
         .limit(30);
