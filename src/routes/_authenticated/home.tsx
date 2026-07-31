@@ -46,6 +46,21 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 }
 
 function HomeFeed() {
+  const { data: posts, isLoading, error, refetch } = useQuery({
+    queryKey: ["feed"],
+    queryFn: async () => {
+      const { data, error: err } = await supabase
+        .from("posts")
+        .select(
+          "id, content, image_url, likes_count, created_at, profiles:user_id (full_name, username, avatar_url, belt), workouts:workout_id (duration_minutes, training_type, intensity)",
+        )
+        .order("created_at", { ascending: false })
+        .limit(30);
+      if (err) throw err;
+      return data ?? [];
+    },
+  });
+
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-white/5 bg-background/95 px-4 py-3 backdrop-blur">
