@@ -84,6 +84,33 @@ function CreatePost() {
       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
+    if (mode === "competicao") {
+      if (!event.trim()) {
+        setSaving(false);
+        toast.error("Informe o nome do campeonato.");
+        return;
+      }
+      const { error: compError } = await supabase.from("posts").insert({
+        user_id: uid,
+        content: encodeCompetition({
+          event,
+          placement,
+          location: compLocation,
+          summary: compSummary,
+        }),
+      });
+      setSaving(false);
+      if (compError) {
+        toast.error("Não foi possível publicar a competição.");
+        return;
+      }
+      toast.success("Competição publicada!");
+      queryClient.invalidateQueries({ queryKey: ["feed"] });
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
+      navigate({ to: "/home" });
+      return;
+    }
+
     const minutes = Number(duration) || 60;
     const notes = [text.trim(), `Intensidade: ${intensity}`].filter(Boolean).join(" · ") || null;
 
