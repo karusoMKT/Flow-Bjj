@@ -7,6 +7,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 /** Conquista simulada (apenas UI, sem banco de dados por enquanto). */
 const DEMO_ACHIEVEMENT: Achievement = {
@@ -16,6 +18,15 @@ const DEMO_ACHIEVEMENT: Achievement = {
   icon_name: "Trophy",
   unlocked_at: new Date().toISOString(),
 };
+
+const DEMO_COMPETITION_ACHIEVEMENT: Achievement = {
+  id: "demo-first-competition",
+  title: "Primeira Competição",
+  description: "Sua primeira vez nos tatames de guerra! A glória te espera.",
+  icon_name: "Trophy",
+  unlocked_at: new Date().toISOString(),
+};
+
 
 export const Route = createFileRoute("/_authenticated/create")({
   head: () => ({
@@ -107,9 +118,14 @@ function CreatePost() {
       toast.success("Competição publicada!");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      navigate({ to: "/home" });
+      setUnlocked(DEMO_COMPETITION_ACHIEVEMENT);
+      window.setTimeout(() => {
+        setUnlocked(null);
+        navigate({ to: "/home" });
+      }, 3500);
       return;
     }
+
 
     const minutes = Number(duration) || 60;
     const notes = [text.trim(), `Intensidade: ${intensity}`].filter(Boolean).join(" · ") || null;
@@ -365,21 +381,26 @@ function CreatePost() {
               <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                 Colocação
               </h2>
-              <div className="relative">
-                <ChevronRight className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
-                <select
-                  value={placement}
-                  onChange={(e) => setPlacement(e.target.value)}
+              <Select value={placement} onValueChange={setPlacement}>
+                <SelectTrigger
                   aria-label="Colocação"
-                  className="w-full appearance-none rounded-2xl border border-white/5 bg-white/[0.04] px-4 py-4 pr-12 text-sm text-foreground focus:border-brand/40 focus:outline-none"
+                  className="h-auto w-full rounded-2xl border border-white/5 bg-white/[0.04] px-4 py-4 text-sm text-foreground focus:border-brand/40 focus:ring-0"
                 >
+                  <SelectValue placeholder="Selecione a colocação" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border-white/10 bg-[#121212] text-foreground">
                   {PLACEMENTS.map((p) => (
-                    <option key={p.value} value={p.value}>
+                    <SelectItem
+                      key={p.value}
+                      value={p.value}
+                      className="rounded-xl text-sm text-foreground focus:bg-brand/15 focus:text-brand data-[state=checked]:text-brand"
+                    >
                       {p.value}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-              </div>
+                </SelectContent>
+              </Select>
+
             </section>
 
             <section className="flex flex-col gap-3">
