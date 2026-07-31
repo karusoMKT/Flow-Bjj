@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, MapPin, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AchievementModal } from "@/components/AchievementModal";
+import { checkAchievements, type Achievement } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/create")({
   head: () => ({
