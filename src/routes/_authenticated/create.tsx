@@ -58,7 +58,7 @@ function CreatePost() {
   const [unlocked, setUnlocked] = useState<Achievement | null>(null);
   // Competição
   const [event, setEvent] = useState("");
-  const [placement, setPlacement] = useState(PLACEMENTS[0].value);
+  const [placement, setPlacement] = useState<string>(PLACEMENTS[0].value);
   const [compLocation, setCompLocation] = useState("");
   const [compSummary, setCompSummary] = useState("");
 
