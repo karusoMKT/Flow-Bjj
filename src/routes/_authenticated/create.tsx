@@ -19,6 +19,15 @@ const DEMO_ACHIEVEMENT: Achievement = {
   unlocked_at: new Date().toISOString(),
 };
 
+const DEMO_COMPETITION_ACHIEVEMENT: Achievement = {
+  id: "demo-first-competition",
+  title: "Primeira Competição",
+  description: "Sua primeira vez nos tatames de guerra! A glória te espera.",
+  icon_name: "Trophy",
+  unlocked_at: new Date().toISOString(),
+};
+
+
 export const Route = createFileRoute("/_authenticated/create")({
   head: () => ({
     meta: [
