@@ -109,7 +109,7 @@ function Perfil() {
   const xpToNext = 250;
   const level = Math.max(1, Math.floor(xp / xpToNext) + 1);
   const xpInLevel = xp % xpToNext;
-  const achievements = Math.min(15, Math.floor(totalWorkouts / 2));
+  
 
   const name = profile?.full_name ?? profile?.username ?? "Atleta";
   const identity = [profile?.belt && `Faixa ${profile.belt}`, profile?.team, profile?.professor]
