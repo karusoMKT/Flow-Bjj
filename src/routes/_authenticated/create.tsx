@@ -109,9 +109,14 @@ function CreatePost() {
       toast.success("Competição publicada!");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      navigate({ to: "/home" });
+      setUnlocked(DEMO_COMPETITION_ACHIEVEMENT);
+      window.setTimeout(() => {
+        setUnlocked(null);
+        navigate({ to: "/home" });
+      }, 3500);
       return;
     }
+
 
     const minutes = Number(duration) || 60;
     const notes = [text.trim(), `Intensidade: ${intensity}`].filter(Boolean).join(" · ") || null;
