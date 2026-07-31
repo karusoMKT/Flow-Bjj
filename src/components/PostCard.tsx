@@ -1,0 +1,133 @@
+import { Heart, MessageCircle, Play, Zap } from "lucide-react";
+import { timeAgo, beltClass } from "@/lib/feed";
+
+export type FeedPost = {
+  id: string;
+  content: string | null;
+  image_url: string | null;
+  likes_count: number | null;
+  created_at: string;
+  profiles?: {
+    full_name: string | null;
+    username: string | null;
+    avatar_url: string | null;
+    belt: string | null;
+  } | null;
+  workouts?: {
+    duration_minutes: number | null;
+    training_type: string | null;
+    intensity: string | null;
+  } | null;
+};
+
+export function initialsOf(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("");
+}
+
+export function AvatarBubble({
+  src,
+  name,
+  className = "size-10",
+}: {
+  src?: string | null;
+  name: string;
+  className?: string;
+}) {
+  if (src) {
+    return (
+      <img
+        src={src}
+        alt={name}
+        loading="lazy"
+        className={`${className} shrink-0 rounded-full object-cover`}
+      />
+    );
+  }
+  return (
+    <span
+      aria-label={name}
+      className={`${className} grid shrink-0 place-items-center rounded-full bg-surface-2 text-sm font-bold text-brand`}
+    >
+      {initialsOf(name) || "?"}
+    </span>
+  );
+}
+
+export function PostCardSkeleton() {
+  return (
+    <li className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
+      <div className="flex items-start gap-3 p-3.5">
+        <div className="size-10 shrink-0 animate-pulse rounded-full bg-white/10" />
+        <div className="flex-1 space-y-2">
+          <div className="h-3 w-1/3 animate-pulse rounded bg-white/10" />
+          <div className="h-3 w-1/2 animate-pulse rounded bg-white/5" />
+        </div>
+      </div>
+      <div className="h-40 w-full animate-pulse bg-white/[0.04]" />
+    </li>
+  );
+}
+
+export function PostCard({ post }: { post: FeedPost }) {
+  const author = post.profiles;
+  const name = author?.full_name ?? author?.username ?? "Atleta";
+  const workout = post.workouts;
+
+  return (
+    <li className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
+      <div className="flex items-start gap-3 p-3.5">
+        <AvatarBubble src={author?.avatar_url} name={name} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-semibold">{name}</p>
+            {author?.belt && (
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${beltClass(author.belt)}`}>
+                {author.belt}
+              </span>
+            )}
+          </div>
+          {workout ? (
+            <p className="truncate text-xs text-muted-foreground">
+              Treinou {workout.duration_minutes} min
+              {workout.training_type ? ` · ${workout.training_type}` : ""}
+            </p>
+          ) : null}
+          {post.content && <p className="mt-1 text-sm leading-snug text-foreground">{post.content}</p>}
+        </div>
+        <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+      </div>
+
+      {post.image_url && (
+        <img src={post.image_url} alt={`Treino de ${name}`} loading="lazy" className="h-60 w-full object-cover" />
+      )}
+
+      <div className="flex items-center gap-2 px-3.5 py-3">
+        {workout && (
+          <>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+              <Play className="size-3.5" /> {workout.duration_minutes} min
+            </span>
+            {workout.intensity && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[11px] font-semibold text-brand">
+                <Zap className="size-3.5" /> {workout.intensity}
+              </span>
+            )}
+          </>
+        )}
+        <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Heart className="size-4 text-destructive" /> {post.likes_count ?? 0}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <MessageCircle className="size-4" /> 0
+          </span>
+        </div>
+      </div>
+    </li>
+  );
+}
