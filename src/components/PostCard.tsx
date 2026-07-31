@@ -131,7 +131,14 @@ export function PostCard({ post }: { post: FeedPost }) {
                   {workout.training_type ? ` · ${workout.training_type}` : ""}
                 </p>
               ) : null}
+              {workout?.location && (
+                <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="size-3.5 shrink-0 text-brand" />
+                  <span className="truncate">{workout.location}</span>
+                </p>
+              )}
               {post.content && <p className="mt-1 text-sm leading-snug text-foreground">{post.content}</p>}
+
             </>
           )}
         </div>
