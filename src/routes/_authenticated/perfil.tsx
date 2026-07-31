@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
 import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
 import { beltClass } from "@/lib/feed";
+import { AchievementIcon } from "@/components/AchievementModal";
+import { fetchAchievements } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -79,6 +81,14 @@ function formatMat(minutes: number): string {
 
 function Perfil() {
   const { data, isLoading, error, refetch } = useQuery({ queryKey: ["profile"], queryFn: fetchProfileData });
+  const { data: trophies = [], isLoading: trophiesLoading } = useQuery({
+    queryKey: ["achievements"],
+    queryFn: async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user?.id) return [];
+      return fetchAchievements(auth.user.id);
+    },
+  });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -99,7 +109,7 @@ function Perfil() {
   const xpToNext = 250;
   const level = Math.max(1, Math.floor(xp / xpToNext) + 1);
   const xpInLevel = xp % xpToNext;
-  const achievements = Math.min(15, Math.floor(totalWorkouts / 2));
+  
 
   const name = profile?.full_name ?? profile?.username ?? "Atleta";
   const identity = [profile?.belt && `Faixa ${profile.belt}`, profile?.team, profile?.professor]
@@ -228,7 +238,7 @@ function Perfil() {
           >
             <div>
               <p className="text-xs font-semibold text-foreground">Conquistas</p>
-              <p className="mt-0.5 text-[10px] text-muted-foreground">{achievements} / 15 emblemas</p>
+              <p className="mt-0.5 text-[10px] text-muted-foreground">{trophies.length} desbloqueadas</p>
             </div>
             <div className="grid size-9 place-items-center rounded-full bg-brand/10 text-brand">
               <Medal className="size-5" />
@@ -265,6 +275,40 @@ function Perfil() {
         </Link>
 
         <DevRoutesMenu />
+
+        <section className="mt-8">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Minhas conquistas
+          </h3>
+
+          {trophiesLoading ? (
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/5" />
+              ))}
+            </div>
+          ) : trophies.length === 0 ? (
+            <p className="mt-3 rounded-2xl border border-white/5 bg-surface p-6 text-center text-sm text-muted-foreground">
+              Nenhum troféu ainda. Registre um treino para desbloquear o primeiro!
+            </p>
+          ) : (
+            <ul className="mt-3 grid grid-cols-3 gap-3">
+              {trophies.map((t) => (
+                <li
+                  key={t.id}
+                  className="flex flex-col items-center gap-2 rounded-2xl border border-brand/30 bg-brand/[0.06] px-2 py-4 text-center"
+                >
+                  <span className="grid size-12 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand">
+                    <AchievementIcon name={t.icon_name} className="size-6" />
+                  </span>
+                  <p className="text-[11px] font-semibold leading-tight text-foreground">{t.title}</p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+
 
         <section className="mt-8">
           <div className="flex items-center justify-between">

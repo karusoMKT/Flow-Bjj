@@ -4,6 +4,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, MapPin, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { AchievementModal } from "@/components/AchievementModal";
+import { checkAchievements, type Achievement } from "@/lib/achievements";
 
 export const Route = createFileRoute("/_authenticated/create")({
   head: () => ({
@@ -42,6 +44,7 @@ function CreatePost() {
   const [duration, setDuration] = useState("90");
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
+  const [unlocked, setUnlocked] = useState<Achievement | null>(null);
 
   const { data: gyms } = useQuery({
     queryKey: ["gyms"],
@@ -102,6 +105,8 @@ function CreatePost() {
       notes,
     });
 
+    const newAchievements = await checkAchievements(uid);
+
     setSaving(false);
     if (postError) {
       toast.error("Treino salvo, mas não foi possível publicar no feed.");
@@ -110,6 +115,12 @@ function CreatePost() {
     toast.success("Treino publicado!");
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
+    queryClient.invalidateQueries({ queryKey: ["achievements"] });
+
+    if (newAchievements.length) {
+      setUnlocked(newAchievements[0]);
+      return;
+    }
     navigate({ to: "/home" });
   }
 
@@ -270,6 +281,14 @@ function CreatePost() {
           {saving ? "Publicando..." : "Publicar treino"}
         </button>
       </main>
+
+      <AchievementModal
+        achievement={unlocked}
+        onClose={() => {
+          setUnlocked(null);
+          navigate({ to: "/home" });
+        }}
+      />
     </div>
   );
 }
