@@ -290,6 +290,20 @@ function CreatePost() {
           )}
         </section>
 
+        {/* Onde você treinou (Nominatim) */}
+        <section className="flex flex-col gap-3">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            Onde você treinou hoje? (Opcional)
+          </h2>
+          <LocationAutocomplete
+            value={trainLocation}
+            onChange={setTrainLocation}
+            ariaLabel="Local do treino"
+            placeholder="Ex: Rio de Janeiro, Copacabana..."
+          />
+        </section>
+
+
         {/* Tipo de treino */}
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Tipo de treino</h2>
