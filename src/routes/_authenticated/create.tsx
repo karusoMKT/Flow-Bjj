@@ -64,17 +64,47 @@ function CreatePost() {
       toast.error("Sessão expirada. Faça login novamente.");
       return;
     }
-    const { error } = await supabase.from("sessions").insert({
+    const minutes = Number(duration) || 60;
+    const notes = [text.trim(), `Intensidade: ${intensity}`].filter(Boolean).join(" · ") || null;
+
+    const { data: workout, error: workoutError } = await supabase
+      .from("workouts")
+      .insert({
+        user_id: uid,
+        gym_id: gymId || null,
+        duration_minutes: minutes,
+        training_type: type,
+        intensity,
+        notes,
+      })
+      .select("id")
+      .single();
+
+    if (workoutError) {
+      setSaving(false);
+      toast.error("Não foi possível publicar o treino.");
+      return;
+    }
+
+    const { error: postError } = await supabase.from("posts").insert({
+      user_id: uid,
+      workout_id: workout.id,
+      content: text.trim() || `Treino de ${type} · ${minutes} min · ${intensity}`,
+    });
+
+    // Mantém compatibilidade com o feed atual baseado em sessions
+    await supabase.from("sessions").insert({
       user_id: uid,
       gym_id: gymId || null,
       session_date: new Date().toISOString().slice(0, 10),
-      duration_minutes: Number(duration) || 60,
+      duration_minutes: minutes,
       session_type: type,
-      notes: [text.trim(), `Intensidade: ${intensity}`].filter(Boolean).join(" · ") || null,
+      notes,
     });
+
     setSaving(false);
-    if (error) {
-      toast.error("Não foi possível publicar o treino.");
+    if (postError) {
+      toast.error("Treino salvo, mas não foi possível publicar no feed.");
       return;
     }
     toast.success("Treino publicado!");
