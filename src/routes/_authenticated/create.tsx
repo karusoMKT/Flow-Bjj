@@ -283,7 +283,10 @@ function CreatePost() {
           </h2>
           <LocationAutocomplete
             value={trainLocation}
-            onChange={setTrainLocation}
+            onChange={(v) => {
+              setLocationTouched(true);
+              setTrainLocation(v);
+            }}
             ariaLabel="Academia ou local do treino"
             placeholder="Ex: Gracie Barra, Copacabana..."
           />
