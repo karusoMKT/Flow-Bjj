@@ -101,6 +101,7 @@ function SignupPage() {
             belt: form.belt,
             degrees: form.degrees,
             competitor: form.competitor,
+            is_competitor: form.competitor,
           },
         },
       });
