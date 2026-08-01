@@ -101,6 +101,7 @@ function SignupPage() {
             belt: form.belt,
             degrees: form.degrees,
             competitor: form.competitor,
+            is_competitor: form.competitor,
           },
         },
       });
@@ -275,8 +276,13 @@ function SignupPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-between rounded-xl bg-surface px-4 py-3">
-            <span className="text-sm text-muted-foreground">Evoluir no Jiu-Jitsu · Competidor?</span>
+          <div className="flex items-center justify-between gap-3 rounded-xl bg-surface px-4 py-3">
+            <span className="flex flex-col">
+              <span className="text-sm text-foreground">Sou atleta competidor</span>
+              <span className="text-[11px] text-muted-foreground">
+                Ative se você participa de campeonatos
+              </span>
+            </span>
             <button
               type="button"
               role="switch"
