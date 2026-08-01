@@ -62,30 +62,42 @@ function CreatePost() {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"treino" | "competicao">("treino");
   const [text, setText] = useState("");
-  const [gymId, setGymId] = useState("");
   const [type, setType] = useState("Kimono");
   const [duration, setDuration] = useState("90");
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState<Achievement | null>(null);
   const [trainLocation, setTrainLocation] = useState("");
+  const [locationTouched, setLocationTouched] = useState(false);
   // Competição
   const [event, setEvent] = useState("");
   const [placement, setPlacement] = useState<string>(PLACEMENTS[0].value);
   const [compLocation, setCompLocation] = useState("");
   const [compSummary, setCompSummary] = useState("");
 
-
-  const { data: gyms } = useQuery({
-    queryKey: ["gyms"],
+  // Academia principal do perfil (preenche o local automaticamente)
+  const { data: homeAcademy } = useQuery({
+    queryKey: ["home-academy"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("gyms").select("id, name, city").order("name").limit(100);
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("home_academy")
+        .eq("id", uid)
+        .maybeSingle();
       if (error) throw error;
-      return data ?? [];
+      return data?.home_academy ?? null;
     },
   });
 
-  const selectedGym = gyms?.find((g) => g.id === gymId);
+  useEffect(() => {
+    if (homeAcademy && !locationTouched && !trainLocation) {
+      setTrainLocation(homeAcademy);
+    }
+  }, [homeAcademy, locationTouched, trainLocation]);
+
 
   async function publish() {
     if (saving) return;
