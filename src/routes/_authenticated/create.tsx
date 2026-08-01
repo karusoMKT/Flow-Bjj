@@ -264,44 +264,19 @@ function CreatePost() {
           <span className="text-sm">Adicionar foto ou vídeo</span>
         </button>
 
-        {/* Localização */}
-        <section className="flex flex-col gap-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Localização</h2>
-          <div className="relative">
-            <MapPin className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-brand" />
-            <ChevronRight className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
-            <select
-              value={gymId}
-              onChange={(e) => setGymId(e.target.value)}
-              aria-label="Academia"
-              className="w-full appearance-none rounded-2xl border border-white/5 bg-white/[0.04] py-4 pl-12 pr-12 text-sm text-foreground focus:border-brand/40 focus:outline-none"
-            >
-              <option value="">Adicionar Academia (Check-in)</option>
-              {gyms?.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                  {g.city ? ` — ${g.city}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-          {selectedGym && (
-            <p className="text-xs text-muted-foreground">Check-in em {selectedGym.name}</p>
-          )}
-        </section>
-
-        {/* Onde você treinou (Nominatim) */}
+        {/* Academia / Local do treino (unificado) */}
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Onde você treinou hoje? (Opcional)
+            Academia / Local do Treino
           </h2>
           <LocationAutocomplete
             value={trainLocation}
             onChange={setTrainLocation}
-            ariaLabel="Local do treino"
-            placeholder="Ex: Rio de Janeiro, Copacabana..."
+            ariaLabel="Academia ou local do treino"
+            placeholder="Ex: Gracie Barra, Copacabana..."
           />
         </section>
+
 
 
         {/* Tipo de treino */}
