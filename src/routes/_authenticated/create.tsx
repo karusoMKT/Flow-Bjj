@@ -148,7 +148,7 @@ function CreatePost() {
       .from("workouts")
       .insert({
         user_id: uid,
-        gym_id: gymId || null,
+        gym_id: null,
         duration_minutes: minutes,
         training_type: type,
         intensity,
@@ -173,7 +173,7 @@ function CreatePost() {
     // Mantém compatibilidade com o feed atual baseado em sessions
     await supabase.from("sessions").insert({
       user_id: uid,
-      gym_id: gymId || null,
+      gym_id: null,
       session_date: new Date().toISOString().slice(0, 10),
       duration_minutes: minutes,
       session_type: type,
