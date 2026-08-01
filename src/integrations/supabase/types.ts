@@ -215,6 +215,7 @@ export type Database = {
           full_name: string | null
           home_academy: string | null
           id: string
+          is_competitor: boolean
           is_recovering: boolean | null
           professor: string | null
           team: string | null
@@ -230,6 +231,7 @@ export type Database = {
           full_name?: string | null
           home_academy?: string | null
           id: string
+          is_competitor?: boolean
           is_recovering?: boolean | null
           professor?: string | null
           team?: string | null
@@ -245,6 +247,7 @@ export type Database = {
           full_name?: string | null
           home_academy?: string | null
           id?: string
+          is_competitor?: boolean
           is_recovering?: boolean | null
           professor?: string | null
           team?: string | null
