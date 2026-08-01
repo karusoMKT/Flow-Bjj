@@ -73,6 +73,17 @@ export function LocationAutocomplete({
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => results.length > 0 && setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            // Texto livre: mantém exatamente o que foi digitado
+            e.preventDefault();
+            skipNext.current = true;
+            setOpen(false);
+            setResults([]);
+            e.currentTarget.blur();
+          }
+          if (e.key === "Escape") setOpen(false);
+        }}
         aria-label={ariaLabel}
         autoComplete="off"
         placeholder={placeholder}

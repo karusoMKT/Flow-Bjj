@@ -213,6 +213,7 @@ export type Database = {
           city: string | null
           created_at: string
           full_name: string | null
+          home_academy: string | null
           id: string
           is_recovering: boolean | null
           professor: string | null
@@ -227,6 +228,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           full_name?: string | null
+          home_academy?: string | null
           id: string
           is_recovering?: boolean | null
           professor?: string | null
@@ -241,6 +243,7 @@ export type Database = {
           city?: string | null
           created_at?: string
           full_name?: string | null
+          home_academy?: string | null
           id?: string
           is_recovering?: boolean | null
           professor?: string | null

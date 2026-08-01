@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -62,30 +62,42 @@ function CreatePost() {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<"treino" | "competicao">("treino");
   const [text, setText] = useState("");
-  const [gymId, setGymId] = useState("");
   const [type, setType] = useState("Kimono");
   const [duration, setDuration] = useState("90");
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
   const [unlocked, setUnlocked] = useState<Achievement | null>(null);
   const [trainLocation, setTrainLocation] = useState("");
+  const [locationTouched, setLocationTouched] = useState(false);
   // Competição
   const [event, setEvent] = useState("");
   const [placement, setPlacement] = useState<string>(PLACEMENTS[0].value);
   const [compLocation, setCompLocation] = useState("");
   const [compSummary, setCompSummary] = useState("");
 
-
-  const { data: gyms } = useQuery({
-    queryKey: ["gyms"],
+  // Academia principal do perfil (preenche o local automaticamente)
+  const { data: homeAcademy } = useQuery({
+    queryKey: ["home-academy"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("gyms").select("id, name, city").order("name").limit(100);
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) return null;
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("home_academy")
+        .eq("id", uid)
+        .maybeSingle();
       if (error) throw error;
-      return data ?? [];
+      return data?.home_academy ?? null;
     },
   });
 
-  const selectedGym = gyms?.find((g) => g.id === gymId);
+  useEffect(() => {
+    if (homeAcademy && !locationTouched && !trainLocation) {
+      setTrainLocation(homeAcademy);
+    }
+  }, [homeAcademy, locationTouched, trainLocation]);
+
 
   async function publish() {
     if (saving) return;
@@ -136,7 +148,7 @@ function CreatePost() {
       .from("workouts")
       .insert({
         user_id: uid,
-        gym_id: gymId || null,
+        gym_id: null,
         duration_minutes: minutes,
         training_type: type,
         intensity,
@@ -161,7 +173,7 @@ function CreatePost() {
     // Mantém compatibilidade com o feed atual baseado em sessions
     await supabase.from("sessions").insert({
       user_id: uid,
-      gym_id: gymId || null,
+      gym_id: null,
       session_date: new Date().toISOString().slice(0, 10),
       duration_minutes: minutes,
       session_type: type,
@@ -264,44 +276,22 @@ function CreatePost() {
           <span className="text-sm">Adicionar foto ou vídeo</span>
         </button>
 
-        {/* Localização */}
-        <section className="flex flex-col gap-3">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Localização</h2>
-          <div className="relative">
-            <MapPin className="pointer-events-none absolute left-4 top-1/2 size-5 -translate-y-1/2 text-brand" />
-            <ChevronRight className="pointer-events-none absolute right-4 top-1/2 size-5 -translate-y-1/2 text-muted-foreground" />
-            <select
-              value={gymId}
-              onChange={(e) => setGymId(e.target.value)}
-              aria-label="Academia"
-              className="w-full appearance-none rounded-2xl border border-white/5 bg-white/[0.04] py-4 pl-12 pr-12 text-sm text-foreground focus:border-brand/40 focus:outline-none"
-            >
-              <option value="">Adicionar Academia (Check-in)</option>
-              {gyms?.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                  {g.city ? ` — ${g.city}` : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-          {selectedGym && (
-            <p className="text-xs text-muted-foreground">Check-in em {selectedGym.name}</p>
-          )}
-        </section>
-
-        {/* Onde você treinou (Nominatim) */}
+        {/* Academia / Local do treino (unificado) */}
         <section className="flex flex-col gap-3">
           <h2 className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-            Onde você treinou hoje? (Opcional)
+            Academia / Local do Treino
           </h2>
           <LocationAutocomplete
             value={trainLocation}
-            onChange={setTrainLocation}
-            ariaLabel="Local do treino"
-            placeholder="Ex: Rio de Janeiro, Copacabana..."
+            onChange={(v) => {
+              setLocationTouched(true);
+              setTrainLocation(v);
+            }}
+            ariaLabel="Academia ou local do treino"
+            placeholder="Ex: Gracie Barra, Copacabana..."
           />
         </section>
+
 
 
         {/* Tipo de treino */}
