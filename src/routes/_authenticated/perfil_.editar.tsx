@@ -48,12 +48,14 @@ async function fetchMyProfile() {
   if (!uid) throw new Error("Sem sessão");
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, home_academy, belt, stripes, weight, is_competitor")
+    .select("id, full_name, username, avatar_url, home_academy, belt, stripes, weight, is_competitor")
     .eq("id", uid)
     .maybeSingle();
   if (error) throw error;
   return data;
 }
+
+const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
 
 function EditarPerfil() {
   const navigate = useNavigate();
@@ -68,6 +70,8 @@ function EditarPerfil() {
   const [stripes, setStripes] = useState(0);
   const [weight, setWeight] = useState("");
   const [isCompetitor, setIsCompetitor] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [queue, setQueue] = useState<Achievement[]>([]);
 
@@ -78,7 +82,53 @@ function EditarPerfil() {
     setStripes(profile.stripes ?? 0);
     setWeight(profile.weight ?? "");
     setIsCompetitor(Boolean(profile.is_competitor));
+    setAvatarUrl(profile.avatar_url ?? null);
   }, [profile]);
+
+  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !profile?.id) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 5 MB.");
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+    const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (uploadError) {
+      setUploading(false);
+      toast.error("Não foi possível enviar a foto.");
+      return;
+    }
+
+    const { data: signed } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(path, TEN_YEARS);
+
+    const url = signed?.signedUrl ?? null;
+    if (url) {
+      await supabase.from("profiles").update({ avatar_url: url }).eq("id", profile.id);
+      setAvatarUrl(url);
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile-edit"] });
+      toast.success("Foto atualizada!");
+    } else {
+      toast.error("Não foi possível gerar o link da foto.");
+    }
+    setUploading(false);
+  }
+
 
   async function handleSave() {
     if (!profile?.id || saving) return;
