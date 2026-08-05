@@ -33,7 +33,7 @@ async function fetchProfileData() {
   const uid = auth.user?.id;
   if (!uid) throw new Error("Sem sessão");
 
-  const [profileRes, workoutsRes, postsRes] = await Promise.all([
+  const [profileRes, workoutsRes, postsRes, compRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
     supabase.from("workouts").select("id, duration_minutes, created_at").eq("user_id", uid),
     supabase
@@ -44,6 +44,11 @@ async function fetchProfileData() {
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(30),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", uid)
+      .like("content", "[COMP]%"),
   ]);
 
   if (profileRes.error) throw profileRes.error;
@@ -56,6 +61,7 @@ async function fetchProfileData() {
     profile: profileRes.data,
     workouts,
     totalWorkouts: workouts.length,
+    totalCompetitions: compRes.count ?? 0,
     totalMinutes: workouts.reduce((acc, w) => acc + (w.duration_minutes ?? 0), 0),
     posts: (postsRes.data ?? []) as unknown as FeedPost[],
   };
