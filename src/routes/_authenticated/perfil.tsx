@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
 import { beltClass } from "@/lib/feed";
 import { AchievementIcon } from "@/components/AchievementModal";
+import { ShareButton } from "@/components/ShareButton";
 import { fetchAchievements } from "@/lib/achievements";
 import { levelProgress } from "@/lib/xp";
 
