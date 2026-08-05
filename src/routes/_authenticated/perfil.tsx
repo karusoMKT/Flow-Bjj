@@ -10,7 +10,7 @@ import { beltClass } from "@/lib/feed";
 import { AchievementIcon } from "@/components/AchievementModal";
 import { ShareButton } from "@/components/ShareButton";
 import { fetchAchievements } from "@/lib/achievements";
-import { levelProgress } from "@/lib/xp";
+import { levelProgress, syncXp } from "@/lib/xp";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
