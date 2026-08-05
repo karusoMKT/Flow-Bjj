@@ -8,6 +8,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
 import { beltClass } from "@/lib/feed";
 import { AchievementIcon } from "@/components/AchievementModal";
+import { ShareButton } from "@/components/ShareButton";
 import { fetchAchievements } from "@/lib/achievements";
 import { levelProgress } from "@/lib/xp";
 
@@ -217,7 +218,30 @@ function Perfil() {
         </section>
 
         <section className="mt-6">
-          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Estatísticas</h3>
+          <div className="flex items-center justify-between">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Estatísticas</h3>
+            <ShareButton
+              payload={{
+                kind: "level",
+                level: progress.level,
+                xp,
+                percent: progress.percent,
+                nextLevel: progress.level + 1,
+                xpNeeded: progress.xpNeeded,
+                stats: [
+                  { label: "Treinos", value: String(totalWorkouts) },
+                  { label: "Competições", value: String(totalCompetitions) },
+                  { label: "Sequência", value: `${streak}d` },
+                ],
+                athlete: name,
+                belt: profile?.belt ?? null,
+                avatarUrl: profile?.avatar_url ?? null,
+              }}
+              label="Compartilhar"
+              className="inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1.5 text-[11px] font-bold text-brand transition-opacity hover:opacity-90 disabled:opacity-60"
+            />
+          </div>
+
 
           <div className="card-elevated mt-3 rounded-2xl border border-brand/25 bg-brand/[0.04] p-4">
             <div className="flex items-center justify-between">

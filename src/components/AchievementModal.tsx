@@ -1,5 +1,6 @@
 import { icons, Trophy, X } from "lucide-react";
 import type { Achievement } from "@/lib/achievements";
+import { ShareButton } from "@/components/ShareButton";
 
 function AchievementIcon({ name, className }: { name: string; className?: string }) {
   const Icon = (icons as Record<string, React.ElementType>)[name] ?? Trophy;
@@ -9,11 +10,18 @@ function AchievementIcon({ name, className }: { name: string; className?: string
 export function AchievementModal({
   achievement,
   onClose,
+  athlete,
+  belt,
+  avatarUrl,
 }: {
   achievement: Achievement | null;
   onClose: () => void;
+  athlete?: string | null;
+  belt?: string | null;
+  avatarUrl?: string | null;
 }) {
   if (!achievement) return null;
+
 
   return (
     <div
@@ -49,10 +57,24 @@ export function AchievementModal({
           <p className="mt-1.5 text-sm text-muted-foreground">{achievement.description}</p>
         )}
 
+        <ShareButton
+          payload={{
+            kind: "achievement",
+            title: achievement.title,
+            description: achievement.description,
+            iconName: achievement.icon_name,
+            athlete,
+            belt,
+            avatarUrl,
+          }}
+          label="Compartilhar no Story"
+          className="mt-7 flex w-full items-center justify-center gap-2 rounded-2xl border border-brand/40 bg-brand/10 py-3.5 text-sm font-black uppercase tracking-widest text-brand transition-opacity hover:opacity-90 disabled:opacity-60"
+        />
+
         <button
           type="button"
           onClick={onClose}
-          className="mt-7 w-full rounded-2xl bg-brand py-3.5 text-sm font-black uppercase tracking-widest text-brand-foreground transition-opacity hover:opacity-90"
+          className="mt-3 w-full rounded-2xl bg-brand py-3.5 text-sm font-black uppercase tracking-widest text-brand-foreground transition-opacity hover:opacity-90"
         >
           Oss!
         </button>
