@@ -1,129 +1,145 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import {
-  Award,
-  Clock,
-  Dumbbell,
-  Flame,
-  Footprints,
-  Globe,
-  Medal,
-  Shield,
-  Star,
-  Swords,
-  Target,
-  Trophy,
-  Users,
-  Zap,
-} from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { icons, Lock, Trophy, X } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { supabase } from "@/integrations/supabase/client";
+import { ACHIEVEMENTS, type AchievementDef } from "@/lib/achievements";
 
-const TABS = ["Todas", "Desbloqueadas", "Raras"] as const;
+const TABS = ["Todas", "Desbloqueadas", "Bloqueadas"] as const;
 type Tab = (typeof TABS)[number];
 
-type Rarity = "common" | "rare" | "epic" | "legendary" | "mythic";
-
-type Badge = {
-  id: string;
-  name: string;
-  icon: React.ElementType;
-  rarity: Rarity;
-  unlocked: boolean;
+/** Como conquistar cada troféu (texto do bottom sheet). */
+const HOW_TO: Record<string, string> = {
+  first_training: "Registre o seu primeiro treino no Flow.",
+  "10_trainings": "Registre 10 treinos.",
+  "100_trainings": "Registre 100 treinos.",
+  "7_days_streak": "Treine 7 dias seguidos, sem falhar nenhum.",
+  first_competition: "Registre a sua primeira competição.",
+  first_victory: "Suba ao pódio: ouro, prata ou bronze em um campeonato.",
+  stripe_promotion: "Atualize o seu perfil ao receber um novo grau.",
+  belt_promotion: "Atualize o seu perfil ao ser graduado em uma nova faixa.",
 };
 
-const RARITY_CONFIG: Record<
-  Rarity,
-  { label: string; border: string; icon: string; glow: string; bg: string }
-> = {
-  common: {
-    label: "Comum",
-    border: "border-white/15",
-    icon: "text-white/80",
-    glow: "shadow-[0_0_20px_-8px_rgba(255,255,255,0.15)]",
-    bg: "bg-surface-2/60",
-  },
-  rare: {
-    label: "Raro",
-    border: "border-brand",
-    icon: "text-brand",
-    glow: "shadow-[0_0_24px_-8px_var(--brand)]",
-    bg: "bg-brand/10",
-  },
-  epic: {
-    label: "Épico",
-    border: "border-purple-500",
-    icon: "text-purple-400",
-    glow: "shadow-[0_0_24px_-8px_rgba(168,85,247,0.45)]",
-    bg: "bg-purple-500/10",
-  },
-  legendary: {
-    label: "Lendário",
-    border: "border-amber-400",
-    icon: "text-amber-400",
-    glow: "shadow-[0_0_24px_-8px_rgba(251,191,36,0.45)]",
-    bg: "bg-amber-400/10",
-  },
-  mythic: {
-    label: "Mítico",
-    border: "border-sky-400",
-    icon: "text-sky-400",
-    glow: "shadow-[0_0_24px_-8px_rgba(56,189,248,0.45)]",
-    bg: "bg-sky-400/10",
-  },
-};
+const CATALOG = Object.values(ACHIEVEMENTS) as AchievementDef[];
 
-const BADGES: Badge[] = [
-  { id: "1", name: "Primeiro treino", icon: Dumbbell, rarity: "common", unlocked: true },
-  { id: "2", name: "10 treinos", icon: Target, rarity: "common", unlocked: true },
-  { id: "3", name: "100 horas", icon: Clock, rarity: "rare", unlocked: true },
-  { id: "4", name: "30 dias seguidos", icon: Flame, rarity: "rare", unlocked: true },
-  { id: "5", name: "Primeira competição", icon: Trophy, rarity: "epic", unlocked: true },
-  { id: "6", name: "Faixa Azul", icon: Award, rarity: "epic", unlocked: true },
-  { id: "7", name: "Treinou em outro estado", icon: Globe, rarity: "rare", unlocked: true },
-  { id: "8", name: "Treinou em outro país", icon: Shield, rarity: "epic", unlocked: false },
-  { id: "9", name: "Faixa Roxa", icon: Medal, rarity: "legendary", unlocked: false },
-  { id: "10", name: "Faixa Marrom", icon: Star, rarity: "legendary", unlocked: false },
-  { id: "11", name: "Semana Sem Faltar", icon: Zap, rarity: "rare", unlocked: true },
-  { id: "12", name: "Open Mat", icon: Footprints, rarity: "common", unlocked: true },
-  { id: "13", name: "Rolou com 10 parceiros", icon: Users, rarity: "rare", unlocked: true },
-  { id: "14", name: "50 Quadas", icon: Swords, rarity: "mythic", unlocked: false },
-  { id: "15", name: "Mestre do tatame", icon: CrownIcon, rarity: "mythic", unlocked: false },
-];
+type GalleryItem = AchievementDef & { unlocked: boolean; unlockedAt: string | null };
 
-function CrownIcon(props: React.SVGProps<SVGSVGElement>) {
+function TrophyIcon({ name, className }: { name: string; className?: string }) {
+  const Icon = (icons as Record<string, React.ElementType>)[name] ?? Trophy;
+  return <Icon className={className} strokeWidth={1.7} />;
+}
+
+async function fetchGallery(): Promise<GalleryItem[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Sem sessão");
+
+  const { data, error } = await supabase
+    .from("user_achievements")
+    .select("title, unlocked_at")
+    .eq("user_id", uid);
+  if (error) throw error;
+
+  const owned = new Map((data ?? []).map((r) => [r.title, r.unlocked_at as string]));
+
+  return CATALOG.map((def) => ({
+    ...def,
+    unlocked: owned.has(def.title),
+    unlockedAt: owned.get(def.title) ?? null,
+  }));
+}
+
+function HexTrophy({ item, onClick }: { item: GalleryItem; onClick: () => void }) {
+  const hex = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M2 4l3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14" />
-    </svg>
+    <button type="button" onClick={onClick} className="flex flex-col items-center gap-2 text-center">
+      <div
+        className={`relative grid size-[76px] place-items-center transition-transform active:scale-95 ${
+          item.unlocked
+            ? "bg-brand/12 shadow-[0_0_26px_-6px_var(--brand)]"
+            : "bg-surface-2/60 opacity-50 grayscale"
+        }`}
+        style={{ clipPath: hex }}
+      >
+        <div
+          className={`absolute inset-0 border-2 ${item.unlocked ? "border-brand" : "border-white/15"}`}
+          style={{ clipPath: hex }}
+        />
+        <TrophyIcon
+          name={item.icon_name}
+          className={`size-8 ${item.unlocked ? "text-brand" : "text-muted-foreground"}`}
+        />
+        {!item.unlocked && (
+          <span className="absolute bottom-3 right-3 grid size-4 place-items-center rounded-full bg-background/90">
+            <Lock className="size-2.5 text-muted-foreground" />
+          </span>
+        )}
+      </div>
+      <p
+        className={`text-[11px] font-medium leading-tight ${
+          item.unlocked ? "text-foreground" : "text-muted-foreground"
+        }`}
+      >
+        {item.title}
+      </p>
+    </button>
   );
 }
 
-function HexBadge({ badge }: { badge: Badge }) {
-  const style = RARITY_CONFIG[badge.rarity];
-  const Icon = badge.icon;
+function DetailSheet({ item, onClose }: { item: GalleryItem | null; onClose: () => void }) {
+  if (!item) return null;
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={item.title}
+      className="fixed inset-0 z-[60] flex items-end bg-black/70 animate-fade-in backdrop-blur-sm"
+      onClick={onClose}
+    >
       <div
-        className={`relative grid size-[72px] place-items-center ${style.bg} ${style.glow} transition-opacity`}
-        style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full rounded-t-3xl border-t border-white/10 bg-surface px-6 pb-10 pt-5 animate-slide-up"
       >
-        <div
-          className={`absolute inset-0 border-2 ${style.border}`}
-          style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}
-        />
-        <Icon className={`size-7 ${style.icon} ${badge.unlocked ? "" : "opacity-40 grayscale"}`} strokeWidth={1.8} />
-        {!badge.unlocked && (
-          <div className="absolute inset-0 grid place-items-center bg-background/50">
-            <span className="text-[10px] font-bold text-muted-foreground">BLOQ.</span>
+        <div className="mx-auto h-1 w-10 rounded-full bg-white/15" />
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Fechar"
+          className="absolute right-4 mt-1 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <X className="size-4" />
+        </button>
+
+        <div className="mt-5 flex items-start gap-4">
+          <div
+            className={`relative grid size-16 shrink-0 place-items-center rounded-2xl border ${
+              item.unlocked ? "border-brand/50 bg-brand/10" : "border-white/10 bg-surface-2 opacity-60 grayscale"
+            }`}
+          >
+            <TrophyIcon
+              name={item.icon_name}
+              className={`size-8 ${item.unlocked ? "text-brand" : "text-muted-foreground"}`}
+            />
           </div>
-        )}
-      </div>
-      <div className="text-center">
-        <p className={`text-[11px] font-medium leading-tight ${badge.unlocked ? "text-foreground" : "text-muted-foreground"}`}>
-          {badge.name}
+          <div className="min-w-0">
+            <h2 className="text-base font-bold text-foreground">{item.title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{item.description}</p>
+          </div>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-white/10 bg-surface-2/60 p-4">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Como conquistar</p>
+          <p className="mt-1 text-sm text-foreground">{HOW_TO[item.key] ?? item.description}</p>
+        </div>
+
+        <p className={`mt-4 text-center text-xs ${item.unlocked ? "text-brand" : "text-muted-foreground"}`}>
+          {item.unlocked && item.unlockedAt
+            ? `Desbloqueada em ${new Date(item.unlockedAt).toLocaleDateString("pt-BR")}`
+            : "Ainda bloqueada — continue treinando!"}
         </p>
-        <p className={`text-[9px] ${style.icon}`}>{style.label}</p>
       </div>
     </div>
   );
@@ -131,17 +147,24 @@ function HexBadge({ badge }: { badge: Badge }) {
 
 function AchievementsPage() {
   const [tab, setTab] = useState<Tab>("Todas");
+  const [selected, setSelected] = useState<GalleryItem | null>(null);
+
+  const { data, isLoading } = useQuery({ queryKey: ["achievements", "gallery"], queryFn: fetchGallery });
+  const items = data ?? [];
 
   const filtered = useMemo(() => {
-    if (tab === "Todas") return BADGES;
-    if (tab === "Desbloqueadas") return BADGES.filter((b) => b.unlocked);
-    return BADGES.filter((b) => b.rarity === "epic" || b.rarity === "legendary" || b.rarity === "mythic");
-  }, [tab]);
+    if (tab === "Desbloqueadas") return items.filter((i) => i.unlocked);
+    if (tab === "Bloqueadas") return items.filter((i) => !i.unlocked);
+    return items;
+  }, [items, tab]);
+
+  const unlockedCount = items.filter((i) => i.unlocked).length;
+  const percent = items.length ? Math.round((unlockedCount / items.length) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-background pb-28">
       <main className="mx-auto max-w-md px-4 pt-6">
-        <h1 className="text-center font-sans text-lg font-semibold tracking-tight">Conquistas</h1>
+        <h1 className="text-center font-sans text-lg font-semibold tracking-tight">Galeria de Troféus</h1>
 
         <div className="mt-4 flex rounded-full bg-surface p-1">
           {TABS.map((t) => (
@@ -159,23 +182,38 @@ function AchievementsPage() {
         </div>
 
         <section className="mt-6">
-          <div className="mb-3 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {BADGES.filter((b) => b.unlocked).length} / {BADGES.length} desbloqueadas
+          <div className="mb-2 flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              {unlockedCount} / {items.length} desbloqueadas
             </span>
-            <span className="text-xs font-semibold text-brand">
-              {Math.round((BADGES.filter((b) => b.unlocked).length / BADGES.length) * 100)}%
-            </span>
+            <span className="font-semibold text-brand">{percent}%</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-surface-2">
+            <div
+              className="h-full rounded-full bg-brand shadow-[0_0_12px_var(--brand)] transition-all"
+              style={{ width: `${percent}%` }}
+            />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
-            {filtered.map((badge) => (
-              <HexBadge key={badge.id} badge={badge} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="mt-6 grid grid-cols-3 gap-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="mx-auto size-[76px] animate-pulse rounded-2xl bg-white/5" />
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <p className="mt-8 text-center text-sm text-muted-foreground">Nenhum troféu nesta aba ainda.</p>
+          ) : (
+            <div className="mt-6 grid grid-cols-3 gap-x-4 gap-y-6">
+              {filtered.map((item) => (
+                <HexTrophy key={item.key} item={item} onClick={() => setSelected(item)} />
+              ))}
+            </div>
+          )}
         </section>
       </main>
 
+      <DetailSheet item={selected} onClose={() => setSelected(null)} />
       <BottomNav />
     </div>
   );
@@ -184,10 +222,16 @@ function AchievementsPage() {
 export const Route = createFileRoute("/_authenticated/achievements")({
   head: () => ({
     meta: [
-      { title: "Conquistas | Flow Jiu-Jitsu" },
-      { name: "description", content: "Veja todas as conquistas, emblemas e marcos da sua jornada no Jiu-Jitsu." },
-      { property: "og:title", content: "Conquistas | Flow Jiu-Jitsu" },
-      { property: "og:description", content: "Veja todas as conquistas, emblemas e marcos da sua jornada no Jiu-Jitsu." },
+      { title: "Galeria de Troféus | Flow Jiu-Jitsu" },
+      {
+        name: "description",
+        content: "Todos os troféus do Flow: veja o que já desbloqueou e o que falta conquistar no tatame.",
+      },
+      { property: "og:title", content: "Galeria de Troféus | Flow Jiu-Jitsu" },
+      {
+        property: "og:description",
+        content: "Todos os troféus do Flow: veja o que já desbloqueou e o que falta conquistar no tatame.",
+      },
     ],
   }),
   component: AchievementsPage,

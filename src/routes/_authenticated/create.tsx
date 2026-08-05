@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
+import { LevelUpModal } from "@/components/LevelUpModal";
+
 import type { Achievement } from "@/lib/achievements";
 import { runCompetitionAchievements, runWorkoutAchievements } from "@/lib/achievements";
 import { awardXp, XP_REWARDS } from "@/lib/xp";
@@ -52,7 +54,9 @@ function CreatePost() {
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
   const [queue, setQueue] = useState<Achievement[]>([]);
+  const [levelUp, setLevelUp] = useState<{ level: number; xp: number } | null>(null);
   const unlocked = queue[0] ?? null;
+
   const [trainLocation, setTrainLocation] = useState("");
   const [locationTouched, setLocationTouched] = useState(false);
   // Competição
@@ -86,15 +90,14 @@ function CreatePost() {
     }
   }, [homeAcademy, locationTouched, trainLocation]);
 
-  /** Concede XP do check-in e comemora quando sobe de nível. */
+  /** Concede XP do check-in e devolve o nível quando o atleta sobe. */
   async function grantXp(uid: string, kind: "treino" | "competicao") {
     const result = await awardXp(uid, kind);
-    if (!result) return;
+    if (!result) return null;
     toast.success(`+${XP_REWARDS[kind]} XP`);
-    if (result.leveledUp) {
-      toast.success(`Subiu para o Nível ${result.level}! 🔥`);
-    }
+    return result.leveledUp ? { level: result.level, xp: result.xp } : null;
   }
+
 
 
   async function publish() {
@@ -128,12 +131,13 @@ function CreatePost() {
         return;
       }
       toast.success("Competição publicada!");
-      await grantXp(uid, "competicao");
+      const leveledComp = await grantXp(uid, "competicao");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       const unlockedList = await runCompetitionAchievements(uid, placement);
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
-      showUnlocked(unlockedList);
+      showUnlocked(unlockedList, leveledComp);
+
       return;
     }
 
@@ -183,30 +187,40 @@ function CreatePost() {
       return;
     }
     toast.success("Treino publicado!");
-    await grantXp(uid, "treino");
+    const leveled = await grantXp(uid, "treino");
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
 
     // Motor de conquistas (volume, ofensiva) — sem duplicar troféus.
     const unlockedList = await runWorkoutAchievements(uid);
     queryClient.invalidateQueries({ queryKey: ["achievements"] });
-    showUnlocked(unlockedList);
+    showUnlocked(unlockedList, leveled);
+
   }
 
-  /** Mostra as conquistas em sequência; sem nenhuma, vai direto para a Home. */
-  function showUnlocked(list: Achievement[]) {
+  /**
+   * Mostra as conquistas em sequência e, ao final, celebra o level up.
+   * Sem nada a comemorar, volta direto para a Home.
+   */
+  function showUnlocked(list: Achievement[], leveled: { level: number; xp: number } | null) {
+    const finish = () => {
+      if (leveled) setLevelUp(leveled);
+      else navigate({ to: "/home" });
+    };
+
     if (!list.length) {
-      navigate({ to: "/home" });
+      finish();
       return;
     }
     setQueue(list);
     list.forEach((_, i) => {
       window.setTimeout(() => {
         setQueue((q) => q.slice(1));
-        if (i === list.length - 1) navigate({ to: "/home" });
+        if (i === list.length - 1) finish();
       }, 3500 * (i + 1));
     });
   }
+
 
   return (
     <div className="min-h-screen bg-background pb-16">
@@ -476,8 +490,22 @@ function CreatePost() {
         avatarUrl={me?.avatar_url ?? null}
         onClose={() => {
           setQueue((q) => q.slice(1));
+          if (levelUp) setLevelUp(levelUp);
+          else navigate({ to: "/home" });
+        }}
+      />
+
+      <LevelUpModal
+        level={levelUp?.level ?? null}
+        xp={levelUp?.xp ?? 0}
+        athlete={me?.full_name ?? me?.username ?? null}
+        belt={me?.belt ?? null}
+        avatarUrl={me?.avatar_url ?? null}
+        onClose={() => {
+          setLevelUp(null);
           navigate({ to: "/home" });
         }}
+
       />
     </div>
   );
