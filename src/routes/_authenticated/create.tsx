@@ -192,20 +192,29 @@ function CreatePost() {
     showUnlocked(unlockedList);
   }
 
-  /** Mostra as conquistas em sequência; sem nenhuma, vai direto para a Home. */
-  function showUnlocked(list: Achievement[]) {
+  /**
+   * Mostra as conquistas em sequência e, ao final, celebra o level up.
+   * Sem nada a comemorar, volta direto para a Home.
+   */
+  function showUnlocked(list: Achievement[], leveled: { level: number; xp: number } | null) {
+    const finish = () => {
+      if (leveled) setLevelUp(leveled);
+      else navigate({ to: "/home" });
+    };
+
     if (!list.length) {
-      navigate({ to: "/home" });
+      finish();
       return;
     }
     setQueue(list);
     list.forEach((_, i) => {
       window.setTimeout(() => {
         setQueue((q) => q.slice(1));
-        if (i === list.length - 1) navigate({ to: "/home" });
+        if (i === list.length - 1) finish();
       }, 3500 * (i + 1));
     });
   }
+
 
   return (
     <div className="min-h-screen bg-background pb-16">
