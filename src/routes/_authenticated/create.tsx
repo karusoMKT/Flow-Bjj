@@ -172,19 +172,25 @@ function CreatePost() {
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
 
-    // Conquista real: só no primeiro treino e se ainda não estiver salva.
-    const totalWorkouts = await countWorkouts(uid);
-    const earned = await grantOnce(uid, FIRST_WORKOUT, totalWorkouts === 1);
+    // Motor de conquistas (volume, ofensiva) — sem duplicar troféus.
+    const unlockedList = await runWorkoutAchievements(uid);
     queryClient.invalidateQueries({ queryKey: ["achievements"] });
-    if (!earned) {
+    showUnlocked(unlockedList);
+  }
+
+  /** Mostra as conquistas em sequência; sem nenhuma, vai direto para a Home. */
+  function showUnlocked(list: Achievement[]) {
+    if (!list.length) {
       navigate({ to: "/home" });
       return;
     }
-    setUnlocked(earned);
-    window.setTimeout(() => {
-      setUnlocked(null);
-      navigate({ to: "/home" });
-    }, 3500);
+    setQueue(list);
+    list.forEach((_, i) => {
+      window.setTimeout(() => {
+        setQueue((q) => q.slice(1));
+        if (i === list.length - 1) navigate({ to: "/home" });
+      }, 3500 * (i + 1));
+    });
   }
 
   return (
