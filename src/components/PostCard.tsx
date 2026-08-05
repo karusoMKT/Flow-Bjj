@@ -1,4 +1,6 @@
-import { Heart, MapPin, Medal, MessageCircle, Play, Trophy, Zap } from "lucide-react";
+import { MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
+import { PostActions } from "@/components/PostActions";
+import { socialCounts } from "@/lib/social";
 import { timeAgo, beltClass } from "@/lib/feed";
 import { parseCompetition, placementTone } from "@/lib/competition";
 
@@ -20,6 +22,8 @@ export type FeedPost = {
     intensity: string | null;
     location?: string | null;
   } | null;
+  likes?: { user_id: string }[] | null;
+  comments?: { id: string }[] | null;
 };
 
 export function initialsOf(name: string): string {
@@ -75,11 +79,12 @@ export function PostCardSkeleton() {
   );
 }
 
-export function PostCard({ post }: { post: FeedPost }) {
+export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserId?: string | null }) {
   const author = post.profiles;
   const name = author?.full_name ?? author?.username ?? "Atleta";
   const workout = post.workouts;
   const comp = parseCompetition(post.content);
+  const social = socialCounts(post, currentUserId);
 
   return (
     <li
@@ -163,15 +168,16 @@ export function PostCard({ post }: { post: FeedPost }) {
             )}
           </>
         )}
-        <div className="ml-auto flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Heart className="size-4 text-destructive" /> {post.likes_count ?? 0}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <MessageCircle className="size-4" /> 0
-          </span>
-        </div>
       </div>
+
+      <PostActions
+        postId={post.id}
+        userId={currentUserId}
+        initialLiked={social.liked}
+        initialLikeCount={social.likeCount || post.likes_count || 0}
+        initialCommentCount={social.commentCount}
+        renderAvatar={(src, name) => <AvatarBubble src={src} name={name} className="size-7" />}
+      />
     </li>
   );
 }
