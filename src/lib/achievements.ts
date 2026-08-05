@@ -84,3 +84,68 @@ export async function fetchAchievements(userId: string): Promise<Achievement[]> 
   if (error) throw error;
   return (data ?? []) as Achievement[];
 }
+
+type OnceDef = { title: string; description: string; icon_name: string };
+
+export const FIRST_WORKOUT: OnceDef = {
+  title: "Primeiro Treino",
+  description: "Você deu o primeiro passo na sua jornada!",
+  icon_name: "Trophy",
+};
+
+export const FIRST_COMPETITION: OnceDef = {
+  title: "Primeira Competição",
+  description: "Sua primeira vez nos tatames de guerra! A glória te espera.",
+  icon_name: "Trophy",
+};
+
+/**
+ * Concede uma conquista única.
+ * - `isFirst`: só concede quando é estritamente o primeiro registro.
+ * - Verifica se já existe no banco antes de inserir (índice único evita duplicidade).
+ * Retorna a conquista recém-desbloqueada ou null (fluxo silencioso).
+ */
+export async function grantOnce(
+  userId: string,
+  def: OnceDef,
+  isFirst: boolean,
+): Promise<Achievement | null> {
+  if (!isFirst) return null;
+
+  const { data: existing } = await supabase
+    .from("user_achievements")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("title", def.title)
+    .maybeSingle();
+
+  if (existing) return null;
+
+  const { data, error } = await supabase
+    .from("user_achievements")
+    .insert({ user_id: userId, ...def })
+    .select("id, title, description, icon_name, unlocked_at")
+    .maybeSingle();
+
+  if (error || !data) return null;
+  return data as Achievement;
+}
+
+/** Conta treinos do usuário. */
+export async function countWorkouts(userId: string): Promise<number> {
+  const { count } = await supabase
+    .from("workouts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId);
+  return count ?? 0;
+}
+
+/** Conta posts de competição (marcador [COMP]) do usuário. */
+export async function countCompetitions(userId: string): Promise<number> {
+  const { count } = await supabase
+    .from("posts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .like("content", "[COMP]%");
+  return count ?? 0;
+}
