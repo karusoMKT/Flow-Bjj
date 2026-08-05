@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS user_achievements_user_title_uniq ON public.user_achievements (user_id, title);
