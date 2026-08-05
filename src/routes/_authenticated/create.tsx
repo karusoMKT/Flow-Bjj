@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
 import { runCompetitionAchievements, runWorkoutAchievements } from "@/lib/achievements";
+import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -83,6 +84,16 @@ function CreatePost() {
     }
   }, [homeAcademy, locationTouched, trainLocation]);
 
+  /** Concede XP do check-in e comemora quando sobe de nível. */
+  async function grantXp(uid: string, kind: "treino" | "competicao") {
+    const result = await awardXp(uid, kind);
+    if (!result) return;
+    toast.success(`+${XP_REWARDS[kind]} XP`);
+    if (result.leveledUp) {
+      toast.success(`Subiu para o Nível ${result.level}! 🔥`);
+    }
+  }
+
 
   async function publish() {
     if (saving) return;
@@ -115,6 +126,7 @@ function CreatePost() {
         return;
       }
       toast.success("Competição publicada!");
+      await grantXp(uid, "competicao");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       const unlockedList = await runCompetitionAchievements(uid, placement);
@@ -169,6 +181,7 @@ function CreatePost() {
       return;
     }
     toast.success("Treino publicado!");
+    await grantXp(uid, "treino");
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
 

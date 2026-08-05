@@ -9,6 +9,7 @@ import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/compo
 import { beltClass } from "@/lib/feed";
 import { AchievementIcon } from "@/components/AchievementModal";
 import { fetchAchievements } from "@/lib/achievements";
+import { levelProgress } from "@/lib/xp";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
@@ -33,7 +34,7 @@ async function fetchProfileData() {
   const uid = auth.user?.id;
   if (!uid) throw new Error("Sem sessão");
 
-  const [profileRes, workoutsRes, postsRes] = await Promise.all([
+  const [profileRes, workoutsRes, postsRes, compRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
     supabase.from("workouts").select("id, duration_minutes, created_at").eq("user_id", uid),
     supabase
@@ -44,6 +45,11 @@ async function fetchProfileData() {
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
       .limit(30),
+    supabase
+      .from("posts")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", uid)
+      .like("content", "[COMP]%"),
   ]);
 
   if (profileRes.error) throw profileRes.error;
@@ -56,6 +62,7 @@ async function fetchProfileData() {
     profile: profileRes.data,
     workouts,
     totalWorkouts: workouts.length,
+    totalCompetitions: compRes.count ?? 0,
     totalMinutes: workouts.reduce((acc, w) => acc + (w.duration_minutes ?? 0), 0),
     posts: (postsRes.data ?? []) as unknown as FeedPost[],
   };
@@ -104,14 +111,12 @@ function Perfil() {
   const profile = data?.profile;
   const posts = data?.posts ?? [];
   const totalWorkouts = data?.totalWorkouts ?? 0;
+  const totalCompetitions = data?.totalCompetitions ?? 0;
   const totalMinutes = data?.totalMinutes ?? 0;
   const streak = currentStreak((data?.workouts ?? []).map((w) => w.created_at));
 
-  const xp = profile?.total_xp ?? 0;
-  const xpToNext = 250;
-  const level = Math.max(1, Math.floor(xp / xpToNext) + 1);
-  const xpInLevel = xp % xpToNext;
-  
+  const xp = profile?.xp ?? profile?.total_xp ?? 0;
+  const progress = levelProgress(xp, profile?.level);
 
   const name = profile?.full_name ?? profile?.username ?? "Atleta";
   const identity = [profile?.belt && `Faixa ${profile.belt}`, profile?.team, profile?.professor]
@@ -124,6 +129,13 @@ function Perfil() {
     { icon: Flame, label: "Dias seguidos", value: String(streak) },
     { icon: Zap, label: "XP total", value: String(xp) },
   ];
+
+  const stats = [
+    { icon: Dumbbell, label: "Treinos", value: String(totalWorkouts) },
+    { icon: Medal, label: "Competições", value: String(totalCompetitions) },
+    { icon: Flame, label: "Sequência", value: `${streak}d` },
+  ];
+
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -204,29 +216,58 @@ function Perfil() {
           ))}
         </section>
 
-        <section className="card-elevated mt-4 rounded-2xl p-4">
-          <div className="flex items-baseline justify-between">
-            <p className="text-sm font-bold uppercase tracking-wide text-brand">Nível {level}</p>
-            <p className="text-xs text-muted-foreground">
-              {xpInLevel} / {xpToNext} XP
+        <section className="mt-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Estatísticas</h3>
+
+          <div className="card-elevated mt-3 rounded-2xl border border-brand/25 bg-brand/[0.04] p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="grid size-9 place-items-center rounded-full bg-brand/15 text-brand">
+                  <Zap className="size-5" />
+                </span>
+                <div>
+                  <p className="text-base font-black leading-none text-brand">Nível {progress.level}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{xp} XP acumulado</p>
+                </div>
+              </div>
+              <p className="text-xs font-semibold text-muted-foreground">
+                {progress.xpInLevel} / {progress.nextLevelXp - progress.currentLevelXp} XP
+              </p>
+            </div>
+
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-surface-2">
+              <div
+                className="h-full rounded-full bg-brand shadow-[0_0_12px_var(--brand)] transition-all duration-500"
+                style={{ width: `${progress.percent}%` }}
+              />
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Faltam {progress.xpNeeded} XP para o nível {progress.level + 1}
             </p>
           </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-2">
-            <div
-              className="h-full rounded-full bg-brand transition-all"
-              style={{ width: `${Math.min(100, (xpInLevel / xpToNext) * 100)}%` }}
-            />
+
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {stats.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="card-elevated rounded-2xl px-2 py-3 text-center">
+                <Icon className="mx-auto size-4 text-brand" />
+                {isLoading ? (
+                  <div className="mx-auto mt-2 h-4 w-8 animate-pulse rounded bg-white/10" />
+                ) : (
+                  <p className="mt-1.5 text-lg font-bold leading-none">{value}</p>
+                )}
+                <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{label}</p>
+              </div>
+            ))}
           </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            Faltam {xpToNext - xpInLevel} XP para o nível {level + 1}
-          </p>
+
           <Link
             to="/statistics"
             className="mt-3 flex items-center justify-center rounded-xl border border-white/10 bg-surface-2/60 py-2 text-xs font-semibold text-brand"
           >
-            Ver estatísticas
+            Ver estatísticas detalhadas
           </Link>
         </section>
+
 
         <section className="mt-4 grid grid-cols-2 gap-3">
           <Link

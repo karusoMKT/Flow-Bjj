@@ -217,12 +217,14 @@ export type Database = {
           id: string
           is_competitor: boolean
           is_recovering: boolean | null
+          level: number
           professor: string | null
           stripes: number
           team: string | null
           total_xp: number
           username: string
           weight: string | null
+          xp: number
         }
         Insert: {
           avatar_url?: string | null
@@ -234,12 +236,14 @@ export type Database = {
           id: string
           is_competitor?: boolean
           is_recovering?: boolean | null
+          level?: number
           professor?: string | null
           stripes?: number
           team?: string | null
           total_xp?: number
           username: string
           weight?: string | null
+          xp?: number
         }
         Update: {
           avatar_url?: string | null
@@ -251,12 +255,14 @@ export type Database = {
           id?: string
           is_competitor?: boolean
           is_recovering?: boolean | null
+          level?: number
           professor?: string | null
           stripes?: number
           team?: string | null
           total_xp?: number
           username?: string
           weight?: string | null
+          xp?: number
         }
         Relationships: []
       }
