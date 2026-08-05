@@ -127,12 +127,13 @@ function CreatePost() {
         return;
       }
       toast.success("Competição publicada!");
-      await grantXp(uid, "competicao");
+      const leveledComp = await grantXp(uid, "competicao");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       const unlockedList = await runCompetitionAchievements(uid, placement);
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
-      showUnlocked(unlockedList);
+      showUnlocked(unlockedList, leveledComp);
+
       return;
     }
 
