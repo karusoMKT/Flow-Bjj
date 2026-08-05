@@ -26,9 +26,9 @@ export type LevelProgress = {
   percent: number;
 };
 
-/** Progresso detalhado dentro do nível atual. */
-export function levelProgress(xp: number, savedLevel?: number | null): LevelProgress {
-  const level = Math.max(levelFromXp(xp), savedLevel ?? 1);
+/** Progresso detalhado dentro do nível atual (sempre derivado do XP). */
+export function levelProgress(xp: number, _savedLevel?: number | null): LevelProgress {
+  const level = levelFromXp(xp);
   const currentLevelXp = xpForLevel(level);
   const nextLevelXp = xpForLevel(level + 1);
   const span = Math.max(1, nextLevelXp - currentLevelXp);
