@@ -8,72 +8,223 @@ export type Achievement = {
   unlocked_at: string;
 };
 
-type Rule = {
+export type AchievementDef = {
+  key: string;
   title: string;
   description: string;
   icon_name: string;
-  /** Retorna true quando o marco é atingido com a contagem atual de treinos. */
-  test: (totalWorkouts: number) => boolean;
 };
 
-/** Adicione novas condições aqui — a verificação é automática. */
-export const ACHIEVEMENT_RULES: Rule[] = [
-  {
+/** Catálogo de conquistas do Flow. */
+export const ACHIEVEMENTS = {
+  first_training: {
+    key: "first_training",
     title: "Primeiro Treino",
     description: "Você deu o primeiro passo na sua jornada!",
     icon_name: "Trophy",
-    test: (n) => n === 1,
   },
-  {
-    title: "10 Treinos",
-    description: "Consistência é o caminho da faixa preta.",
+  ten_trainings: {
+    key: "10_trainings",
+    title: "Constância (10 Treinos)",
+    description: "Dez treinos no tatame. A consistência começou.",
     icon_name: "Flame",
-    test: (n) => n === 10,
   },
-  {
-    title: "50 Treinos",
-    description: "Meio século de tatame. Respeito!",
-    icon_name: "Medal",
-    test: (n) => n === 50,
-  },
-  {
-    title: "100 Treinos",
+  hundred_trainings: {
+    key: "100_trainings",
+    title: "Centurião (100 Treinos)",
     description: "Cem treinos registrados. Você é referência!",
     icon_name: "Crown",
-    test: (n) => n === 100,
   },
-];
+  seven_days_streak: {
+    key: "7_days_streak",
+    title: "Semana Perfeita",
+    description: "Sete dias seguidos de treino. Ofensiva impecável!",
+    icon_name: "CalendarCheck",
+  },
+  first_competition: {
+    key: "first_competition",
+    title: "Primeira Competição",
+    description: "Sua primeira vez nos tatames de guerra! A glória te espera.",
+    icon_name: "Swords",
+  },
+  first_victory: {
+    key: "first_victory",
+    title: "Primeira Medalha",
+    description: "Você subiu ao pódio pela primeira vez. Oss!",
+    icon_name: "Medal",
+  },
+  stripe_promotion: {
+    key: "stripe_promotion",
+    title: "Novo Grau",
+    description: "Mais um grau na faixa. Evolução reconhecida!",
+    icon_name: "Star",
+  },
+  belt_promotion: {
+    key: "belt_promotion",
+    title: "Nova Faixa",
+    description: "Graduação conquistada. Uma nova etapa começa.",
+    icon_name: "Award",
+  },
+} satisfies Record<string, AchievementDef>;
+
+/* ------------------------------------------------------------------ */
+/* Concessão segura (sem duplicidade)                                  */
+/* ------------------------------------------------------------------ */
+
+/** Títulos que o usuário já possui. */
+export async function fetchOwnedTitles(userId: string): Promise<Set<string>> {
+  const { data } = await supabase
+    .from("user_achievements")
+    .select("title")
+    .eq("user_id", userId);
+  return new Set((data ?? []).map((r) => r.title));
+}
 
 /**
- * Verifica os marcos após um treino e grava as conquistas desbloqueadas.
- * Retorna as conquistas recém-desbloqueadas (para exibir o modal).
+ * Concede uma conquista única.
+ * Só insere quando a condição é verdadeira e o usuário ainda não a possui
+ * (índice único em user_id+title garante a integridade no banco).
  */
-export async function checkAchievements(userId: string): Promise<Achievement[]> {
-  const { count, error } = await supabase
+export async function grantOnce(
+  userId: string,
+  def: AchievementDef,
+  condition: boolean,
+  owned?: Set<string>,
+): Promise<Achievement | null> {
+  if (!condition) return null;
+  if (owned?.has(def.title)) return null;
+
+  if (!owned) {
+    const { data: existing } = await supabase
+      .from("user_achievements")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("title", def.title)
+      .maybeSingle();
+    if (existing) return null;
+  }
+
+  const { data, error } = await supabase
+    .from("user_achievements")
+    .insert({
+      user_id: userId,
+      title: def.title,
+      description: def.description,
+      icon_name: def.icon_name,
+    })
+    .select("id, title, description, icon_name, unlocked_at")
+    .maybeSingle();
+
+  if (error || !data) return null;
+  owned?.add(def.title);
+  return data as Achievement;
+}
+
+/* ------------------------------------------------------------------ */
+/* Consultas de progresso                                              */
+/* ------------------------------------------------------------------ */
+
+export async function countWorkouts(userId: string): Promise<number> {
+  const { count } = await supabase
     .from("workouts")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId);
-
-  if (error || count == null) return [];
-
-  const matched = ACHIEVEMENT_RULES.filter((rule) => rule.test(count));
-  if (!matched.length) return [];
-
-  const { data, error: insertError } = await supabase
-    .from("user_achievements")
-    .insert(
-      matched.map((rule) => ({
-        user_id: userId,
-        title: rule.title,
-        description: rule.description,
-        icon_name: rule.icon_name,
-      })),
-    )
-    .select("id, title, description, icon_name, unlocked_at");
-
-  if (insertError) return [];
-  return (data ?? []) as Achievement[];
+  return count ?? 0;
 }
+
+export async function countCompetitions(userId: string): Promise<number> {
+  const { count } = await supabase
+    .from("posts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .like("content", "[COMP]%");
+  return count ?? 0;
+}
+
+const DAY = 86_400_000;
+const dayKey = (d: Date | string) => new Date(d).toISOString().slice(0, 10);
+
+/** True quando há treino em cada um dos últimos 7 dias (incluindo hoje). */
+export async function hasSevenDayStreak(userId: string): Promise<boolean> {
+  const since = new Date(Date.now() - 8 * DAY).toISOString();
+  const { data } = await supabase
+    .from("workouts")
+    .select("created_at")
+    .eq("user_id", userId)
+    .gte("created_at", since);
+
+  const days = new Set((data ?? []).map((w) => dayKey(w.created_at)));
+  for (let i = 0; i < 7; i++) {
+    if (!days.has(dayKey(new Date(Date.now() - i * DAY)))) return false;
+  }
+  return true;
+}
+
+/** Um resultado é medalha quando não é apenas participação. */
+export function isMedal(placement: string): boolean {
+  return /ouro|prata|bronze|1º|2º|3º/i.test(placement);
+}
+
+/* ------------------------------------------------------------------ */
+/* Motor de conquistas                                                 */
+/* ------------------------------------------------------------------ */
+
+/** Roda após um check-in de TREINO. Retorna as conquistas recém-desbloqueadas. */
+export async function runWorkoutAchievements(userId: string): Promise<Achievement[]> {
+  const [owned, total, streak] = await Promise.all([
+    fetchOwnedTitles(userId),
+    countWorkouts(userId),
+    hasSevenDayStreak(userId),
+  ]);
+
+  const unlocked: Achievement[] = [];
+  const checks: Array<[AchievementDef, boolean]> = [
+    [ACHIEVEMENTS.first_training, total >= 1],
+    [ACHIEVEMENTS.ten_trainings, total >= 10],
+    [ACHIEVEMENTS.hundred_trainings, total >= 100],
+    [ACHIEVEMENTS.seven_days_streak, streak],
+  ];
+
+  for (const [def, condition] of checks) {
+    const earned = await grantOnce(userId, def, condition, owned);
+    if (earned) unlocked.push(earned);
+  }
+  return unlocked;
+}
+
+/** Roda após um check-in de COMPETIÇÃO. */
+export async function runCompetitionAchievements(
+  userId: string,
+  placement: string,
+): Promise<Achievement[]> {
+  const [owned, total] = await Promise.all([fetchOwnedTitles(userId), countCompetitions(userId)]);
+
+  const unlocked: Achievement[] = [];
+  const checks: Array<[AchievementDef, boolean]> = [
+    [ACHIEVEMENTS.first_competition, total >= 1],
+    [ACHIEVEMENTS.first_victory, isMedal(placement)],
+  ];
+
+  for (const [def, condition] of checks) {
+    const earned = await grantOnce(userId, def, condition, owned);
+    if (earned) unlocked.push(earned);
+  }
+  return unlocked;
+}
+
+/** Gatilho pronto para a tela de Editar Perfil: ganhou um grau. */
+export async function runStripePromotionAchievement(userId: string): Promise<Achievement[]> {
+  const earned = await grantOnce(userId, ACHIEVEMENTS.stripe_promotion, true);
+  return earned ? [earned] : [];
+}
+
+/** Gatilho pronto para a tela de Editar Perfil: nova faixa. */
+export async function runBeltPromotionAchievement(userId: string): Promise<Achievement[]> {
+  const earned = await grantOnce(userId, ACHIEVEMENTS.belt_promotion, true);
+  return earned ? [earned] : [];
+}
+
+/* ------------------------------------------------------------------ */
 
 export async function fetchAchievements(userId: string): Promise<Achievement[]> {
   const { data, error } = await supabase
@@ -83,69 +234,4 @@ export async function fetchAchievements(userId: string): Promise<Achievement[]> 
     .order("unlocked_at", { ascending: false });
   if (error) throw error;
   return (data ?? []) as Achievement[];
-}
-
-type OnceDef = { title: string; description: string; icon_name: string };
-
-export const FIRST_WORKOUT: OnceDef = {
-  title: "Primeiro Treino",
-  description: "Você deu o primeiro passo na sua jornada!",
-  icon_name: "Trophy",
-};
-
-export const FIRST_COMPETITION: OnceDef = {
-  title: "Primeira Competição",
-  description: "Sua primeira vez nos tatames de guerra! A glória te espera.",
-  icon_name: "Trophy",
-};
-
-/**
- * Concede uma conquista única.
- * - `isFirst`: só concede quando é estritamente o primeiro registro.
- * - Verifica se já existe no banco antes de inserir (índice único evita duplicidade).
- * Retorna a conquista recém-desbloqueada ou null (fluxo silencioso).
- */
-export async function grantOnce(
-  userId: string,
-  def: OnceDef,
-  isFirst: boolean,
-): Promise<Achievement | null> {
-  if (!isFirst) return null;
-
-  const { data: existing } = await supabase
-    .from("user_achievements")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("title", def.title)
-    .maybeSingle();
-
-  if (existing) return null;
-
-  const { data, error } = await supabase
-    .from("user_achievements")
-    .insert({ user_id: userId, ...def })
-    .select("id, title, description, icon_name, unlocked_at")
-    .maybeSingle();
-
-  if (error || !data) return null;
-  return data as Achievement;
-}
-
-/** Conta treinos do usuário. */
-export async function countWorkouts(userId: string): Promise<number> {
-  const { count } = await supabase
-    .from("workouts")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId);
-  return count ?? 0;
-}
-
-/** Conta posts de competição (marcador [COMP]) do usuário. */
-export async function countCompetitions(userId: string): Promise<number> {
-  const { count } = await supabase
-    .from("posts")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .like("content", "[COMP]%");
-  return count ?? 0;
 }

@@ -6,13 +6,7 @@ import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy,
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
-import {
-  FIRST_COMPETITION,
-  FIRST_WORKOUT,
-  countCompetitions,
-  countWorkouts,
-  grantOnce,
-} from "@/lib/achievements";
+import { runCompetitionAchievements, runWorkoutAchievements } from "@/lib/achievements";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,7 +50,8 @@ function CreatePost() {
   const [duration, setDuration] = useState("90");
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
-  const [unlocked, setUnlocked] = useState<Achievement | null>(null);
+  const [queue, setQueue] = useState<Achievement[]>([]);
+  const unlocked = queue[0] ?? null;
   const [trainLocation, setTrainLocation] = useState("");
   const [locationTouched, setLocationTouched] = useState(false);
   // Competição
@@ -122,18 +117,9 @@ function CreatePost() {
       toast.success("Competição publicada!");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      const total = await countCompetitions(uid);
-      const earned = await grantOnce(uid, FIRST_COMPETITION, total === 1);
+      const unlockedList = await runCompetitionAchievements(uid, placement);
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
-      if (!earned) {
-        navigate({ to: "/home" });
-        return;
-      }
-      setUnlocked(earned);
-      window.setTimeout(() => {
-        setUnlocked(null);
-        navigate({ to: "/home" });
-      }, 3500);
+      showUnlocked(unlockedList);
       return;
     }
 
@@ -186,19 +172,25 @@ function CreatePost() {
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
 
-    // Conquista real: só no primeiro treino e se ainda não estiver salva.
-    const totalWorkouts = await countWorkouts(uid);
-    const earned = await grantOnce(uid, FIRST_WORKOUT, totalWorkouts === 1);
+    // Motor de conquistas (volume, ofensiva) — sem duplicar troféus.
+    const unlockedList = await runWorkoutAchievements(uid);
     queryClient.invalidateQueries({ queryKey: ["achievements"] });
-    if (!earned) {
+    showUnlocked(unlockedList);
+  }
+
+  /** Mostra as conquistas em sequência; sem nenhuma, vai direto para a Home. */
+  function showUnlocked(list: Achievement[]) {
+    if (!list.length) {
       navigate({ to: "/home" });
       return;
     }
-    setUnlocked(earned);
-    window.setTimeout(() => {
-      setUnlocked(null);
-      navigate({ to: "/home" });
-    }, 3500);
+    setQueue(list);
+    list.forEach((_, i) => {
+      window.setTimeout(() => {
+        setQueue((q) => q.slice(1));
+        if (i === list.length - 1) navigate({ to: "/home" });
+      }, 3500 * (i + 1));
+    });
   }
 
   return (
@@ -465,7 +457,7 @@ function CreatePost() {
       <AchievementModal
         achievement={unlocked}
         onClose={() => {
-          setUnlocked(null);
+          setQueue((q) => q.slice(1));
           navigate({ to: "/home" });
         }}
       />
