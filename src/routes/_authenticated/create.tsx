@@ -6,13 +6,7 @@ import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy,
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
-import {
-  FIRST_COMPETITION,
-  FIRST_WORKOUT,
-  countCompetitions,
-  countWorkouts,
-  grantOnce,
-} from "@/lib/achievements";
+import { runCompetitionAchievements, runWorkoutAchievements } from "@/lib/achievements";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
