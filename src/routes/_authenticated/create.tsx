@@ -457,7 +457,7 @@ function CreatePost() {
       <AchievementModal
         achievement={unlocked}
         onClose={() => {
-          setUnlocked(null);
+          setQueue((q) => q.slice(1));
           navigate({ to: "/home" });
         }}
       />
