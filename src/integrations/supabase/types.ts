@@ -218,6 +218,7 @@ export type Database = {
           is_competitor: boolean
           is_recovering: boolean | null
           professor: string | null
+          stripes: number
           team: string | null
           total_xp: number
           username: string
@@ -234,6 +235,7 @@ export type Database = {
           is_competitor?: boolean
           is_recovering?: boolean | null
           professor?: string | null
+          stripes?: number
           team?: string | null
           total_xp?: number
           username: string
@@ -250,6 +252,7 @@ export type Database = {
           is_competitor?: boolean
           is_recovering?: boolean | null
           professor?: string | null
+          stripes?: number
           team?: string | null
           total_xp?: number
           username?: string

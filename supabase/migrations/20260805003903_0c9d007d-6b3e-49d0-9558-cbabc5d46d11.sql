@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS stripes integer NOT NULL DEFAULT 0;
