@@ -58,12 +58,21 @@ async function fetchProfileData() {
   if (postsRes.error) throw postsRes.error;
 
   const workouts = workoutsRes.data ?? [];
+  const totalWorkouts = workouts.length;
+  const totalCompetitions = compRes.count ?? 0;
+
+  // XP canônico = (treinos * 50) + (competições * 150)
+  const synced = await syncXp(uid, totalWorkouts, totalCompetitions, {
+    xp: profileRes.data?.xp,
+    level: profileRes.data?.level,
+  });
+
   return {
     uid,
-    profile: profileRes.data,
+    profile: profileRes.data ? { ...profileRes.data, xp: synced.xp, level: synced.level } : null,
     workouts,
-    totalWorkouts: workouts.length,
-    totalCompetitions: compRes.count ?? 0,
+    totalWorkouts,
+    totalCompetitions,
     totalMinutes: workouts.reduce((acc, w) => acc + (w.duration_minutes ?? 0), 0),
     posts: (postsRes.data ?? []) as unknown as FeedPost[],
   };
