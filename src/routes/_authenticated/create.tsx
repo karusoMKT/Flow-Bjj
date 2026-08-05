@@ -13,6 +13,9 @@ import {
   countWorkouts,
   grantOnce,
 } from "@/lib/achievements";
+import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
+import { LocationAutocomplete } from "@/components/LocationAutocomplete";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 
