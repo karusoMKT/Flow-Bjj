@@ -50,7 +50,8 @@ function CreatePost() {
   const [duration, setDuration] = useState("90");
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
-  const [unlocked, setUnlocked] = useState<Achievement | null>(null);
+  const [queue, setQueue] = useState<Achievement[]>([]);
+  const unlocked = queue[0] ?? null;
   const [trainLocation, setTrainLocation] = useState("");
   const [locationTouched, setLocationTouched] = useState(false);
   // Competição
