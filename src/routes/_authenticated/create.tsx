@@ -116,18 +116,9 @@ function CreatePost() {
       toast.success("Competição publicada!");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      const total = await countCompetitions(uid);
-      const earned = await grantOnce(uid, FIRST_COMPETITION, total === 1);
+      const unlockedList = await runCompetitionAchievements(uid, placement);
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
-      if (!earned) {
-        navigate({ to: "/home" });
-        return;
-      }
-      setUnlocked(earned);
-      window.setTimeout(() => {
-        setUnlocked(null);
-        navigate({ to: "/home" });
-      }, 3500);
+      showUnlocked(unlockedList);
       return;
     }
 
