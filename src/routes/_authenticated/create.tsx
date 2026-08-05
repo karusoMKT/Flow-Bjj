@@ -6,27 +6,14 @@ import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy,
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
-import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
-import { LocationAutocomplete } from "@/components/LocationAutocomplete";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  FIRST_COMPETITION,
+  FIRST_WORKOUT,
+  countCompetitions,
+  countWorkouts,
+  grantOnce,
+} from "@/lib/achievements";
 
-
-/** Conquista simulada (apenas UI, sem banco de dados por enquanto). */
-const DEMO_ACHIEVEMENT: Achievement = {
-  id: "demo-first-workout",
-  title: "Primeiro Treino",
-  description: "Você deu o primeiro passo na sua jornada!",
-  icon_name: "Trophy",
-  unlocked_at: new Date().toISOString(),
-};
-
-const DEMO_COMPETITION_ACHIEVEMENT: Achievement = {
-  id: "demo-first-competition",
-  title: "Primeira Competição",
-  description: "Sua primeira vez nos tatames de guerra! A glória te espera.",
-  icon_name: "Trophy",
-  unlocked_at: new Date().toISOString(),
-};
 
 
 export const Route = createFileRoute("/_authenticated/create")({
