@@ -1,0 +1,4 @@
+CREATE POLICY "Avatares visiveis para autenticados" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'avatars');
+CREATE POLICY "Usuario envia proprio avatar" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "Usuario atualiza proprio avatar" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text) WITH CHECK (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);
+CREATE POLICY "Usuario apaga proprio avatar" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'avatars' AND (storage.foldername(name))[1] = auth.uid()::text);

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { LogOut, Pencil, Settings, Flame, Clock, Crown, Dumbbell, Trophy, Medal, Target, Zap } from "lucide-react";
+import { LogOut, Settings, Flame, Clock, Crown, Dumbbell, Trophy, Medal, Target, Zap } from "lucide-react";
 import { DevRoutesMenu } from "@/components/DevRoutesMenu";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
@@ -166,15 +166,8 @@ function Perfil() {
                 <AvatarBubble src={profile?.avatar_url} name={name} className="size-24 text-2xl" />
               </div>
             )}
-            <Link
-              to="/perfil/editar"
-              aria-label="Editar perfil"
-              className="absolute -bottom-1 -right-1 rounded-full bg-brand p-1.5 text-brand-foreground"
-            >
-              <Pencil className="size-3.5" />
-            </Link>
-
           </div>
+
 
           {isLoading ? (
             <>

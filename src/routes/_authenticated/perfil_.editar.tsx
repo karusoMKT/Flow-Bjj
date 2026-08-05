@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Camera, Loader2 } from "lucide-react";
+import { AvatarBubble } from "@/components/PostCard";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
@@ -48,12 +49,14 @@ async function fetchMyProfile() {
   if (!uid) throw new Error("Sem sessão");
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, home_academy, belt, stripes, weight, is_competitor")
+    .select("id, full_name, username, avatar_url, home_academy, belt, stripes, weight, is_competitor")
     .eq("id", uid)
     .maybeSingle();
   if (error) throw error;
   return data;
 }
+
+const TEN_YEARS = 60 * 60 * 24 * 365 * 10;
 
 function EditarPerfil() {
   const navigate = useNavigate();
@@ -68,6 +71,8 @@ function EditarPerfil() {
   const [stripes, setStripes] = useState(0);
   const [weight, setWeight] = useState("");
   const [isCompetitor, setIsCompetitor] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [queue, setQueue] = useState<Achievement[]>([]);
 
@@ -78,7 +83,53 @@ function EditarPerfil() {
     setStripes(profile.stripes ?? 0);
     setWeight(profile.weight ?? "");
     setIsCompetitor(Boolean(profile.is_competitor));
+    setAvatarUrl(profile.avatar_url ?? null);
   }, [profile]);
+
+  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !profile?.id) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("A imagem deve ter no máximo 5 MB.");
+      return;
+    }
+
+    setUploading(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+    const path = `${profile.id}/avatar-${Date.now()}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("avatars")
+      .upload(path, file, { upsert: true, contentType: file.type });
+
+    if (uploadError) {
+      setUploading(false);
+      toast.error("Não foi possível enviar a foto.");
+      return;
+    }
+
+    const { data: signed } = await supabase.storage
+      .from("avatars")
+      .createSignedUrl(path, TEN_YEARS);
+
+    const url = signed?.signedUrl ?? null;
+    if (url) {
+      await supabase.from("profiles").update({ avatar_url: url }).eq("id", profile.id);
+      setAvatarUrl(url);
+      await queryClient.invalidateQueries({ queryKey: ["profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["profile-edit"] });
+      toast.success("Foto atualizada!");
+    } else {
+      toast.error("Não foi possível gerar o link da foto.");
+    }
+    setUploading(false);
+  }
+
 
   async function handleSave() {
     if (!profile?.id || saving) return;
@@ -143,6 +194,35 @@ function EditarPerfil() {
       </header>
 
       <main className="mx-auto w-full max-w-md space-y-7 px-5 py-6">
+        <div className="flex flex-col items-center">
+          <label className="group relative cursor-pointer">
+            <span className="block rounded-full ring-2 ring-brand/70">
+              <AvatarBubble
+                src={avatarUrl}
+                name={profile?.full_name ?? profile?.username ?? "Atleta"}
+                className="size-28 text-2xl"
+              />
+            </span>
+            <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full bg-brand text-brand-foreground transition-opacity group-hover:opacity-90">
+              {uploading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Camera className="size-4" />
+              )}
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              aria-label="Alterar foto de perfil"
+              disabled={uploading}
+              onChange={handleAvatarChange}
+            />
+          </label>
+          <p className="mt-3 text-xs text-muted-foreground">Toque na foto para alterar</p>
+        </div>
+
+
         <div>
           <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Academia principal
