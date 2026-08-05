@@ -193,6 +193,35 @@ function EditarPerfil() {
       </header>
 
       <main className="mx-auto w-full max-w-md space-y-7 px-5 py-6">
+        <div className="flex flex-col items-center">
+          <label className="group relative cursor-pointer">
+            <span className="block rounded-full ring-2 ring-brand/70">
+              <AvatarBubble
+                src={avatarUrl}
+                name={profile?.full_name ?? profile?.username ?? "Atleta"}
+                className="size-28 text-2xl"
+              />
+            </span>
+            <span className="absolute -bottom-1 -right-1 grid size-9 place-items-center rounded-full bg-brand text-brand-foreground transition-opacity group-hover:opacity-90">
+              {uploading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Camera className="size-4" />
+              )}
+            </span>
+            <input
+              type="file"
+              accept="image/*"
+              className="sr-only"
+              aria-label="Alterar foto de perfil"
+              disabled={uploading}
+              onChange={handleAvatarChange}
+            />
+          </label>
+          <p className="mt-3 text-xs text-muted-foreground">Toque na foto para alterar</p>
+        </div>
+
+
         <div>
           <label className="mb-2 block text-xs font-bold uppercase tracking-widest text-muted-foreground">
             Academia principal
