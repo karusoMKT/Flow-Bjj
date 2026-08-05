@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, MapPin } from "lucide-react";
 
-type NominatimPlace = { place_id: number; display_name: string };
+type Place = { id: string; label: string };
+
+type MapboxFeature = { id: string; place_name: string };
+
+/** Token público do Mapbox (VITE_MAPBOX_TOKEN ou o token do connector Mapbox). */
+const MAPBOX_TOKEN: string =
+  (import.meta.env['VITE_MAPBOX_TOKEN'] as string | undefined) ??
+  (import.meta.env['VITE_LOVABLE_CONNECTOR_MAPBOX_PUBLIC_TOKEN'] as string | undefined) ??
+  "";
 
 /**
- * Autocomplete de endereços usando a API gratuita do OpenStreetMap (Nominatim).
- * Sem API key, com debounce de 400ms e dropdown em Dark Mode com hover neon.
+ * Autocomplete de endereços/academias usando a Mapbox Search (Geocoding v5),
+ * focado no Brasil e priorizando POIs. Texto livre continua permitido.
  */
 export function LocationAutocomplete({
   value,
@@ -18,7 +26,7 @@ export function LocationAutocomplete({
   placeholder?: string;
   ariaLabel?: string;
 }) {
-  const [results, setResults] = useState<NominatimPlace[]>([]);
+  const [results, setResults] = useState<Place[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const skipNext = useRef(false);
@@ -29,7 +37,7 @@ export function LocationAutocomplete({
       return;
     }
     const query = value.trim();
-    if (query.length < 3) {
+    if (query.length < 3 || !MAPBOX_TOKEN) {
       setResults([]);
       setLoading(false);
       return;
@@ -38,12 +46,22 @@ export function LocationAutocomplete({
     setLoading(true);
     const timer = window.setTimeout(async () => {
       try {
+        const params = new URLSearchParams({
+          access_token: MAPBOX_TOKEN,
+          country: "br",
+          language: "pt",
+          limit: "6",
+          types: "poi,address,place,locality,neighborhood",
+          autocomplete: "true",
+        });
         const res = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&addressdetails=0&limit=6&q=${encodeURIComponent(query)}`,
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${params}`,
           { signal: controller.signal, headers: { Accept: "application/json" } },
         );
-        const data = (await res.json()) as NominatimPlace[];
-        setResults(Array.isArray(data) ? data : []);
+        const data = (await res.json()) as { features?: MapboxFeature[] };
+        setResults(
+          (data.features ?? []).map((f) => ({ id: f.id, label: f.place_name })),
+        );
         setOpen(true);
       } catch {
         /* busca cancelada ou offline */
@@ -58,9 +76,9 @@ export function LocationAutocomplete({
     };
   }, [value]);
 
-  function select(place: NominatimPlace) {
+  function select(place: Place) {
     skipNext.current = true;
-    onChange(place.display_name);
+    onChange(place.label);
     setOpen(false);
     setResults([]);
   }
@@ -96,7 +114,7 @@ export function LocationAutocomplete({
       {open && results.length > 0 && (
         <ul className="absolute z-30 mt-2 max-h-64 w-full overflow-y-auto rounded-2xl border border-white/10 bg-[#121212] p-1 shadow-2xl">
           {results.map((place) => (
-            <li key={place.place_id}>
+            <li key={place.id}>
               <button
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
@@ -104,7 +122,7 @@ export function LocationAutocomplete({
                 className="flex w-full items-start gap-2 rounded-xl px-3 py-2.5 text-left text-sm text-foreground transition-colors hover:bg-brand/15 hover:text-brand"
               >
                 <MapPin className="mt-0.5 size-4 shrink-0 opacity-70" />
-                <span className="line-clamp-2">{place.display_name}</span>
+                <span className="line-clamp-2">{place.label}</span>
               </button>
             </li>
           ))}
