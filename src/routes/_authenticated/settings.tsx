@@ -27,7 +27,7 @@ type MenuItem = {
 const MENU: { items: MenuItem[] }[] = [
   {
     items: [
-      { icon: UserRound, label: "Editar perfil", to: "/perfil" },
+      { icon: UserRound, label: "Editar perfil", to: "/perfil/editar" },
       { icon: Crown, label: "Flow Premium", to: "/premium", value: "Upgrade" },
       { icon: Bell, label: "Notificações", to: "/settings/notifications" },
     ],
