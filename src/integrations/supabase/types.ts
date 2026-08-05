@@ -19,29 +19,29 @@ export type Database = {
           content: string
           created_at: string
           id: string
-          session_id: string
+          post_id: string
           user_id: string
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
-          session_id: string
+          post_id: string
           user_id: string
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
-          session_id?: string
+          post_id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "comments_session_id_fkey"
-            columns: ["session_id"]
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "sessions"
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
           {
@@ -126,27 +126,27 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          session_id: string
+          post_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
-          session_id: string
+          post_id: string
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
-          session_id?: string
+          post_id?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "likes_session_id_fkey"
-            columns: ["session_id"]
+            foreignKeyName: "likes_post_id_fkey"
+            columns: ["post_id"]
             isOneToOne: false
-            referencedRelation: "sessions"
+            referencedRelation: "posts"
             referencedColumns: ["id"]
           },
           {
