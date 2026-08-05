@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
 import type { Achievement } from "@/lib/achievements";
 import { runCompetitionAchievements, runWorkoutAchievements } from "@/lib/achievements";
+import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
