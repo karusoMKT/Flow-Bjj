@@ -1,5 +1,6 @@
 import { icons, Trophy, X } from "lucide-react";
 import type { Achievement } from "@/lib/achievements";
+import { ShareButton } from "@/components/ShareButton";
 
 function AchievementIcon({ name, className }: { name: string; className?: string }) {
   const Icon = (icons as Record<string, React.ElementType>)[name] ?? Trophy;
@@ -9,11 +10,18 @@ function AchievementIcon({ name, className }: { name: string; className?: string
 export function AchievementModal({
   achievement,
   onClose,
+  athlete,
+  belt,
+  avatarUrl,
 }: {
   achievement: Achievement | null;
   onClose: () => void;
+  athlete?: string | null;
+  belt?: string | null;
+  avatarUrl?: string | null;
 }) {
   if (!achievement) return null;
+
 
   return (
     <div
