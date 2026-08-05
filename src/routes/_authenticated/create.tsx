@@ -183,14 +183,15 @@ function CreatePost() {
       return;
     }
     toast.success("Treino publicado!");
-    await grantXp(uid, "treino");
+    const leveled = await grantXp(uid, "treino");
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
 
     // Motor de conquistas (volume, ofensiva) — sem duplicar troféus.
     const unlockedList = await runWorkoutAchievements(uid);
     queryClient.invalidateQueries({ queryKey: ["achievements"] });
-    showUnlocked(unlockedList);
+    showUnlocked(unlockedList, leveled);
+
   }
 
   /**
