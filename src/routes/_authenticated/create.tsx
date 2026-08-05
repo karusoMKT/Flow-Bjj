@@ -488,8 +488,22 @@ function CreatePost() {
         avatarUrl={me?.avatar_url ?? null}
         onClose={() => {
           setQueue((q) => q.slice(1));
+          if (levelUp) setLevelUp(levelUp);
+          else navigate({ to: "/home" });
+        }}
+      />
+
+      <LevelUpModal
+        level={levelUp?.level ?? null}
+        xp={levelUp?.xp ?? 0}
+        athlete={me?.full_name ?? me?.username ?? null}
+        belt={me?.belt ?? null}
+        avatarUrl={me?.avatar_url ?? null}
+        onClose={() => {
+          setLevelUp(null);
           navigate({ to: "/home" });
         }}
+
       />
     </div>
   );
