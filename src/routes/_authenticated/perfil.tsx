@@ -210,29 +210,58 @@ function Perfil() {
           ))}
         </section>
 
-        <section className="card-elevated mt-4 rounded-2xl p-4">
-          <div className="flex items-baseline justify-between">
-            <p className="text-sm font-bold uppercase tracking-wide text-brand">Nível {level}</p>
-            <p className="text-xs text-muted-foreground">
-              {xpInLevel} / {xpToNext} XP
+        <section className="mt-6">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Estatísticas</h3>
+
+          <div className="card-elevated mt-3 rounded-2xl border border-brand/25 bg-brand/[0.04] p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="grid size-9 place-items-center rounded-full bg-brand/15 text-brand">
+                  <Zap className="size-5" />
+                </span>
+                <div>
+                  <p className="text-base font-black leading-none text-brand">Nível {progress.level}</p>
+                  <p className="mt-1 text-[11px] text-muted-foreground">{xp} XP acumulado</p>
+                </div>
+              </div>
+              <p className="text-xs font-semibold text-muted-foreground">
+                {progress.xpInLevel} / {progress.nextLevelXp - progress.currentLevelXp} XP
+              </p>
+            </div>
+
+            <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-surface-2">
+              <div
+                className="h-full rounded-full bg-brand shadow-[0_0_12px_var(--brand)] transition-all duration-500"
+                style={{ width: `${progress.percent}%` }}
+              />
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Faltam {progress.xpNeeded} XP para o nível {progress.level + 1}
             </p>
           </div>
-          <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-2">
-            <div
-              className="h-full rounded-full bg-brand transition-all"
-              style={{ width: `${Math.min(100, (xpInLevel / xpToNext) * 100)}%` }}
-            />
+
+          <div className="mt-3 grid grid-cols-3 gap-2">
+            {stats.map(({ icon: Icon, label, value }) => (
+              <div key={label} className="card-elevated rounded-2xl px-2 py-3 text-center">
+                <Icon className="mx-auto size-4 text-brand" />
+                {isLoading ? (
+                  <div className="mx-auto mt-2 h-4 w-8 animate-pulse rounded bg-white/10" />
+                ) : (
+                  <p className="mt-1.5 text-lg font-bold leading-none">{value}</p>
+                )}
+                <p className="mt-1 text-[10px] leading-tight text-muted-foreground">{label}</p>
+              </div>
+            ))}
           </div>
-          <p className="mt-2 text-[11px] text-muted-foreground">
-            Faltam {xpToNext - xpInLevel} XP para o nível {level + 1}
-          </p>
+
           <Link
             to="/statistics"
             className="mt-3 flex items-center justify-center rounded-xl border border-white/10 bg-surface-2/60 py-2 text-xs font-semibold text-brand"
           >
-            Ver estatísticas
+            Ver estatísticas detalhadas
           </Link>
         </section>
+
 
         <section className="mt-4 grid grid-cols-2 gap-3">
           <Link
