@@ -122,7 +122,14 @@ function CreatePost() {
       toast.success("Competição publicada!");
       queryClient.invalidateQueries({ queryKey: ["feed"] });
       queryClient.invalidateQueries({ queryKey: ["profile"] });
-      setUnlocked(DEMO_COMPETITION_ACHIEVEMENT);
+      const total = await countCompetitions(uid);
+      const earned = await grantOnce(uid, FIRST_COMPETITION, total === 1);
+      queryClient.invalidateQueries({ queryKey: ["achievements"] });
+      if (!earned) {
+        navigate({ to: "/home" });
+        return;
+      }
+      setUnlocked(earned);
       window.setTimeout(() => {
         setUnlocked(null);
         navigate({ to: "/home" });
