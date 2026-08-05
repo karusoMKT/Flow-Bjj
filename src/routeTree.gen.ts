@@ -34,6 +34,7 @@ import { Route as AuthenticatedChallengesRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAnalysisRouteImport } from './routes/_authenticated/analysis'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings_.notifications'
+import { Route as AuthenticatedPerfilEditarRouteImport } from './routes/_authenticated/perfil_.editar'
 import { Route as AuthenticatedGymGymIdRouteImport } from './routes/_authenticated/gym.$gymId'
 import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat.$chatId'
 
@@ -165,6 +166,12 @@ const AuthenticatedSettingsNotificationsRoute =
     path: '/settings/notifications',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedPerfilEditarRoute =
+  AuthenticatedPerfilEditarRouteImport.update({
+    id: '/perfil_/editar',
+    path: '/perfil/editar',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGymGymIdRoute = AuthenticatedGymGymIdRouteImport.update({
   id: '/gym/$gymId',
   path: '/gym/$gymId',
@@ -202,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
   '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
+  '/perfil/editar': typeof AuthenticatedPerfilEditarRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
 export interface FileRoutesByTo {
@@ -230,6 +238,7 @@ export interface FileRoutesByTo {
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
   '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
+  '/perfil/editar': typeof AuthenticatedPerfilEditarRoute
   '/settings/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
 export interface FileRoutesById {
@@ -260,6 +269,7 @@ export interface FileRoutesById {
   '/_authenticated/training-plan': typeof AuthenticatedTrainingPlanRoute
   '/_authenticated/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/_authenticated/gym/$gymId': typeof AuthenticatedGymGymIdRoute
+  '/_authenticated/perfil_/editar': typeof AuthenticatedPerfilEditarRoute
   '/_authenticated/settings_/notifications': typeof AuthenticatedSettingsNotificationsRoute
 }
 export interface FileRouteTypes {
@@ -290,6 +300,7 @@ export interface FileRouteTypes {
     | '/training-plan'
     | '/chat/$chatId'
     | '/gym/$gymId'
+    | '/perfil/editar'
     | '/settings/notifications'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -318,6 +329,7 @@ export interface FileRouteTypes {
     | '/training-plan'
     | '/chat/$chatId'
     | '/gym/$gymId'
+    | '/perfil/editar'
     | '/settings/notifications'
   id:
     | '__root__'
@@ -347,6 +359,7 @@ export interface FileRouteTypes {
     | '/_authenticated/training-plan'
     | '/_authenticated/chat/$chatId'
     | '/_authenticated/gym/$gymId'
+    | '/_authenticated/perfil_/editar'
     | '/_authenticated/settings_/notifications'
   fileRoutesById: FileRoutesById
 }
@@ -536,6 +549,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedSettingsNotificationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/perfil_/editar': {
+      id: '/_authenticated/perfil_/editar'
+      path: '/perfil/editar'
+      fullPath: '/perfil/editar'
+      preLoaderRoute: typeof AuthenticatedPerfilEditarRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/gym/$gymId': {
       id: '/_authenticated/gym/$gymId'
       path: '/gym/$gymId'
@@ -574,6 +594,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedTrainingPlanRoute: typeof AuthenticatedTrainingPlanRoute
   AuthenticatedChatChatIdRoute: typeof AuthenticatedChatChatIdRoute
   AuthenticatedGymGymIdRoute: typeof AuthenticatedGymGymIdRoute
+  AuthenticatedPerfilEditarRoute: typeof AuthenticatedPerfilEditarRoute
   AuthenticatedSettingsNotificationsRoute: typeof AuthenticatedSettingsNotificationsRoute
 }
 
@@ -598,6 +619,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedTrainingPlanRoute: AuthenticatedTrainingPlanRoute,
   AuthenticatedChatChatIdRoute: AuthenticatedChatChatIdRoute,
   AuthenticatedGymGymIdRoute: AuthenticatedGymGymIdRoute,
+  AuthenticatedPerfilEditarRoute: AuthenticatedPerfilEditarRoute,
   AuthenticatedSettingsNotificationsRoute:
     AuthenticatedSettingsNotificationsRoute,
 }

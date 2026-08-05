@@ -166,12 +166,14 @@ function Perfil() {
                 <AvatarBubble src={profile?.avatar_url} name={name} className="size-24 text-2xl" />
               </div>
             )}
-            <button
+            <Link
+              to="/perfil/editar"
               aria-label="Editar perfil"
               className="absolute -bottom-1 -right-1 rounded-full bg-brand p-1.5 text-brand-foreground"
             >
               <Pencil className="size-3.5" />
-            </button>
+            </Link>
+
           </div>
 
           {isLoading ? (
