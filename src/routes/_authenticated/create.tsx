@@ -86,15 +86,14 @@ function CreatePost() {
     }
   }, [homeAcademy, locationTouched, trainLocation]);
 
-  /** Concede XP do check-in e comemora quando sobe de nível. */
+  /** Concede XP do check-in e devolve o nível quando o atleta sobe. */
   async function grantXp(uid: string, kind: "treino" | "competicao") {
     const result = await awardXp(uid, kind);
-    if (!result) return;
+    if (!result) return null;
     toast.success(`+${XP_REWARDS[kind]} XP`);
-    if (result.leveledUp) {
-      toast.success(`Subiu para o Nível ${result.level}! 🔥`);
-    }
+    return result.leveledUp ? { level: result.level, xp: result.xp } : null;
   }
+
 
 
   async function publish() {
