@@ -62,7 +62,7 @@ function CreatePost() {
   const [compSummary, setCompSummary] = useState("");
 
   // Academia principal do perfil (preenche o local automaticamente)
-  const { data: homeAcademy } = useQuery({
+  const { data: me } = useQuery({
     queryKey: ["home-academy"],
     queryFn: async () => {
       const { data: auth } = await supabase.auth.getUser();
@@ -70,13 +70,15 @@ function CreatePost() {
       if (!uid) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("home_academy")
+        .select("home_academy, full_name, username, belt, avatar_url")
         .eq("id", uid)
         .maybeSingle();
       if (error) throw error;
-      return data?.home_academy ?? null;
+      return data;
     },
   });
+  const homeAcademy = me?.home_academy ?? null;
+
 
   useEffect(() => {
     if (homeAcademy && !locationTouched && !trainLocation) {
