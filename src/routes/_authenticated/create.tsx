@@ -186,8 +186,15 @@ function CreatePost() {
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
 
-    // Simulação de conquista (apenas UI): mostra o troféu e depois redireciona.
-    setUnlocked(DEMO_ACHIEVEMENT);
+    // Conquista real: só no primeiro treino e se ainda não estiver salva.
+    const totalWorkouts = await countWorkouts(uid);
+    const earned = await grantOnce(uid, FIRST_WORKOUT, totalWorkouts === 1);
+    queryClient.invalidateQueries({ queryKey: ["achievements"] });
+    if (!earned) {
+      navigate({ to: "/home" });
+      return;
+    }
+    setUnlocked(earned);
     window.setTimeout(() => {
       setUnlocked(null);
       navigate({ to: "/home" });
