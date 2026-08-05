@@ -181,6 +181,7 @@ function CreatePost() {
       return;
     }
     toast.success("Treino publicado!");
+    await grantXp(uid, "treino");
     queryClient.invalidateQueries({ queryKey: ["feed"] });
     queryClient.invalidateQueries({ queryKey: ["profile"] });
 
