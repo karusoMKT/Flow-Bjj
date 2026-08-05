@@ -110,14 +110,12 @@ function Perfil() {
   const profile = data?.profile;
   const posts = data?.posts ?? [];
   const totalWorkouts = data?.totalWorkouts ?? 0;
+  const totalCompetitions = data?.totalCompetitions ?? 0;
   const totalMinutes = data?.totalMinutes ?? 0;
   const streak = currentStreak((data?.workouts ?? []).map((w) => w.created_at));
 
-  const xp = profile?.total_xp ?? 0;
-  const xpToNext = 250;
-  const level = Math.max(1, Math.floor(xp / xpToNext) + 1);
-  const xpInLevel = xp % xpToNext;
-  
+  const xp = profile?.xp ?? profile?.total_xp ?? 0;
+  const progress = levelProgress(xp, profile?.level);
 
   const name = profile?.full_name ?? profile?.username ?? "Atleta";
   const identity = [profile?.belt && `Faixa ${profile.belt}`, profile?.team, profile?.professor]
@@ -130,6 +128,13 @@ function Perfil() {
     { icon: Flame, label: "Dias seguidos", value: String(streak) },
     { icon: Zap, label: "XP total", value: String(xp) },
   ];
+
+  const stats = [
+    { icon: Dumbbell, label: "Treinos", value: String(totalWorkouts) },
+    { icon: Medal, label: "Competições", value: String(totalCompetitions) },
+    { icon: Flame, label: "Sequência", value: `${streak}d` },
+  ];
+
 
   return (
     <div className="min-h-screen bg-background pb-28">
