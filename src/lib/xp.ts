@@ -82,3 +82,26 @@ export async function awardXp(
 
   return { gained, xp, level, leveledUp: level > previousLevel };
 }
+
+/**
+ * Recalcula o XP canônico a partir do histórico real:
+ * (treinos * 50) + (competições * 150). Grava no perfil quando divergir.
+ */
+export function computeXp(totalWorkouts: number, totalCompetitions: number): number {
+  return totalWorkouts * XP_REWARDS.treino + totalCompetitions * XP_REWARDS.competicao;
+}
+
+export async function syncXp(
+  userId: string,
+  totalWorkouts: number,
+  totalCompetitions: number,
+  current?: { xp?: number | null; level?: number | null },
+): Promise<{ xp: number; level: number }> {
+  const xp = computeXp(totalWorkouts, totalCompetitions);
+  const level = levelFromXp(xp);
+
+  if (current && current.xp === xp && current.level === level) return { xp, level };
+
+  await supabase.from("profiles").update({ xp, level, total_xp: xp }).eq("id", userId);
+  return { xp, level };
+}
