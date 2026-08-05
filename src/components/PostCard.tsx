@@ -168,7 +168,30 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
             )}
           </>
         )}
+        {currentUserId && author && post.id ? (
+          <div className="ml-auto">
+            <ShareButton
+              payload={{
+                kind: "workout",
+                title: comp ? comp.event : workout?.training_type ? `Treino de ${workout.training_type}` : "Treino registrado",
+                description: comp ? (comp.placement ?? comp.summary ?? null) : (post.content ?? null),
+                stats: [
+                  ...(workout?.duration_minutes ? [{ label: "Minutos", value: String(workout.duration_minutes) }] : []),
+                  ...(workout?.intensity ? [{ label: "Intensidade", value: workout.intensity }] : []),
+                  ...(workout?.location || comp?.location
+                    ? [{ label: "Local", value: (workout?.location ?? comp?.location) as string }]
+                    : []),
+                ],
+                athlete: name,
+                belt: author?.belt ?? null,
+                avatarUrl: author?.avatar_url ?? null,
+              }}
+              showLabel={false}
+            />
+          </div>
+        ) : null}
       </div>
+
 
       <PostActions
         postId={post.id}
