@@ -50,6 +50,14 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 
 function HomeFeed() {
   const [storySoon, setStorySoon] = useState(false);
+  const { data: currentUserId } = useQuery({
+    queryKey: ["current-user-id"],
+    queryFn: async () => {
+      const { data } = await supabase.auth.getUser();
+      return data.user?.id ?? null;
+    },
+    staleTime: 5 * 60_000,
+  });
   const { data: posts, isLoading, error, refetch } = useQuery({
     queryKey: ["feed"],
     queryFn: async () => {
@@ -176,7 +184,7 @@ function HomeFeed() {
         ) : (
           <ul className="flex flex-col gap-4 px-4">
             {(posts as unknown as FeedPost[]).map((post) => (
-              <PostCard key={post.id} post={post} />
+              <PostCard key={post.id} post={post} currentUserId={currentUserId} />
             ))}
           </ul>
         )}

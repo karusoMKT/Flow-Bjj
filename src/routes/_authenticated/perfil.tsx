@@ -52,6 +52,7 @@ async function fetchProfileData() {
 
   const workouts = workoutsRes.data ?? [];
   return {
+    uid,
     profile: profileRes.data,
     workouts,
     totalWorkouts: workouts.length,
@@ -333,7 +334,7 @@ function Perfil() {
           ) : (
             <ul className="mt-3 flex flex-col gap-4">
               {posts.map((p) => (
-                <PostCard key={p.id} post={p} />
+                <PostCard key={p.id} post={p} currentUserId={data?.uid} />
               ))}
             </ul>
           )}
