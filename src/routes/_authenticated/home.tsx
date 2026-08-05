@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bell, MessageSquare, Plus, Sparkles, X } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
+import { FEED_SELECT } from "@/lib/social";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
 
 
@@ -55,7 +56,7 @@ function HomeFeed() {
       const { data, error: err } = await supabase
         .from("posts")
         .select(
-          "id, content, image_url, likes_count, created_at, profiles:user_id (full_name, username, avatar_url, belt), workouts:workout_id (duration_minutes, training_type, intensity, location)",
+          FEED_SELECT,
         )
         .order("created_at", { ascending: false })
         .limit(30);

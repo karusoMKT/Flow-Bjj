@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LogOut, Settings, Flame, Clock, Crown, Dumbbell, Trophy, Medal, Target, Zap } from "lucide-react";
 import { DevRoutesMenu } from "@/components/DevRoutesMenu";
 import { supabase } from "@/integrations/supabase/client";
+import { FEED_SELECT } from "@/lib/social";
 import { BottomNav } from "@/components/BottomNav";
 import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
 import { beltClass } from "@/lib/feed";
@@ -38,7 +39,7 @@ async function fetchProfileData() {
     supabase
       .from("posts")
       .select(
-        "id, content, image_url, likes_count, created_at, profiles:user_id (full_name, username, avatar_url, belt), workouts:workout_id (duration_minutes, training_type, intensity, location)",
+        FEED_SELECT,
       )
       .eq("user_id", uid)
       .order("created_at", { ascending: false })
