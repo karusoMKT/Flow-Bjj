@@ -26,9 +26,9 @@ export type LevelProgress = {
   percent: number;
 };
 
-/** Progresso detalhado dentro do nível atual. */
-export function levelProgress(xp: number, savedLevel?: number | null): LevelProgress {
-  const level = Math.max(levelFromXp(xp), savedLevel ?? 1);
+/** Progresso detalhado dentro do nível atual (sempre derivado do XP). */
+export function levelProgress(xp: number, _savedLevel?: number | null): LevelProgress {
+  const level = levelFromXp(xp);
   const currentLevelXp = xpForLevel(level);
   const nextLevelXp = xpForLevel(level + 1);
   const span = Math.max(1, nextLevelXp - currentLevelXp);
@@ -81,4 +81,27 @@ export async function awardXp(
   if (updateError) return null;
 
   return { gained, xp, level, leveledUp: level > previousLevel };
+}
+
+/**
+ * Recalcula o XP canônico a partir do histórico real:
+ * (treinos * 50) + (competições * 150). Grava no perfil quando divergir.
+ */
+export function computeXp(totalWorkouts: number, totalCompetitions: number): number {
+  return totalWorkouts * XP_REWARDS.treino + totalCompetitions * XP_REWARDS.competicao;
+}
+
+export async function syncXp(
+  userId: string,
+  totalWorkouts: number,
+  totalCompetitions: number,
+  current?: { xp?: number | null; level?: number | null },
+): Promise<{ xp: number; level: number }> {
+  const xp = computeXp(totalWorkouts, totalCompetitions);
+  const level = levelFromXp(xp);
+
+  if (current && current.xp === xp && current.level === level) return { xp, level };
+
+  await supabase.from("profiles").update({ xp, level, total_xp: xp }).eq("id", userId);
+  return { xp, level };
 }
