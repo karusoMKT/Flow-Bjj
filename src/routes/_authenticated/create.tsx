@@ -5,6 +5,8 @@ import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
+import { LevelUpModal } from "@/components/LevelUpModal";
+
 import type { Achievement } from "@/lib/achievements";
 import { runCompetitionAchievements, runWorkoutAchievements } from "@/lib/achievements";
 import { awardXp, XP_REWARDS } from "@/lib/xp";
