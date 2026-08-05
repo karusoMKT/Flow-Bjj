@@ -471,6 +471,9 @@ function CreatePost() {
 
       <AchievementModal
         achievement={unlocked}
+        athlete={me?.full_name ?? me?.username ?? null}
+        belt={me?.belt ?? null}
+        avatarUrl={me?.avatar_url ?? null}
         onClose={() => {
           setQueue((q) => q.slice(1));
           navigate({ to: "/home" });
