@@ -9,6 +9,7 @@ import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/compo
 import { beltClass } from "@/lib/feed";
 import { AchievementIcon } from "@/components/AchievementModal";
 import { fetchAchievements } from "@/lib/achievements";
+import { levelProgress } from "@/lib/xp";
 
 export const Route = createFileRoute("/_authenticated/perfil")({
   head: () => ({
