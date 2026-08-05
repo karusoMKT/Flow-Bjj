@@ -264,7 +264,7 @@ function Perfil() {
                 </div>
               </div>
               <p className="text-xs font-semibold text-muted-foreground">
-                {progress.xpInLevel} / {progress.nextLevelXp - progress.currentLevelXp} XP
+                {xp} / {progress.nextLevelXp} XP
               </p>
             </div>
 
