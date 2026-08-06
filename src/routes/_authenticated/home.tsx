@@ -286,6 +286,17 @@ function HomeFeed() {
           >
             <X className="size-5" />
           </button>
+          <div className="absolute left-4 top-4 flex items-center gap-2">
+            <img
+              src={viewing.avatarUrl ?? avatar(viewing.name)}
+              alt=""
+              className="size-8 rounded-full object-cover"
+            />
+            <span className="flex items-center gap-1 text-sm font-semibold text-foreground">
+              {viewing.name}
+              <ChampionBadge active={viewing.isChampion} className="size-4" />
+            </span>
+          </div>
           <img
             src={viewing.cover}
             alt={`Story de ${viewing.name}`}
