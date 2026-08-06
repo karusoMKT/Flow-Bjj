@@ -17,6 +17,7 @@ export type FeedPost = {
     username: string | null;
     avatar_url: string | null;
     belt: string | null;
+    is_weekly_champion?: boolean | null;
   } | null;
   workouts?: {
     duration_minutes: number | null;
