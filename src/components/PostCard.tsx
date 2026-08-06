@@ -1,4 +1,4 @@
-import { MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
+import { CalendarDays, MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
 import { PostActions } from "@/components/PostActions";
 import { ShareButton } from "@/components/ShareButton";
 import { ChampionBadge } from "@/components/ChampionBadge";
@@ -18,6 +18,7 @@ export type FeedPost = {
     avatar_url: string | null;
     belt: string | null;
     is_weekly_champion?: boolean | null;
+    account_type?: string | null;
   } | null;
   workouts?: {
     duration_minutes: number | null;
@@ -27,7 +28,12 @@ export type FeedPost = {
   } | null;
   likes?: { user_id: string }[] | null;
   comments?: { id: string }[] | null;
+  post_type?: string | null;
+  event_title?: string | null;
+  event_date?: string | null;
+  event_location?: string | null;
 };
+
 
 export function initialsOf(name: string): string {
   return name
@@ -89,6 +95,13 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
   const comp = parseCompetition(post.content);
   const social = socialCounts(post, currentUserId);
   const champion = !!author?.is_weekly_champion;
+
+  if (post.post_type === "event") {
+    return (
+      <EventCard post={post} currentUserId={currentUserId} name={name} social={social} />
+    );
+  }
+
 
   return (
     <li
@@ -209,6 +222,84 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
         ) : null}
       </div>
 
+
+      <PostActions
+        postId={post.id}
+        userId={currentUserId}
+        initialLiked={social.liked}
+        initialLikeCount={social.likeCount || post.likes_count || 0}
+        initialCommentCount={social.commentCount}
+        renderAvatar={(src, name) => <AvatarBubble src={src} name={name} className="size-7" />}
+      />
+    </li>
+  );
+}
+
+function EventCard({
+  post,
+  currentUserId,
+  name,
+  social,
+}: {
+  post: FeedPost;
+  currentUserId?: string | null;
+  name: string;
+  social: { liked: boolean; likeCount: number; commentCount: number };
+}) {
+  const author = post.profiles;
+  const isGym = author?.account_type === "gym";
+  const dateLabel = post.event_date
+    ? new Date(post.event_date).toLocaleString("pt-BR", {
+        day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
+
+  return (
+    <li className="overflow-hidden rounded-2xl border border-[oklch(0.7_0.17_255)]/50 bg-surface shadow-[0_0_0_1px_oklch(0.7_0.17_255/0.12),0_0_28px_-12px_oklch(0.7_0.17_255/0.6)]">
+      <div className="flex items-center gap-2 border-b border-[oklch(0.7_0.17_255)]/25 bg-[oklch(0.7_0.17_255)]/10 px-3.5 py-2">
+        <CalendarDays className="size-4 text-[oklch(0.78_0.15_255)]" />
+        <span className="text-[11px] font-black uppercase tracking-widest text-[oklch(0.78_0.15_255)]">
+          {isGym ? "Aviso da academia" : "Evento do professor"}
+        </span>
+        <span className="ml-auto text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+      </div>
+
+      <div className="flex items-start gap-3 p-3.5">
+        <AvatarBubble src={author?.avatar_url} name={name} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-semibold">{name}</p>
+            <ChampionBadge active={!!author?.is_weekly_champion} />
+          </div>
+          <p className="mt-1 text-base font-bold leading-snug text-foreground">
+            {post.event_title ?? "Aviso"}
+          </p>
+          {(dateLabel || post.event_location) && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {dateLabel && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-[oklch(0.7_0.17_255)]/35 bg-[oklch(0.7_0.17_255)]/10 px-2.5 py-1 text-[11px] font-semibold text-[oklch(0.82_0.13_255)]">
+                  <CalendarDays className="size-3.5" /> {dateLabel}
+                </span>
+              )}
+              {post.event_location && (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
+                  <MapPin className="size-3.5" /> {post.event_location}
+                </span>
+              )}
+            </div>
+          )}
+          {post.content && (
+            <p className="mt-2 text-sm leading-snug text-foreground">{post.content}</p>
+          )}
+        </div>
+      </div>
+
+      {post.image_url && (
+        <img src={post.image_url} alt={post.event_title ?? "Evento"} loading="lazy" className="h-60 w-full object-cover" />
+      )}
 
       <PostActions
         postId={post.id}
