@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
+import { ChampionBadge } from "@/components/ChampionBadge";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
 
 
@@ -35,9 +36,15 @@ export const Route = createFileRoute("/_authenticated/home")({
 const avatar = (name: string) =>
   `https://ui-avatars.com/api/?background=1f1f1f&color=d9ff3f&bold=true&name=${encodeURIComponent(name)}`;
 
-function StoryRing({ children }: { children: React.ReactNode }) {
+function StoryRing({ children, champion }: { children: React.ReactNode; champion?: boolean }) {
   return (
-    <span className="block rounded-full bg-gradient-to-tr from-brand via-brand/40 to-primary p-[2px]">
+    <span
+      className={`block rounded-full p-[2px] ${
+        champion
+          ? "bg-gradient-to-tr from-[oklch(0.85_0.16_92)] via-[oklch(0.92_0.12_95)] to-[oklch(0.7_0.14_60)]"
+          : "bg-gradient-to-tr from-brand via-brand/40 to-primary"
+      }`}
+    >
       <span className="block rounded-full border-2 border-background">{children}</span>
     </span>
   );
