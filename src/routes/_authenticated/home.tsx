@@ -241,7 +241,10 @@ function HomeFeed() {
             <div className="mx-auto grid size-14 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand">
               <Plus className="size-6" strokeWidth={2.5} />
             </div>
-            <p className="mt-4 text-base font-bold text-foreground">Adicionar Story (Em breve)</p>
+            <p className="mt-4 text-base font-bold text-foreground">Publicar um Story</p>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Compartilhe uma conquista, nível ou treino: toque em "Compartilhar" e escolha "Postar no Story".
+            </p>
             <button
               type="button"
               onClick={() => setStorySoon(false)}
@@ -252,6 +255,31 @@ function HomeFeed() {
           </div>
         </div>
       )}
+
+      {viewing && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Story de ${viewing.name}`}
+          onClick={() => setViewing(null)}
+          className="fixed inset-0 z-[70] grid place-items-center bg-black/95 px-4 animate-fade-in"
+        >
+          <button
+            type="button"
+            onClick={() => setViewing(null)}
+            aria-label="Fechar"
+            className="absolute right-4 top-4 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <X className="size-5" />
+          </button>
+          <img
+            src={viewing.cover}
+            alt={`Story de ${viewing.name}`}
+            className="max-h-[85vh] w-auto rounded-3xl border border-white/10 object-contain"
+          />
+        </div>
+      )}
+
 
       <BottomNav />
     </div>
