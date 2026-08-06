@@ -147,11 +147,25 @@ function HomeFeed() {
                   <img src={myAvatar} alt="Seu story" className="size-14 rounded-full object-cover" />
                 </span>
               )}
+              {uploading && (
+                <span className="absolute inset-0 grid place-items-center rounded-full bg-black/70">
+                  <Loader2 className="size-5 animate-spin text-brand" />
+                </span>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={onPickStory}
+              />
               <button
                 type="button"
-                onClick={() => setStorySoon(true)}
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
                 aria-label="Adicionar story"
-                className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
+                className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground disabled:opacity-60"
               >
                 <Plus className="size-3" strokeWidth={3} />
               </button>
