@@ -12,12 +12,14 @@ export type StoryRow = {
   profiles?: { username: string | null; full_name: string | null; avatar_url: string | null } | null;
 };
 
-/** Envia o PNG gerado para o bucket privado e devolve uma URL assinada de longa duração. */
+/** Envia a imagem para o bucket privado e devolve uma URL assinada de longa duração. */
 export async function uploadShareImage(blob: Blob, userId: string): Promise<string> {
-  const path = `${userId}/${crypto.randomUUID()}.png`;
+  const type = blob.type || "image/png";
+  const ext = type.split("/")[1]?.split("+")[0] || "png";
+  const path = `${userId}/${crypto.randomUUID()}.${ext}`;
   const { error } = await supabase.storage
     .from(STORIES_BUCKET)
-    .upload(path, blob, { contentType: "image/png", upsert: false });
+    .upload(path, blob, { contentType: type, upsert: false });
   if (error) throw error;
 
   const { data, error: signError } = await supabase.storage
