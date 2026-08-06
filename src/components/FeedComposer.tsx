@@ -194,7 +194,7 @@ function ComposerAction({
       }`}
     >
       <Icon className="size-4" />
-      <span className="hidden xs:inline sm:inline">{label}</span>
+      <span>{label}</span>
     </button>
   );
 }
