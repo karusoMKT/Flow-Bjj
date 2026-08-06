@@ -1,12 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
-import { Bell, MessageSquare, Plus, Sparkles, X } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef, useState } from "react";
+import { Bell, Loader2, MessageSquare, Plus, Sparkles, X } from "lucide-react";
+import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
-import { fetchActiveStories, groupStories, type StoryGroup } from "@/lib/stories";
+import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
 
 
 
@@ -44,8 +45,32 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 
 
 function HomeFeed() {
-  const [storySoon, setStorySoon] = useState(false);
+  
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  async function onPickStory(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { data } = await supabase.auth.getUser();
+      const userId = data.user?.id;
+      if (!userId) throw new Error("Faça login para publicar");
+      const imageUrl = await uploadShareImage(file, userId);
+      await createStory(userId, imageUrl);
+      await queryClient.invalidateQueries({ queryKey: ["stories"] });
+      toast.success("Story publicado! Válido por 24h 🔥");
+    } catch (err) {
+      toast.error((err as Error)?.message ?? "Não foi possível publicar o story");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const { data: currentUserId } = useQuery({
     queryKey: ["current-user-id"],
     queryFn: async () => {
@@ -147,11 +172,25 @@ function HomeFeed() {
                   <img src={myAvatar} alt="Seu story" className="size-14 rounded-full object-cover" />
                 </span>
               )}
+              {uploading && (
+                <span className="absolute inset-0 grid place-items-center rounded-full bg-black/70">
+                  <Loader2 className="size-5 animate-spin text-brand" />
+                </span>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                onChange={onPickStory}
+              />
               <button
                 type="button"
-                onClick={() => setStorySoon(true)}
+                onClick={() => fileRef.current?.click()}
+                disabled={uploading}
                 aria-label="Adicionar story"
-                className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
+                className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground disabled:opacity-60"
               >
                 <Plus className="size-3" strokeWidth={3} />
               </button>
@@ -218,43 +257,8 @@ function HomeFeed() {
 
       </main>
 
-      {storySoon && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Adicionar Story"
-          onClick={() => setStorySoon(false)}
-          className="fixed inset-0 z-[60] grid place-items-center bg-black/80 px-6 backdrop-blur-sm animate-fade-in"
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-xs rounded-3xl border border-brand/25 bg-surface p-7 text-center animate-pop-in"
-          >
-            <button
-              type="button"
-              onClick={() => setStorySoon(false)}
-              aria-label="Fechar"
-              className="absolute right-3 top-3 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <X className="size-4" />
-            </button>
-            <div className="mx-auto grid size-14 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand">
-              <Plus className="size-6" strokeWidth={2.5} />
-            </div>
-            <p className="mt-4 text-base font-bold text-foreground">Publicar um Story</p>
-            <p className="mt-1.5 text-xs text-muted-foreground">
-              Compartilhe uma conquista, nível ou treino: toque em "Compartilhar" e escolha "Postar no Story".
-            </p>
-            <button
-              type="button"
-              onClick={() => setStorySoon(false)}
-              className="mt-6 w-full rounded-2xl bg-brand py-3 text-sm font-black uppercase tracking-widest text-brand-foreground transition-opacity hover:opacity-90"
-            >
-              Ok
-            </button>
-          </div>
-        </div>
-      )}
+
+
 
       {viewing && (
         <div
