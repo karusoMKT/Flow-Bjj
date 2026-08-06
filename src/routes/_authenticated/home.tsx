@@ -43,6 +43,7 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 
 function HomeFeed() {
   const [storySoon, setStorySoon] = useState(false);
+  const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const { data: currentUserId } = useQuery({
     queryKey: ["current-user-id"],
     queryFn: async () => {
@@ -51,6 +52,31 @@ function HomeFeed() {
     },
     staleTime: 5 * 60_000,
   });
+  const { data: me } = useQuery({
+    queryKey: ["my-profile-mini", currentUserId],
+    enabled: !!currentUserId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, username, avatar_url")
+        .eq("id", currentUserId!)
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 5 * 60_000,
+  });
+  const { data: storyRows } = useQuery({
+    queryKey: ["stories"],
+    queryFn: fetchActiveStories,
+    staleTime: 60_000,
+  });
+
+  const groups = groupStories(storyRows ?? []);
+  const mine = groups.find((g) => g.userId === currentUserId) ?? null;
+  const others = groups.filter((g) => g.userId !== currentUserId);
+  const myName = me?.full_name?.split(" ")[0] ?? me?.username ?? "Você";
+  const myAvatar = mine?.avatarUrl ?? me?.avatar_url ?? avatar(myName);
+
   const { data: posts, isLoading, error, refetch } = useQuery({
     queryKey: ["feed"],
     queryFn: async () => {
@@ -65,6 +91,7 @@ function HomeFeed() {
       return data ?? [];
     },
   });
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
