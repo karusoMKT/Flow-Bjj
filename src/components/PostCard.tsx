@@ -104,6 +104,11 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
     );
   }
 
+  if (post.post_type === "social") {
+    return <SocialCard post={post} currentUserId={currentUserId} name={name} social={social} />;
+  }
+
+
 
   return (
     <li
