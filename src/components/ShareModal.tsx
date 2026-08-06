@@ -83,7 +83,7 @@ export function ShareModal({ payload, onClose }: { payload: SharePayload; onClos
         await queryClient.invalidateQueries({ queryKey: ["stories"] });
         toast.success("Story publicado! Válido por 24h 🔥");
       } else {
-        await createImagePost(userId, imageUrl, defaultCaption(payload));
+        await createImagePost(userId, imageUrl, caption.trim() || defaultCaption(payload));
         await queryClient.invalidateQueries({ queryKey: ["feed"] });
         toast.success("Post publicado no feed! 🥋");
       }
