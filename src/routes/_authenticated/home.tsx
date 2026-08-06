@@ -6,6 +6,8 @@ import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
+import { fetchActiveStories, groupStories, type StoryGroup } from "@/lib/stories";
+
 
 
 
@@ -32,14 +34,6 @@ export const Route = createFileRoute("/_authenticated/home")({
 const avatar = (name: string) =>
   `https://ui-avatars.com/api/?background=1f1f1f&color=d9ff3f&bold=true&name=${encodeURIComponent(name)}`;
 
-const STORIES = [
-  { id: "me", name: "Seu story", src: avatar("Você"), me: true },
-  { id: "joao", name: "João", src: avatar("João Santos") },
-  { id: "maria", name: "Maria", src: avatar("Maria Almeida") },
-  { id: "alliance", name: "Alliance", src: avatar("Alliance") },
-  { id: "lucas", name: "Lucas", src: avatar("Lucas") },
-];
-
 function StoryRing({ children }: { children: React.ReactNode }) {
   return (
     <span className="block rounded-full bg-gradient-to-tr from-brand via-brand/40 to-primary p-[2px]">
@@ -48,8 +42,10 @@ function StoryRing({ children }: { children: React.ReactNode }) {
   );
 }
 
+
 function HomeFeed() {
   const [storySoon, setStorySoon] = useState(false);
+  const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const { data: currentUserId } = useQuery({
     queryKey: ["current-user-id"],
     queryFn: async () => {
@@ -58,6 +54,31 @@ function HomeFeed() {
     },
     staleTime: 5 * 60_000,
   });
+  const { data: me } = useQuery({
+    queryKey: ["my-profile-mini", currentUserId],
+    enabled: !!currentUserId,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name, username, avatar_url")
+        .eq("id", currentUserId!)
+        .maybeSingle();
+      return data;
+    },
+    staleTime: 5 * 60_000,
+  });
+  const { data: storyRows } = useQuery({
+    queryKey: ["stories"],
+    queryFn: fetchActiveStories,
+    staleTime: 60_000,
+  });
+
+  const groups = groupStories(storyRows ?? []);
+  const mine = groups.find((g) => g.userId === currentUserId) ?? null;
+  const others = groups.filter((g) => g.userId !== currentUserId);
+  const myName = me?.full_name?.split(" ")[0] ?? me?.username ?? "Você";
+  const myAvatar = mine?.avatarUrl ?? me?.avatar_url ?? avatar(myName);
+
   const { data: posts, isLoading, error, refetch } = useQuery({
     queryKey: ["feed"],
     queryFn: async () => {
@@ -72,6 +93,7 @@ function HomeFeed() {
       return data ?? [];
     },
   });
+
 
   return (
     <div className="min-h-screen bg-background pb-24">
@@ -111,45 +133,49 @@ function HomeFeed() {
 
         {/* Stories */}
         <section aria-label="Stories" className="scrollbar-hide flex gap-4 overflow-x-auto px-4 py-4">
-          {STORIES.map((s) => (
-            <div key={s.id} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
-              <div className="relative">
-                {s.me ? (
-                  <span className="block rounded-full border-2 border-white/10 p-[2px]">
-                    <img
-                      src={s.src}
-                      alt={s.name}
-                      className="size-14 rounded-full object-cover"
-                      loading="lazy"
-                    />
-                  </span>
-                ) : (
+          {/* Seu story */}
+          <div className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+            <div className="relative">
+              {mine ? (
+                <button type="button" onClick={() => setViewing(mine)} aria-label="Ver seu story">
                   <StoryRing>
-                    <img
-                      src={s.src}
-                      alt={s.name}
-                      className="size-14 rounded-full object-cover"
-                      loading="lazy"
-                    />
+                    <img src={myAvatar} alt="Seu story" className="size-14 rounded-full object-cover" />
                   </StoryRing>
-                )}
-                {s.me && (
-                  <button
-                    type="button"
-                    onClick={() => setStorySoon(true)}
-                    aria-label="Adicionar story"
-                    className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
-                  >
-                    <Plus className="size-3" strokeWidth={3} />
-                  </button>
-                )}
-              </div>
-              <span className="w-full truncate text-center text-[10px] text-muted-foreground">
-                {s.name}
-              </span>
+                </button>
+              ) : (
+                <span className="block rounded-full border-2 border-white/10 p-[2px]">
+                  <img src={myAvatar} alt="Seu story" className="size-14 rounded-full object-cover" />
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setStorySoon(true)}
+                aria-label="Adicionar story"
+                className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
+              >
+                <Plus className="size-3" strokeWidth={3} />
+              </button>
+            </div>
+            <span className="w-full truncate text-center text-[10px] text-muted-foreground">Seu story</span>
+          </div>
+
+          {others.map((g) => (
+            <div key={g.userId} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+              <button type="button" onClick={() => setViewing(g)} aria-label={`Ver story de ${g.name}`}>
+                <StoryRing>
+                  <img
+                    src={g.avatarUrl ?? avatar(g.name)}
+                    alt={g.name}
+                    className="size-14 rounded-full object-cover"
+                    loading="lazy"
+                  />
+                </StoryRing>
+              </button>
+              <span className="w-full truncate text-center text-[10px] text-muted-foreground">{g.name}</span>
             </div>
           ))}
         </section>
+
 
         {/* Feed */}
         {isLoading ? (
@@ -215,7 +241,10 @@ function HomeFeed() {
             <div className="mx-auto grid size-14 place-items-center rounded-full border border-brand/40 bg-brand/10 text-brand">
               <Plus className="size-6" strokeWidth={2.5} />
             </div>
-            <p className="mt-4 text-base font-bold text-foreground">Adicionar Story (Em breve)</p>
+            <p className="mt-4 text-base font-bold text-foreground">Publicar um Story</p>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              Compartilhe uma conquista, nível ou treino: toque em "Compartilhar" e escolha "Postar no Story".
+            </p>
             <button
               type="button"
               onClick={() => setStorySoon(false)}
@@ -226,6 +255,31 @@ function HomeFeed() {
           </div>
         </div>
       )}
+
+      {viewing && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Story de ${viewing.name}`}
+          onClick={() => setViewing(null)}
+          className="fixed inset-0 z-[70] grid place-items-center bg-black/95 px-4 animate-fade-in"
+        >
+          <button
+            type="button"
+            onClick={() => setViewing(null)}
+            aria-label="Fechar"
+            className="absolute right-4 top-4 rounded-full p-2 text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <X className="size-5" />
+          </button>
+          <img
+            src={viewing.cover}
+            alt={`Story de ${viewing.name}`}
+            className="max-h-[85vh] w-auto rounded-3xl border border-white/10 object-contain"
+          />
+        </div>
+      )}
+
 
       <BottomNav />
     </div>
