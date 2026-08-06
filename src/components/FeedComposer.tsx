@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image as ImageIcon, Link2, Loader2, MapPin, X } from "lucide-react";
+import { CalendarDays, Image as ImageIcon, Link2, Loader2, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadShareImage } from "@/lib/stories";
