@@ -1,6 +1,7 @@
 import { MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
 import { PostActions } from "@/components/PostActions";
 import { ShareButton } from "@/components/ShareButton";
+import { ChampionBadge } from "@/components/ChampionBadge";
 import { socialCounts } from "@/lib/social";
 import { timeAgo, beltClass } from "@/lib/feed";
 import { parseCompetition, placementTone } from "@/lib/competition";
