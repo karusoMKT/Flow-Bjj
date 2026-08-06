@@ -95,6 +95,13 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
   const social = socialCounts(post, currentUserId);
   const champion = !!author?.is_weekly_champion;
 
+  if (post.post_type === "event") {
+    return (
+      <EventCard post={post} currentUserId={currentUserId} name={name} social={social} />
+    );
+  }
+
+
   return (
     <li
       className={`overflow-hidden rounded-2xl border bg-surface ${
