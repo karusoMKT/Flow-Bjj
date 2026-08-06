@@ -34,7 +34,6 @@ import { Route as AuthenticatedCheckinRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedChallengesRouteImport } from './routes/_authenticated/challenges'
 import { Route as AuthenticatedAnalysisRouteImport } from './routes/_authenticated/analysis'
 import { Route as AuthenticatedAchievementsRouteImport } from './routes/_authenticated/achievements'
-import { Route as AuthenticatedAccountTypeRouteImport } from './routes/_authenticated/account-type'
 import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes/_authenticated/settings_.notifications'
 import { Route as AuthenticatedPerfilEditarRouteImport } from './routes/_authenticated/perfil_.editar'
 import { Route as AuthenticatedGymGymIdRouteImport } from './routes/_authenticated/gym.$gymId'
@@ -167,12 +166,6 @@ const AuthenticatedAchievementsRoute =
     path: '/achievements',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedAccountTypeRoute =
-  AuthenticatedAccountTypeRouteImport.update({
-    id: '/account-type',
-    path: '/account-type',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedSettingsNotificationsRoute =
   AuthenticatedSettingsNotificationsRouteImport.update({
     id: '/settings_/notifications',
@@ -202,7 +195,6 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/account-type': typeof AuthenticatedAccountTypeRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
   '/analysis': typeof AuthenticatedAnalysisRoute
   '/challenges': typeof AuthenticatedChallengesRoute
@@ -233,7 +225,6 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/account-type': typeof AuthenticatedAccountTypeRoute
   '/achievements': typeof AuthenticatedAchievementsRoute
   '/analysis': typeof AuthenticatedAnalysisRoute
   '/challenges': typeof AuthenticatedChallengesRoute
@@ -266,7 +257,6 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/onboarding': typeof OnboardingRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/_authenticated/account-type': typeof AuthenticatedAccountTypeRoute
   '/_authenticated/achievements': typeof AuthenticatedAchievementsRoute
   '/_authenticated/analysis': typeof AuthenticatedAnalysisRoute
   '/_authenticated/challenges': typeof AuthenticatedChallengesRoute
@@ -299,7 +289,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/sitemap.xml'
-    | '/account-type'
     | '/achievements'
     | '/analysis'
     | '/challenges'
@@ -330,7 +319,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/sitemap.xml'
-    | '/account-type'
     | '/achievements'
     | '/analysis'
     | '/challenges'
@@ -362,7 +350,6 @@ export interface FileRouteTypes {
     | '/login'
     | '/onboarding'
     | '/sitemap.xml'
-    | '/_authenticated/account-type'
     | '/_authenticated/achievements'
     | '/_authenticated/analysis'
     | '/_authenticated/challenges'
@@ -574,13 +561,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAchievementsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/account-type': {
-      id: '/_authenticated/account-type'
-      path: '/account-type'
-      fullPath: '/account-type'
-      preLoaderRoute: typeof AuthenticatedAccountTypeRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/settings_/notifications': {
       id: '/_authenticated/settings_/notifications'
       path: '/settings/notifications'
@@ -613,7 +593,6 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedAccountTypeRoute: typeof AuthenticatedAccountTypeRoute
   AuthenticatedAchievementsRoute: typeof AuthenticatedAchievementsRoute
   AuthenticatedAnalysisRoute: typeof AuthenticatedAnalysisRoute
   AuthenticatedChallengesRoute: typeof AuthenticatedChallengesRoute
@@ -640,7 +619,6 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedAccountTypeRoute: AuthenticatedAccountTypeRoute,
   AuthenticatedAchievementsRoute: AuthenticatedAchievementsRoute,
   AuthenticatedAnalysisRoute: AuthenticatedAnalysisRoute,
   AuthenticatedChallengesRoute: AuthenticatedChallengesRoute,

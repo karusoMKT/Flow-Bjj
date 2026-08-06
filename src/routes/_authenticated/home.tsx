@@ -6,8 +6,6 @@ import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
-import { canPublishEvents } from "@/lib/account";
-import { useAccountType } from "@/hooks/useAccountType";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
@@ -58,7 +56,6 @@ function HomeFeed() {
   
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const [uploading, setUploading] = useState(false);
-  const { data: accountType } = useAccountType();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
@@ -230,24 +227,22 @@ function HomeFeed() {
           ))}
         </section>
 
-        {canPublishEvents(accountType) && (
-          <div className="px-4 pb-2">
-            <Link
-              to="/event"
-              className="flex items-center gap-3 rounded-2xl border border-[oklch(0.7_0.17_255)]/40 bg-[oklch(0.7_0.17_255)]/10 px-4 py-3 transition-colors hover:bg-[oklch(0.7_0.17_255)]/15"
-            >
-              <span className="grid size-9 place-items-center rounded-xl bg-[oklch(0.7_0.17_255)]/20 text-[oklch(0.82_0.13_255)]">
-                <CalendarPlus className="size-5" />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold text-foreground">Criar Evento/Aviso</span>
-                <span className="block text-[11px] text-muted-foreground">
-                  Seminários, aulas especiais e recados para a equipe
-                </span>
-              </span>
-            </Link>
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-2 px-4 pb-2">
+          <Link
+            to="/create"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-white/8 bg-surface px-3 py-3 text-sm font-bold text-foreground transition-colors hover:border-brand/40"
+          >
+            <Plus className="size-4 text-brand" strokeWidth={3} />
+            Check-in
+          </Link>
+          <Link
+            to="/event"
+            className="flex items-center justify-center gap-2 rounded-2xl border border-brand/40 bg-brand/10 px-3 py-3 text-sm font-bold text-foreground transition-colors hover:bg-brand/15"
+          >
+            <CalendarPlus className="size-4 text-brand" />
+            Criar evento
+          </Link>
+        </div>
 
 
 

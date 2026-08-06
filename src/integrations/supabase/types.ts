@@ -53,6 +53,42 @@ export type Database = {
           },
         ]
       }
+      event_interests: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_interests_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_interests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       follows: {
         Row: {
           created_at: string
@@ -220,7 +256,6 @@ export type Database = {
       }
       profiles: {
         Row: {
-          account_type: Database["public"]["Enums"]["account_type"]
           avatar_url: string | null
           belt: string | null
           city: string | null
@@ -241,7 +276,6 @@ export type Database = {
           xp: number
         }
         Insert: {
-          account_type?: Database["public"]["Enums"]["account_type"]
           avatar_url?: string | null
           belt?: string | null
           city?: string | null
@@ -262,7 +296,6 @@ export type Database = {
           xp?: number
         }
         Update: {
-          account_type?: Database["public"]["Enums"]["account_type"]
           avatar_url?: string | null
           belt?: string | null
           city?: string | null
@@ -468,7 +501,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      account_type: "student" | "instructor" | "gym"
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -595,8 +628,6 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {
-      account_type: ["student", "instructor", "gym"],
-    },
+    Enums: {},
   },
 } as const
