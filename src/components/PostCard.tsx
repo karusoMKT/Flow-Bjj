@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
+import { CalendarDays, Link2 as LinkIcon, MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
 import { PostActions } from "@/components/PostActions";
 import { EventInterest } from "@/components/EventInterest";
 import { ShareButton } from "@/components/ShareButton";
@@ -316,6 +316,74 @@ function EventCard({
         initialLikeCount={social.likeCount || post.likes_count || 0}
         initialCommentCount={social.commentCount}
         renderAvatar={(src, name) => <AvatarBubble src={src} name={name} className="size-7" />}
+      />
+    </li>
+  );
+}
+
+function SocialCard({
+  post,
+  currentUserId,
+  name,
+  social,
+}: {
+  post: FeedPost;
+  currentUserId?: string | null;
+  name: string;
+  social: { liked: boolean; likeCount: number; commentCount: number };
+}) {
+  const author = post.profiles;
+  const champion = !!author?.is_weekly_champion;
+
+  return (
+    <li className="overflow-hidden rounded-2xl border border-white/5 bg-surface">
+      <div className="flex items-start gap-3 p-3.5">
+        <AvatarBubble src={author?.avatar_url} name={name} />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-semibold">{name}</p>
+            <ChampionBadge active={champion} />
+            {author?.belt && (
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${beltClass(author.belt)}`}>
+                {author.belt}
+              </span>
+            )}
+          </div>
+          {post.content && (
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-snug text-foreground">{post.content}</p>
+          )}
+          {post.location && (
+            <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="size-3.5 shrink-0 text-brand" />
+              <span className="truncate">{post.location}</span>
+            </p>
+          )}
+          {post.link && (
+            <a
+              href={post.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 flex items-center gap-2 rounded-xl border border-brand/30 bg-brand/[0.07] px-3 py-2 text-xs font-semibold text-brand transition-colors hover:bg-brand/15"
+            >
+              <LinkIcon className="size-3.5 shrink-0" />
+              <span className="truncate">{post.link}</span>
+            </a>
+          )}
+        </div>
+        <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+      </div>
+
+      {post.image_url && (
+        <img src={post.image_url} alt={`Publicação de ${name}`} loading="lazy" className="w-full object-cover" />
+      )}
+
+      <PostActions
+        postId={post.id}
+        userId={currentUserId}
+        initialLiked={social.liked}
+        initialLikeCount={social.likeCount || post.likes_count || 0}
+        initialCommentCount={social.commentCount}
+        renderAvatar={(src, n) => <AvatarBubble src={src} name={n} className="size-7" />}
       />
     </li>
   );
