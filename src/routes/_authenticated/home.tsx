@@ -7,6 +7,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
+import { ChampionBadge } from "@/components/ChampionBadge";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
 
 
@@ -35,9 +36,15 @@ export const Route = createFileRoute("/_authenticated/home")({
 const avatar = (name: string) =>
   `https://ui-avatars.com/api/?background=1f1f1f&color=d9ff3f&bold=true&name=${encodeURIComponent(name)}`;
 
-function StoryRing({ children }: { children: React.ReactNode }) {
+function StoryRing({ children, champion }: { children: React.ReactNode; champion?: boolean }) {
   return (
-    <span className="block rounded-full bg-gradient-to-tr from-brand via-brand/40 to-primary p-[2px]">
+    <span
+      className={`block rounded-full p-[2px] ${
+        champion
+          ? "bg-gradient-to-tr from-[oklch(0.85_0.16_92)] via-[oklch(0.92_0.12_95)] to-[oklch(0.7_0.14_60)]"
+          : "bg-gradient-to-tr from-brand via-brand/40 to-primary"
+      }`}
+    >
       <span className="block rounded-full border-2 border-background">{children}</span>
     </span>
   );
@@ -201,7 +208,7 @@ function HomeFeed() {
           {others.map((g) => (
             <div key={g.userId} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
               <button type="button" onClick={() => setViewing(g)} aria-label={`Ver story de ${g.name}`}>
-                <StoryRing>
+                <StoryRing champion={g.isChampion}>
                   <img
                     src={g.avatarUrl ?? avatar(g.name)}
                     alt={g.name}
@@ -210,7 +217,10 @@ function HomeFeed() {
                   />
                 </StoryRing>
               </button>
-              <span className="w-full truncate text-center text-[10px] text-muted-foreground">{g.name}</span>
+              <span className="flex w-full items-center justify-center gap-0.5 text-[10px] text-muted-foreground">
+                <span className="truncate">{g.name}</span>
+                <ChampionBadge active={g.isChampion} className="size-3" />
+              </span>
             </div>
           ))}
         </section>
@@ -276,6 +286,17 @@ function HomeFeed() {
           >
             <X className="size-5" />
           </button>
+          <div className="absolute left-4 top-4 flex items-center gap-2">
+            <img
+              src={viewing.avatarUrl ?? avatar(viewing.name)}
+              alt=""
+              className="size-8 rounded-full object-cover"
+            />
+            <span className="flex items-center gap-1 text-sm font-semibold text-foreground">
+              {viewing.name}
+              <ChampionBadge active={viewing.isChampion} className="size-4" />
+            </span>
+          </div>
           <img
             src={viewing.cover}
             alt={`Story de ${viewing.name}`}

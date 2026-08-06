@@ -217,6 +217,7 @@ export type Database = {
           id: string
           is_competitor: boolean
           is_recovering: boolean | null
+          is_weekly_champion: boolean
           level: number
           professor: string | null
           stripes: number
@@ -236,6 +237,7 @@ export type Database = {
           id: string
           is_competitor?: boolean
           is_recovering?: boolean | null
+          is_weekly_champion?: boolean
           level?: number
           professor?: string | null
           stripes?: number
@@ -255,6 +257,7 @@ export type Database = {
           id?: string
           is_competitor?: boolean
           is_recovering?: boolean | null
+          is_weekly_champion?: boolean
           level?: number
           professor?: string | null
           stripes?: number

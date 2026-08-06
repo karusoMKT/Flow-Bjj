@@ -13,6 +13,7 @@ export type RankingRow = {
   team: string | null;
   academy: string | null;
   isCompetitor: boolean;
+  isChampion: boolean;
   total: number;
   minutes: number;
   xp: number;
@@ -79,7 +80,7 @@ export async function fetchRanking(period: RankingPeriod): Promise<RankingRow[]>
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, belt, stripes, team, home_academy, is_competitor");
+    .select("id, username, full_name, avatar_url, belt, stripes, team, home_academy, is_competitor, is_weekly_champion");
   if (profilesError) throw profilesError;
 
   return (profiles ?? [])
@@ -95,6 +96,7 @@ export async function fetchRanking(period: RankingPeriod): Promise<RankingRow[]>
         team: p.team,
         academy: p.home_academy ?? p.team ?? null,
         isCompetitor: p.is_competitor,
+        isChampion: !!p.is_weekly_champion,
         total: s.total,
         minutes: s.minutes,
         xp: s.xp,
