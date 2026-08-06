@@ -34,6 +34,9 @@ export function FeedComposer({
   const [showLink, setShowLink] = useState(false);
   const [link, setLink] = useState("");
   const [saving, setSaving] = useState(false);
+  const [eventMode, setEventMode] = useState(false);
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDate, setEventDate] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const placeholder = useMemo(
@@ -41,8 +44,9 @@ export function FeedComposer({
     [],
   );
 
-  const expanded = focused || !!text || !!imagePreview || showLocation || showLink;
-  const canPost = !!text.trim() || !!imageFile;
+  const expanded = focused || !!text || !!imagePreview || showLocation || showLink || eventMode;
+  const canPost = eventMode ? !!eventTitle.trim() : !!text.trim() || !!imageFile;
+
 
   function pickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
