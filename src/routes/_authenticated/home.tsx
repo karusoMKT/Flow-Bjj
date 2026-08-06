@@ -1,14 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Bell, Loader2, MessageSquare, Plus, Sparkles, X } from "lucide-react";
+import { Bell, CalendarPlus, Loader2, MessageSquare, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
+import { canPublishEvents } from "@/lib/account";
+import { useAccountType } from "@/hooks/useAccountType";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
+
 
 
 
@@ -55,7 +58,9 @@ function HomeFeed() {
   
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const [uploading, setUploading] = useState(false);
+  const { data: accountType } = useAccountType();
   const fileRef = useRef<HTMLInputElement>(null);
+
   const queryClient = useQueryClient();
 
   async function onPickStory(e: React.ChangeEvent<HTMLInputElement>) {
@@ -224,6 +229,27 @@ function HomeFeed() {
             </div>
           ))}
         </section>
+
+        {canPublishEvents(accountType) && (
+          <div className="px-4 pb-2">
+            <Link
+              to="/event"
+              className="flex items-center gap-3 rounded-2xl border border-[oklch(0.7_0.17_255)]/40 bg-[oklch(0.7_0.17_255)]/10 px-4 py-3 transition-colors hover:bg-[oklch(0.7_0.17_255)]/15"
+            >
+              <span className="grid size-9 place-items-center rounded-xl bg-[oklch(0.7_0.17_255)]/20 text-[oklch(0.82_0.13_255)]">
+                <CalendarPlus className="size-5" />
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="block text-sm font-bold text-foreground">Criar Evento/Aviso</span>
+                <span className="block text-[11px] text-muted-foreground">
+                  Seminários, aulas especiais e recados para a equipe
+                </span>
+              </span>
+            </Link>
+          </div>
+        )}
+
+
 
 
         {/* Feed */}
