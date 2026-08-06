@@ -162,9 +162,13 @@ export type Database = {
         Row: {
           content: string | null
           created_at: string
+          event_date: string | null
+          event_location: string | null
+          event_title: string | null
           id: string
           image_url: string | null
           likes_count: number
+          post_type: string
           updated_at: string
           user_id: string
           workout_id: string | null
@@ -172,9 +176,13 @@ export type Database = {
         Insert: {
           content?: string | null
           created_at?: string
+          event_date?: string | null
+          event_location?: string | null
+          event_title?: string | null
           id?: string
           image_url?: string | null
           likes_count?: number
+          post_type?: string
           updated_at?: string
           user_id: string
           workout_id?: string | null
@@ -182,9 +190,13 @@ export type Database = {
         Update: {
           content?: string | null
           created_at?: string
+          event_date?: string | null
+          event_location?: string | null
+          event_title?: string | null
           id?: string
           image_url?: string | null
           likes_count?: number
+          post_type?: string
           updated_at?: string
           user_id?: string
           workout_id?: string | null
@@ -208,6 +220,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: Database["public"]["Enums"]["account_type"]
           avatar_url: string | null
           belt: string | null
           city: string | null
@@ -228,6 +241,7 @@ export type Database = {
           xp: number
         }
         Insert: {
+          account_type?: Database["public"]["Enums"]["account_type"]
           avatar_url?: string | null
           belt?: string | null
           city?: string | null
@@ -248,6 +262,7 @@ export type Database = {
           xp?: number
         }
         Update: {
+          account_type?: Database["public"]["Enums"]["account_type"]
           avatar_url?: string | null
           belt?: string | null
           city?: string | null
@@ -453,7 +468,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      account_type: "student" | "instructor" | "gym"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -580,6 +595,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      account_type: ["student", "instructor", "gym"],
+    },
   },
 } as const
