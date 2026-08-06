@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
 import { ChampionBadge } from "@/components/ChampionBadge";
+import { FeedComposer } from "@/components/FeedComposer";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
 
 
