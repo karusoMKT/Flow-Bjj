@@ -32,14 +32,6 @@ export const Route = createFileRoute("/_authenticated/home")({
 const avatar = (name: string) =>
   `https://ui-avatars.com/api/?background=1f1f1f&color=d9ff3f&bold=true&name=${encodeURIComponent(name)}`;
 
-const STORIES = [
-  { id: "me", name: "Seu story", src: avatar("Você"), me: true },
-  { id: "joao", name: "João", src: avatar("João Santos") },
-  { id: "maria", name: "Maria", src: avatar("Maria Almeida") },
-  { id: "alliance", name: "Alliance", src: avatar("Alliance") },
-  { id: "lucas", name: "Lucas", src: avatar("Lucas") },
-];
-
 function StoryRing({ children }: { children: React.ReactNode }) {
   return (
     <span className="block rounded-full bg-gradient-to-tr from-brand via-brand/40 to-primary p-[2px]">
@@ -47,6 +39,7 @@ function StoryRing({ children }: { children: React.ReactNode }) {
     </span>
   );
 }
+
 
 function HomeFeed() {
   const [storySoon, setStorySoon] = useState(false);
