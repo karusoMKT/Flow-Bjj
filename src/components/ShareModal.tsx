@@ -22,6 +22,8 @@ export function ShareModal({ payload, onClose }: { payload: SharePayload; onClos
   const cardRef = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState<Action>(null);
   const [ready, setReady] = useState(false);
+  const [step, setStep] = useState<"actions" | "caption">("actions");
+  const [caption, setCaption] = useState(() => defaultCaption(payload));
   const queryClient = useQueryClient();
 
   useEffect(() => {
