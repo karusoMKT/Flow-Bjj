@@ -133,45 +133,49 @@ function HomeFeed() {
 
         {/* Stories */}
         <section aria-label="Stories" className="scrollbar-hide flex gap-4 overflow-x-auto px-4 py-4">
-          {STORIES.map((s) => (
-            <div key={s.id} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
-              <div className="relative">
-                {s.me ? (
-                  <span className="block rounded-full border-2 border-white/10 p-[2px]">
-                    <img
-                      src={s.src}
-                      alt={s.name}
-                      className="size-14 rounded-full object-cover"
-                      loading="lazy"
-                    />
-                  </span>
-                ) : (
+          {/* Seu story */}
+          <div className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+            <div className="relative">
+              {mine ? (
+                <button type="button" onClick={() => setViewing(mine)} aria-label="Ver seu story">
                   <StoryRing>
-                    <img
-                      src={s.src}
-                      alt={s.name}
-                      className="size-14 rounded-full object-cover"
-                      loading="lazy"
-                    />
+                    <img src={myAvatar} alt="Seu story" className="size-14 rounded-full object-cover" />
                   </StoryRing>
-                )}
-                {s.me && (
-                  <button
-                    type="button"
-                    onClick={() => setStorySoon(true)}
-                    aria-label="Adicionar story"
-                    className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
-                  >
-                    <Plus className="size-3" strokeWidth={3} />
-                  </button>
-                )}
-              </div>
-              <span className="w-full truncate text-center text-[10px] text-muted-foreground">
-                {s.name}
-              </span>
+                </button>
+              ) : (
+                <span className="block rounded-full border-2 border-white/10 p-[2px]">
+                  <img src={myAvatar} alt="Seu story" className="size-14 rounded-full object-cover" />
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setStorySoon(true)}
+                aria-label="Adicionar story"
+                className="absolute -bottom-0.5 -right-0.5 grid size-5 place-items-center rounded-full border-2 border-background bg-brand text-brand-foreground"
+              >
+                <Plus className="size-3" strokeWidth={3} />
+              </button>
+            </div>
+            <span className="w-full truncate text-center text-[10px] text-muted-foreground">Seu story</span>
+          </div>
+
+          {others.map((g) => (
+            <div key={g.userId} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
+              <button type="button" onClick={() => setViewing(g)} aria-label={`Ver story de ${g.name}`}>
+                <StoryRing>
+                  <img
+                    src={g.avatarUrl ?? avatar(g.name)}
+                    alt={g.name}
+                    className="size-14 rounded-full object-cover"
+                    loading="lazy"
+                  />
+                </StoryRing>
+              </button>
+              <span className="w-full truncate text-center text-[10px] text-muted-foreground">{g.name}</span>
             </div>
           ))}
         </section>
+
 
         {/* Feed */}
         {isLoading ? (
