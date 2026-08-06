@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Crown, Medal, Trophy } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
+import { ChampionBadge } from "@/components/ChampionBadge";
 import {
   beltColor,
   fetchRanking,
@@ -210,7 +211,10 @@ function Ranking() {
                         {place}
                       </span>
                     </div>
-                    <p className="mt-2 max-w-full truncate text-center text-xs font-medium text-foreground">{a.name}</p>
+                    <p className="mt-2 flex max-w-full items-center justify-center gap-1 text-xs font-medium text-foreground">
+                      <span className="truncate">{a.name}</span>
+                      <ChampionBadge active={a.isChampion} className="size-3.5" />
+                    </p>
                     <BeltDot belt={a.belt} />
                     <span
                       className={`rounded-full border border-current/40 bg-white/[0.06] px-2.5 py-0.5 text-xs font-bold ${style.text}`}
@@ -239,7 +243,10 @@ function Ranking() {
                     className="size-10 rounded-full object-cover"
                   />
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">{a.name}</p>
+                    <p className="flex items-center gap-1 text-sm font-medium text-foreground">
+                      <span className="truncate">{a.name}</span>
+                      <ChampionBadge active={a.isChampion} className="size-3.5" />
+                    </p>
                     <div className="flex items-center gap-2 truncate">
                       <BeltDot belt={a.belt} />
                       {a.team && <span className="truncate text-xs text-muted-foreground">· {a.team}</span>}

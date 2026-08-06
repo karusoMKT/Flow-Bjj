@@ -9,7 +9,12 @@ export type StoryRow = {
   image_url: string;
   created_at: string;
   expires_at: string;
-  profiles?: { username: string | null; full_name: string | null; avatar_url: string | null } | null;
+  profiles?: {
+    username: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+    is_weekly_champion?: boolean | null;
+  } | null;
 };
 
 /** Envia a imagem para o bucket privado e devolve uma URL assinada de longa duração. */
@@ -48,7 +53,7 @@ export async function createImagePost(userId: string, imageUrl: string, content:
 export async function fetchActiveStories(): Promise<StoryRow[]> {
   const { data, error } = await supabase
     .from("stories")
-    .select("id, user_id, image_url, created_at, expires_at, profiles:user_id (username, full_name, avatar_url)")
+    .select("id, user_id, image_url, created_at, expires_at, profiles:user_id (username, full_name, avatar_url, is_weekly_champion)")
     .gt("expires_at", new Date().toISOString())
     .order("created_at", { ascending: false })
     .limit(100);
@@ -62,6 +67,7 @@ export type StoryGroup = {
   avatarUrl: string | null;
   cover: string;
   count: number;
+  isChampion: boolean;
 };
 
 /** Agrupa stories por usuário, mantendo o mais recente como capa. */
@@ -79,6 +85,7 @@ export function groupStories(rows: StoryRow[]): StoryGroup[] {
       avatarUrl: row.profiles?.avatar_url ?? null,
       cover: row.image_url,
       count: 1,
+      isChampion: !!row.profiles?.is_weekly_champion,
     });
   }
   return [...map.values()];
