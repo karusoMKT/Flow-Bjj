@@ -88,18 +88,32 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
   const workout = post.workouts;
   const comp = parseCompetition(post.content);
   const social = socialCounts(post, currentUserId);
+  const champion = !!author?.is_weekly_champion;
 
   return (
     <li
       className={`overflow-hidden rounded-2xl border bg-surface ${
-        comp ? "border-[oklch(0.85_0.16_92)]/35 shadow-[0_0_0_1px_oklch(0.85_0.16_92/0.08)]" : "border-white/5"
+        champion
+          ? "border-[oklch(0.85_0.16_92)]/50 shadow-[0_0_0_1px_oklch(0.85_0.16_92/0.12),0_0_24px_-8px_oklch(0.85_0.16_92/0.45)]"
+          : comp
+            ? "border-[oklch(0.85_0.16_92)]/35 shadow-[0_0_0_1px_oklch(0.85_0.16_92/0.08)]"
+            : "border-white/5"
       }`}
     >
       <div className="flex items-start gap-3 p-3.5">
-        <AvatarBubble src={author?.avatar_url} name={name} />
+        {champion ? (
+          <span className="shrink-0 rounded-full bg-gradient-to-tr from-[oklch(0.85_0.16_92)] via-[oklch(0.92_0.12_95)] to-[oklch(0.7_0.14_60)] p-[2px]">
+            <span className="block rounded-full border-2 border-surface">
+              <AvatarBubble src={author?.avatar_url} name={name} />
+            </span>
+          </span>
+        ) : (
+          <AvatarBubble src={author?.avatar_url} name={name} />
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <p className="truncate text-sm font-semibold">{name}</p>
+            <ChampionBadge active={champion} />
             {comp && <Medal className="size-4 shrink-0 text-[oklch(0.85_0.16_92)]" />}
             {author?.belt && (
               <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${beltClass(author.belt)}`}>
