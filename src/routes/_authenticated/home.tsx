@@ -45,7 +45,7 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 
 
 function HomeFeed() {
-  const [storySoon, setStorySoon] = useState(false);
+  
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
