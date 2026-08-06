@@ -18,12 +18,12 @@ export const Route = createFileRoute("/_authenticated/ranking")({
       { title: "Ranking | Flow Jiu-Jitsu" },
       {
         name: "description",
-        content: "Veja quem mais treinou no mês: ranking de treinos de Jiu-Jitsu geral e entre competidores.",
+        content: "Ranking semanal da sua academia: veja quem mais somou XP no tatame nesta semana e no mês passado.",
       },
       { property: "og:title", content: "Ranking | Flow Jiu-Jitsu" },
       {
         property: "og:description",
-        content: "Veja quem mais treinou no mês: ranking de treinos de Jiu-Jitsu geral e entre competidores.",
+        content: "Ranking semanal da sua academia: veja quem mais somou XP no tatame nesta semana e no mês passado.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
