@@ -56,7 +56,6 @@ function HomeFeed() {
   
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const [uploading, setUploading] = useState(false);
-  const { data: accountType } = useAccountType();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const queryClient = useQueryClient();
