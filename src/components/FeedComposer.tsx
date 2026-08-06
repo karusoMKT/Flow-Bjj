@@ -118,6 +118,36 @@ export function FeedComposer({
         expanded ? "border-brand/50 shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-brand)_10%,transparent)]" : "border-white/8"
       }`}
     >
+      {eventMode && (
+        <div className="flex flex-col gap-2 border-b border-white/5 px-3 pt-3 pb-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-widest text-brand">Novo evento</span>
+            <button
+              type="button"
+              onClick={() => setEventMode(false)}
+              aria-label="Cancelar evento"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <input
+            value={eventTitle}
+            onChange={(e) => setEventTitle(e.target.value)}
+            placeholder="Título do evento (obrigatório)"
+            aria-label="Título do evento"
+            className="h-11 w-full rounded-xl border border-white/8 bg-surface-2 px-4 text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground focus:border-brand/60"
+          />
+          <input
+            type="datetime-local"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            aria-label="Data e hora do evento"
+            className="h-11 w-full rounded-xl border border-white/8 bg-surface-2 px-4 text-sm text-foreground outline-none focus:border-brand/60"
+          />
+        </div>
+      )}
+
       <div className="flex items-start gap-3 p-3">
         <AvatarBubble src={avatarUrl} name={name} className="size-9" />
         <textarea
@@ -125,11 +155,12 @@ export function FeedComposer({
           onChange={(e) => setText(e.target.value)}
           onFocus={() => setFocused(true)}
           rows={expanded ? 3 : 1}
-          placeholder={placeholder}
+          placeholder={eventMode ? "Conte como vai ser o evento..." : placeholder}
           aria-label="Escreva uma publicação"
           className="mt-0.5 w-full flex-1 resize-none rounded-2xl border border-white/8 bg-surface-2 px-4 py-2.5 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-brand/60"
         />
       </div>
+
 
       {imagePreview && (
         <div className="relative mx-3 mb-3 overflow-hidden rounded-xl border border-white/8">
