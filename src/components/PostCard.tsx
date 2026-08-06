@@ -27,7 +27,12 @@ export type FeedPost = {
   } | null;
   likes?: { user_id: string }[] | null;
   comments?: { id: string }[] | null;
+  post_type?: string | null;
+  event_title?: string | null;
+  event_date?: string | null;
+  event_location?: string | null;
 };
+
 
 export function initialsOf(name: string): string {
   return name
