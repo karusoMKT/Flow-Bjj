@@ -201,7 +201,7 @@ function HomeFeed() {
           {others.map((g) => (
             <div key={g.userId} className="flex w-16 shrink-0 flex-col items-center gap-1.5">
               <button type="button" onClick={() => setViewing(g)} aria-label={`Ver story de ${g.name}`}>
-                <StoryRing>
+                <StoryRing champion={g.isChampion}>
                   <img
                     src={g.avatarUrl ?? avatar(g.name)}
                     alt={g.name}
@@ -210,7 +210,10 @@ function HomeFeed() {
                   />
                 </StoryRing>
               </button>
-              <span className="w-full truncate text-center text-[10px] text-muted-foreground">{g.name}</span>
+              <span className="flex w-full items-center justify-center gap-0.5 text-[10px] text-muted-foreground">
+                <span className="truncate">{g.name}</span>
+                <ChampionBadge active={g.isChampion} className="size-3" />
+              </span>
             </div>
           ))}
         </section>
