@@ -6,8 +6,6 @@ import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
-import { canPublishEvents } from "@/lib/account";
-import { useAccountType } from "@/hooks/useAccountType";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";

@@ -13,8 +13,6 @@ import {
   Info,
   LogOut,
   ArrowLeft,
-  IdCard,
-
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { BottomNav } from "@/components/BottomNav";
@@ -30,7 +28,7 @@ const MENU: { items: MenuItem[] }[] = [
   {
     items: [
       { icon: UserRound, label: "Editar perfil", to: "/perfil/editar" },
-      { icon: IdCard, label: "Tipo de conta", to: "/account-type" },
+
 
       { icon: Crown, label: "Flow Premium", to: "/premium", value: "Upgrade" },
       { icon: Bell, label: "Notificações", to: "/settings/notifications" },

@@ -113,7 +113,7 @@ function SignupPage() {
       }
       const { data } = await supabase.auth.getSession();
       if (data.session) {
-        navigate({ to: "/account-type", search: { onboarding: true }, replace: true });
+        navigate({ to: "/home", replace: true });
       } else {
         toast.success("Conta criada! Confirme seu e-mail para entrar.");
         navigate({ to: "/login", replace: true });
