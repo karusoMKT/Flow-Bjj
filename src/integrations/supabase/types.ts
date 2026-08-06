@@ -204,6 +204,8 @@ export type Database = {
           id: string
           image_url: string | null
           likes_count: number
+          link: string | null
+          location: string | null
           post_type: string
           updated_at: string
           user_id: string
@@ -218,6 +220,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           likes_count?: number
+          link?: string | null
+          location?: string | null
           post_type?: string
           updated_at?: string
           user_id: string
@@ -232,6 +236,8 @@ export type Database = {
           id?: string
           image_url?: string | null
           likes_count?: number
+          link?: string | null
+          location?: string | null
           post_type?: string
           updated_at?: string
           user_id?: string
