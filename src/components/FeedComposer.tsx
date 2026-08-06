@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { Image as ImageIcon, Link2, Loader2, MapPin, X } from "lucide-react";
+import { CalendarDays, Image as ImageIcon, Link2, Loader2, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadShareImage } from "@/lib/stories";
@@ -34,6 +34,9 @@ export function FeedComposer({
   const [showLink, setShowLink] = useState(false);
   const [link, setLink] = useState("");
   const [saving, setSaving] = useState(false);
+  const [eventMode, setEventMode] = useState(false);
+  const [eventTitle, setEventTitle] = useState("");
+  const [eventDate, setEventDate] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const placeholder = useMemo(
@@ -41,8 +44,9 @@ export function FeedComposer({
     [],
   );
 
-  const expanded = focused || !!text || !!imagePreview || showLocation || showLink;
-  const canPost = !!text.trim() || !!imageFile;
+  const expanded = focused || !!text || !!imagePreview || showLocation || showLink || eventMode;
+  const canPost = eventMode ? !!eventTitle.trim() : !!text.trim() || !!imageFile;
+
 
   function pickImage(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -61,6 +65,9 @@ export function FeedComposer({
     setLink("");
     setShowLink(false);
     setFocused(false);
+    setEventMode(false);
+    setEventTitle("");
+    setEventDate("");
   }
 
   async function publish() {
@@ -73,24 +80,36 @@ export function FeedComposer({
     try {
       let imageUrl: string | null = null;
       if (imageFile) imageUrl = await uploadShareImage(imageFile, userId);
-      const { error } = await supabase.from("posts").insert({
-        user_id: userId,
-        post_type: "social",
-        content: text.trim() || null,
-        image_url: imageUrl,
-        location: location.trim() || null,
-        link: link.trim() || null,
-      });
+      const payload = eventMode
+        ? {
+            user_id: userId,
+            post_type: "event",
+            content: text.trim() || null,
+            image_url: imageUrl,
+            event_title: eventTitle.trim(),
+            event_date: eventDate ? new Date(eventDate).toISOString() : null,
+            event_location: location.trim() || null,
+          }
+        : {
+            user_id: userId,
+            post_type: "social",
+            content: text.trim() || null,
+            image_url: imageUrl,
+            location: location.trim() || null,
+            link: link.trim() || null,
+          };
+      const { error } = await supabase.from("posts").insert(payload as never);
       if (error) throw error;
       reset();
       await qc.invalidateQueries({ queryKey: ["feed"] });
-      toast.success("Publicado no feed! 🔥");
+      toast.success(eventMode ? "Evento publicado! 🥋" : "Publicado no feed! 🔥");
     } catch (err) {
       toast.error((err as Error)?.message ?? "Não foi possível publicar");
     } finally {
       setSaving(false);
     }
   }
+
 
   return (
     <section
@@ -99,6 +118,36 @@ export function FeedComposer({
         expanded ? "border-brand/50 shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-brand)_10%,transparent)]" : "border-white/8"
       }`}
     >
+      {eventMode && (
+        <div className="flex flex-col gap-2 border-b border-white/5 px-3 pt-3 pb-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-black uppercase tracking-widest text-brand">Novo evento</span>
+            <button
+              type="button"
+              onClick={() => setEventMode(false)}
+              aria-label="Cancelar evento"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+          <input
+            value={eventTitle}
+            onChange={(e) => setEventTitle(e.target.value)}
+            placeholder="Título do evento (obrigatório)"
+            aria-label="Título do evento"
+            className="h-11 w-full rounded-xl border border-white/8 bg-surface-2 px-4 text-sm font-semibold text-foreground outline-none placeholder:text-muted-foreground focus:border-brand/60"
+          />
+          <input
+            type="datetime-local"
+            value={eventDate}
+            onChange={(e) => setEventDate(e.target.value)}
+            aria-label="Data e hora do evento"
+            className="h-11 w-full rounded-xl border border-white/8 bg-surface-2 px-4 text-sm text-foreground outline-none focus:border-brand/60"
+          />
+        </div>
+      )}
+
       <div className="flex items-start gap-3 p-3">
         <AvatarBubble src={avatarUrl} name={name} className="size-9" />
         <textarea
@@ -106,11 +155,12 @@ export function FeedComposer({
           onChange={(e) => setText(e.target.value)}
           onFocus={() => setFocused(true)}
           rows={expanded ? 3 : 1}
-          placeholder={placeholder}
+          placeholder={eventMode ? "Conte como vai ser o evento..." : placeholder}
           aria-label="Escreva uma publicação"
           className="mt-0.5 w-full flex-1 resize-none rounded-2xl border border-white/8 bg-surface-2 px-4 py-2.5 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-brand/60"
         />
       </div>
+
 
       {imagePreview && (
         <div className="relative mx-3 mb-3 overflow-hidden rounded-xl border border-white/8">
@@ -134,13 +184,13 @@ export function FeedComposer({
           <LocationAutocomplete
             value={location}
             onChange={setLocation}
-            placeholder="Onde foi isso?"
-            ariaLabel="Localização da publicação"
+            placeholder={eventMode ? "Ginásio, academia, cidade..." : "Onde foi isso?"}
+            ariaLabel={eventMode ? "Local do evento" : "Localização da publicação"}
           />
         </div>
       )}
 
-      {showLink && (
+      {showLink && !eventMode && (
         <div className="px-3 pb-3">
           <input
             value={link}
@@ -155,9 +205,28 @@ export function FeedComposer({
 
       <div className="flex items-center gap-1 border-t border-white/5 px-2 py-2">
         <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={pickImage} />
-        <ComposerAction icon={ImageIcon} label="Imagem/Vídeo" onClick={() => fileRef.current?.click()} active={!!imagePreview} />
-        <ComposerAction icon={MapPin} label="Localização" onClick={() => setShowLocation((v) => !v)} active={showLocation} />
-        <ComposerAction icon={Link2} label="Link" onClick={() => setShowLink((v) => !v)} active={showLink} />
+        <ComposerAction
+          icon={ImageIcon}
+          label={eventMode ? "Capa" : "Imagem/Vídeo"}
+          onClick={() => fileRef.current?.click()}
+          active={!!imagePreview}
+        />
+        <ComposerAction icon={MapPin} label="Local" onClick={() => setShowLocation((v) => !v)} active={showLocation} />
+        {!eventMode && (
+          <ComposerAction icon={Link2} label="Link" onClick={() => setShowLink((v) => !v)} active={showLink} />
+        )}
+        <ComposerAction
+          icon={CalendarDays}
+          label="Evento"
+          onClick={() => {
+            setEventMode((v) => !v);
+            if (!eventMode) {
+              setShowLocation(true);
+              setShowLink(false);
+            }
+          }}
+          active={eventMode}
+        />
         <button
           type="button"
           onClick={publish}
@@ -165,8 +234,9 @@ export function FeedComposer({
           className="ml-auto inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-black uppercase tracking-wider text-brand-foreground transition-transform active:scale-95 disabled:opacity-40"
         >
           {saving && <Loader2 className="size-3.5 animate-spin" />}
-          Publicar
+          {eventMode ? "Criar evento" : "Publicar"}
         </button>
+
       </div>
     </section>
   );
