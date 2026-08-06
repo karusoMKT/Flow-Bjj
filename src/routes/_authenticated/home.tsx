@@ -47,6 +47,30 @@ function StoryRing({ children }: { children: React.ReactNode }) {
 function HomeFeed() {
   const [storySoon, setStorySoon] = useState(false);
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+
+  async function onPickStory(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { data } = await supabase.auth.getUser();
+      const userId = data.user?.id;
+      if (!userId) throw new Error("Faça login para publicar");
+      const imageUrl = await uploadShareImage(file, userId);
+      await createStory(userId, imageUrl);
+      await queryClient.invalidateQueries({ queryKey: ["stories"] });
+      toast.success("Story publicado! Válido por 24h 🔥");
+    } catch (err) {
+      toast.error((err as Error)?.message ?? "Não foi possível publicar o story");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   const { data: currentUserId } = useQuery({
     queryKey: ["current-user-id"],
     queryFn: async () => {
