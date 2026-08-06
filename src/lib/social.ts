@@ -1,5 +1,5 @@
 export const FEED_SELECT =
-  "id, content, image_url, likes_count, created_at, post_type, event_title, event_date, event_location, profiles:user_id (full_name, username, avatar_url, belt, is_weekly_champion), workouts:workout_id (duration_minutes, training_type, intensity, location), likes (user_id), comments (id)";
+  "id, content, image_url, likes_count, created_at, post_type, event_title, event_date, event_location, location, link, profiles:user_id (full_name, username, avatar_url, belt, is_weekly_champion), workouts:workout_id (duration_minutes, training_type, intensity, location), likes (user_id), comments (id)";
 
 
 export type SocialRow = {
