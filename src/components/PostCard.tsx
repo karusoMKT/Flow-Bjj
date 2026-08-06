@@ -32,6 +32,8 @@ export type FeedPost = {
   event_title?: string | null;
   event_date?: string | null;
   event_location?: string | null;
+  location?: string | null;
+  link?: string | null;
 };
 
 
