@@ -212,7 +212,11 @@ function Ranking() {
                     </div>
                     <p className="mt-2 max-w-full truncate text-center text-xs font-medium text-foreground">{a.name}</p>
                     <BeltDot belt={a.belt} />
-                    <p className={`text-xs font-bold ${style.text}`}>{a.xp} XP</p>
+                    <span
+                      className={`rounded-full border border-current/40 bg-white/[0.06] px-2.5 py-0.5 text-xs font-bold ${style.text}`}
+                    >
+                      {a.xp} XP
+                    </span>
                     <p className="text-[11px] text-muted-foreground">{a.total} treinos</p>
                   </div>
                 );
@@ -241,8 +245,10 @@ function Ranking() {
                       {a.team && <span className="truncate text-xs text-muted-foreground">· {a.team}</span>}
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-brand">{a.xp} XP</p>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="rounded-full border border-brand/40 bg-brand/10 px-2.5 py-1 text-sm font-bold text-brand">
+                      {a.xp} XP
+                    </span>
                     <p className="text-[11px] text-muted-foreground">{a.total} treinos</p>
                   </div>
                 </li>
