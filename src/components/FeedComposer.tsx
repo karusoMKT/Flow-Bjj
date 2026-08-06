@@ -184,13 +184,13 @@ export function FeedComposer({
           <LocationAutocomplete
             value={location}
             onChange={setLocation}
-            placeholder="Onde foi isso?"
-            ariaLabel="Localização da publicação"
+            placeholder={eventMode ? "Ginásio, academia, cidade..." : "Onde foi isso?"}
+            ariaLabel={eventMode ? "Local do evento" : "Localização da publicação"}
           />
         </div>
       )}
 
-      {showLink && (
+      {showLink && !eventMode && (
         <div className="px-3 pb-3">
           <input
             value={link}
@@ -205,9 +205,28 @@ export function FeedComposer({
 
       <div className="flex items-center gap-1 border-t border-white/5 px-2 py-2">
         <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={pickImage} />
-        <ComposerAction icon={ImageIcon} label="Imagem/Vídeo" onClick={() => fileRef.current?.click()} active={!!imagePreview} />
-        <ComposerAction icon={MapPin} label="Localização" onClick={() => setShowLocation((v) => !v)} active={showLocation} />
-        <ComposerAction icon={Link2} label="Link" onClick={() => setShowLink((v) => !v)} active={showLink} />
+        <ComposerAction
+          icon={ImageIcon}
+          label={eventMode ? "Capa" : "Imagem/Vídeo"}
+          onClick={() => fileRef.current?.click()}
+          active={!!imagePreview}
+        />
+        <ComposerAction icon={MapPin} label="Local" onClick={() => setShowLocation((v) => !v)} active={showLocation} />
+        {!eventMode && (
+          <ComposerAction icon={Link2} label="Link" onClick={() => setShowLink((v) => !v)} active={showLink} />
+        )}
+        <ComposerAction
+          icon={CalendarDays}
+          label="Evento"
+          onClick={() => {
+            setEventMode((v) => !v);
+            if (!eventMode) {
+              setShowLocation(true);
+              setShowLink(false);
+            }
+          }}
+          active={eventMode}
+        />
         <button
           type="button"
           onClick={publish}
@@ -215,8 +234,9 @@ export function FeedComposer({
           className="ml-auto inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-black uppercase tracking-wider text-brand-foreground transition-transform active:scale-95 disabled:opacity-40"
         >
           {saving && <Loader2 className="size-3.5 animate-spin" />}
-          Publicar
+          {eventMode ? "Criar evento" : "Publicar"}
         </button>
+
       </div>
     </section>
   );
