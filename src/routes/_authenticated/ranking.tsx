@@ -4,7 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Crown, Medal, Trophy } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
-import { beltColor, fetchRanking, type RankingPeriod, type RankingScope } from "@/lib/ranking";
+import {
+  beltColor,
+  fetchRanking,
+  normalizeAcademy,
+  type RankingPeriod,
+  type RankingScope,
+} from "@/lib/ranking";
 
 export const Route = createFileRoute("/_authenticated/ranking")({
   head: () => ({
@@ -12,12 +18,12 @@ export const Route = createFileRoute("/_authenticated/ranking")({
       { title: "Ranking | Flow Jiu-Jitsu" },
       {
         name: "description",
-        content: "Veja quem mais treinou no mês: ranking de treinos de Jiu-Jitsu geral e entre competidores.",
+        content: "Ranking semanal da sua academia: veja quem mais somou XP no tatame nesta semana e no mês passado.",
       },
       { property: "og:title", content: "Ranking | Flow Jiu-Jitsu" },
       {
         property: "og:description",
-        content: "Veja quem mais treinou no mês: ranking de treinos de Jiu-Jitsu geral e entre competidores.",
+        content: "Ranking semanal da sua academia: veja quem mais somou XP no tatame nesta semana e no mês passado.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -27,13 +33,13 @@ export const Route = createFileRoute("/_authenticated/ranking")({
 });
 
 const SCOPES: { key: RankingScope; label: string }[] = [
+  { key: "academia", label: "Minha Academia" },
   { key: "geral", label: "Geral" },
-  { key: "competidores", label: "Competidores" },
 ];
 
 const PERIODS: { key: RankingPeriod; label: string }[] = [
-  { key: "month", label: "Este Mês" },
-  { key: "all", label: "Sempre" },
+  { key: "week", label: "Desta Semana" },
+  { key: "lastMonth", label: "Mês Passado" },
 ];
 
 const PODIUM = [
@@ -89,8 +95,8 @@ function Skeletons() {
 }
 
 function Ranking() {
-  const [scope, setScope] = useState<RankingScope>("geral");
-  const [period, setPeriod] = useState<RankingPeriod>("month");
+  const [scope, setScope] = useState<RankingScope>("academia");
+  const [period, setPeriod] = useState<RankingPeriod>("week");
   const [myId, setMyId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -109,7 +115,10 @@ function Ranking() {
     staleTime: 60_000,
   });
 
-  const list = (data ?? []).filter((r) => (scope === "competidores" ? r.isCompetitor : true));
+  const myAcademy = normalizeAcademy((data ?? []).find((r) => r.id === myId)?.academy);
+  const list = (data ?? []).filter((r) =>
+    scope === "academia" && myAcademy ? normalizeAcademy(r.academy) === myAcademy : true,
+  );
   const top3 = list.slice(0, 3);
   const rest = list.slice(3);
 
@@ -155,6 +164,11 @@ function Ranking() {
       </header>
 
       <main className="mx-auto max-w-md px-4">
+        {scope === "academia" && !myAcademy && !isPending ? (
+          <p className="mt-6 rounded-2xl border border-white/10 bg-white/[0.04] px-4 py-3 text-center text-xs text-muted-foreground">
+            Defina sua academia no perfil para ver o ranking da sua equipe.
+          </p>
+        ) : null}
         {isPending ? (
           <Skeletons />
         ) : isError ? (
@@ -165,13 +179,13 @@ function Ranking() {
           <div className="mt-20 flex flex-col items-center gap-3 text-center">
             <Trophy className="size-10 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              Nenhum treino registrado {period === "month" ? "neste mês" : "ainda"}. Faça seu check-in e lidere o
-              ranking.
+              Nenhum treino registrado {period === "week" ? "nesta semana" : "no mês passado"}
+              {scope === "academia" && myAcademy ? " na sua academia" : ""}. Faça seu check-in e lidere o ranking.
             </p>
           </div>
         ) : (
           <>
-            <section aria-label="Top 3" className="mt-4 grid grid-cols-3 items-end gap-2">
+            <section aria-label="Top 3" className="mt-4 grid grid-cols-3 items-end gap-2 animate-fade-in">
               {[top3[1], top3[0], top3[2]].map((a, i) => {
                 const style = PODIUM[[1, 0, 2][i]];
                 const place = [2, 1, 3][i];
@@ -198,13 +212,14 @@ function Ranking() {
                     </div>
                     <p className="mt-2 max-w-full truncate text-center text-xs font-medium text-foreground">{a.name}</p>
                     <BeltDot belt={a.belt} />
-                    <p className={`text-xs font-bold ${style.text}`}>{a.total} treinos</p>
+                    <p className={`text-xs font-bold ${style.text}`}>{a.xp} XP</p>
+                    <p className="text-[11px] text-muted-foreground">{a.total} treinos</p>
                   </div>
                 );
               })}
             </section>
 
-            <ul className="mt-10 flex flex-col gap-1">
+            <ul className="mt-10 flex flex-col gap-1 animate-fade-in">
               {rest.map((a, i) => (
                 <li
                   key={a.id}
@@ -226,7 +241,10 @@ function Ranking() {
                       {a.team && <span className="truncate text-xs text-muted-foreground">· {a.team}</span>}
                     </div>
                   </div>
-                  <span className="text-sm font-bold text-brand">{a.total}</span>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-brand">{a.xp} XP</p>
+                    <p className="text-[11px] text-muted-foreground">{a.total} treinos</p>
+                  </div>
                 </li>
               ))}
             </ul>
