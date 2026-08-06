@@ -65,6 +65,9 @@ export function FeedComposer({
     setLink("");
     setShowLink(false);
     setFocused(false);
+    setEventMode(false);
+    setEventTitle("");
+    setEventDate("");
   }
 
   async function publish() {
@@ -77,24 +80,36 @@ export function FeedComposer({
     try {
       let imageUrl: string | null = null;
       if (imageFile) imageUrl = await uploadShareImage(imageFile, userId);
-      const { error } = await supabase.from("posts").insert({
-        user_id: userId,
-        post_type: "social",
-        content: text.trim() || null,
-        image_url: imageUrl,
-        location: location.trim() || null,
-        link: link.trim() || null,
-      });
+      const payload = eventMode
+        ? {
+            user_id: userId,
+            post_type: "event",
+            content: text.trim() || null,
+            image_url: imageUrl,
+            event_title: eventTitle.trim(),
+            event_date: eventDate ? new Date(eventDate).toISOString() : null,
+            event_location: location.trim() || null,
+          }
+        : {
+            user_id: userId,
+            post_type: "social",
+            content: text.trim() || null,
+            image_url: imageUrl,
+            location: location.trim() || null,
+            link: link.trim() || null,
+          };
+      const { error } = await supabase.from("posts").insert(payload as never);
       if (error) throw error;
       reset();
       await qc.invalidateQueries({ queryKey: ["feed"] });
-      toast.success("Publicado no feed! 🔥");
+      toast.success(eventMode ? "Evento publicado! 🥋" : "Publicado no feed! 🔥");
     } catch (err) {
       toast.error((err as Error)?.message ?? "Não foi possível publicar");
     } finally {
       setSaving(false);
     }
   }
+
 
   return (
     <section
