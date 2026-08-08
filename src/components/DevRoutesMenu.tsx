@@ -12,7 +12,7 @@ const ROUTES: Entry[] = [
   { to: "/achievements", label: "Conquistas" },
   { to: "/challenges", label: "Desafios" },
   { to: "/search", label: "Busca" },
-  { to: "/explorar", label: "Explorar" },
+  { to: "/explore", label: "Explorar" },
   { to: "/checkin", label: "Check-in" },
   { to: "/notifications", label: "Notificações" },
   { to: "/settings", label: "Configurações" },
