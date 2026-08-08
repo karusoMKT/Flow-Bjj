@@ -26,7 +26,6 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedMessagesRouteImport } from './routes/_authenticated/messages'
 import { Route as AuthenticatedHomeRouteImport } from './routes/_authenticated/home'
 import { Route as AuthenticatedExploreRouteImport } from './routes/_authenticated/explore'
-import { Route as AuthenticatedExplorarRouteImport } from './routes/_authenticated/explorar'
 import { Route as AuthenticatedEventRouteImport } from './routes/_authenticated/event'
 import { Route as AuthenticatedCreateRouteImport } from './routes/_authenticated/create'
 import { Route as AuthenticatedCoachRouteImport } from './routes/_authenticated/coach'
@@ -125,11 +124,6 @@ const AuthenticatedExploreRoute = AuthenticatedExploreRouteImport.update({
   path: '/explore',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedExplorarRoute = AuthenticatedExplorarRouteImport.update({
-  id: '/explorar',
-  path: '/explorar',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedEventRoute = AuthenticatedEventRouteImport.update({
   id: '/event',
   path: '/event',
@@ -202,7 +196,6 @@ export interface FileRoutesByFullPath {
   '/coach': typeof AuthenticatedCoachRoute
   '/create': typeof AuthenticatedCreateRoute
   '/event': typeof AuthenticatedEventRoute
-  '/explorar': typeof AuthenticatedExplorarRoute
   '/explore': typeof AuthenticatedExploreRoute
   '/home': typeof AuthenticatedHomeRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -232,7 +225,6 @@ export interface FileRoutesByTo {
   '/coach': typeof AuthenticatedCoachRoute
   '/create': typeof AuthenticatedCreateRoute
   '/event': typeof AuthenticatedEventRoute
-  '/explorar': typeof AuthenticatedExplorarRoute
   '/explore': typeof AuthenticatedExploreRoute
   '/home': typeof AuthenticatedHomeRoute
   '/messages': typeof AuthenticatedMessagesRoute
@@ -264,7 +256,6 @@ export interface FileRoutesById {
   '/_authenticated/coach': typeof AuthenticatedCoachRoute
   '/_authenticated/create': typeof AuthenticatedCreateRoute
   '/_authenticated/event': typeof AuthenticatedEventRoute
-  '/_authenticated/explorar': typeof AuthenticatedExplorarRoute
   '/_authenticated/explore': typeof AuthenticatedExploreRoute
   '/_authenticated/home': typeof AuthenticatedHomeRoute
   '/_authenticated/messages': typeof AuthenticatedMessagesRoute
@@ -296,7 +287,6 @@ export interface FileRouteTypes {
     | '/coach'
     | '/create'
     | '/event'
-    | '/explorar'
     | '/explore'
     | '/home'
     | '/messages'
@@ -326,7 +316,6 @@ export interface FileRouteTypes {
     | '/coach'
     | '/create'
     | '/event'
-    | '/explorar'
     | '/explore'
     | '/home'
     | '/messages'
@@ -357,7 +346,6 @@ export interface FileRouteTypes {
     | '/_authenticated/coach'
     | '/_authenticated/create'
     | '/_authenticated/event'
-    | '/_authenticated/explorar'
     | '/_authenticated/explore'
     | '/_authenticated/home'
     | '/_authenticated/messages'
@@ -505,13 +493,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedExploreRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/explorar': {
-      id: '/_authenticated/explorar'
-      path: '/explorar'
-      fullPath: '/explorar'
-      preLoaderRoute: typeof AuthenticatedExplorarRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/event': {
       id: '/_authenticated/event'
       path: '/event'
@@ -600,7 +581,6 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCoachRoute: typeof AuthenticatedCoachRoute
   AuthenticatedCreateRoute: typeof AuthenticatedCreateRoute
   AuthenticatedEventRoute: typeof AuthenticatedEventRoute
-  AuthenticatedExplorarRoute: typeof AuthenticatedExplorarRoute
   AuthenticatedExploreRoute: typeof AuthenticatedExploreRoute
   AuthenticatedHomeRoute: typeof AuthenticatedHomeRoute
   AuthenticatedMessagesRoute: typeof AuthenticatedMessagesRoute
@@ -626,7 +606,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCoachRoute: AuthenticatedCoachRoute,
   AuthenticatedCreateRoute: AuthenticatedCreateRoute,
   AuthenticatedEventRoute: AuthenticatedEventRoute,
-  AuthenticatedExplorarRoute: AuthenticatedExplorarRoute,
   AuthenticatedExploreRoute: AuthenticatedExploreRoute,
   AuthenticatedHomeRoute: AuthenticatedHomeRoute,
   AuthenticatedMessagesRoute: AuthenticatedMessagesRoute,
