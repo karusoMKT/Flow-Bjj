@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import { Bell, CalendarPlus, Loader2, MessageSquare, Plus, Sparkles, X } from "lucide-react";
+import { Bell, Loader2, MessageSquare, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
@@ -234,28 +234,6 @@ function HomeFeed() {
           avatarUrl={me?.avatar_url}
         />
 
-        <div className="grid grid-cols-2 gap-2 px-4 pb-2">
-
-          <Link
-            to="/create"
-            className="flex items-center justify-center gap-2 rounded-2xl border border-white/8 bg-surface px-3 py-3 text-sm font-bold text-foreground transition-colors hover:border-brand/40"
-          >
-            <Plus className="size-4 text-brand" strokeWidth={3} />
-            Check-in
-          </Link>
-          <Link
-            to="/event"
-            className="flex items-center justify-center gap-2 rounded-2xl border border-brand/40 bg-brand/10 px-3 py-3 text-sm font-bold text-foreground transition-colors hover:bg-brand/15"
-          >
-            <CalendarPlus className="size-4 text-brand" />
-            Criar evento
-          </Link>
-        </div>
-
-
-
-
-        {/* Feed */}
         {isLoading ? (
           <ul className="flex flex-col gap-4 px-4" aria-busy="true">
             <PostCardSkeleton />
