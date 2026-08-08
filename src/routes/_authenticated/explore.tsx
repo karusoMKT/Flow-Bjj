@@ -224,7 +224,6 @@ function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string })
       )}
       <Link
         to="/perfil"
-        search={{ u: profile.username } as never}
         className="rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-foreground transition-colors hover:border-brand/60 hover:text-brand"
       >
         Ver perfil
