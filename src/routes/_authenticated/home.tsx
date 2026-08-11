@@ -61,6 +61,17 @@ function HomeFeed() {
 
   const queryClient = useQueryClient();
 
+  const { data: currentUserId } = useCurrentUserId();
+  useInboxRealtime(currentUserId);
+  const { data: unreadNotifications = 0 } = useQuery({
+    queryKey: ["notifications-unread"],
+    queryFn: fetchUnreadNotificationsCount,
+  });
+  const { data: unreadMessages = 0 } = useQuery({
+    queryKey: ["messages-unread"],
+    queryFn: fetchUnreadMessagesCount,
+  });
+
   async function onPickStory(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
