@@ -99,6 +99,9 @@ function HomeFeed() {
     },
     staleTime: 5 * 60_000,
   });
+
+  useInboxRealtime(currentUserId);
+
   const { data: me } = useQuery({
     queryKey: ["my-profile-mini", currentUserId],
     enabled: !!currentUserId,
