@@ -1,4 +1,4 @@
-import { CalendarDays, Link2 as LinkIcon, MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
+import { Award, CalendarDays, Link2 as LinkIcon, MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
 import { PostActions } from "@/components/PostActions";
 import { EventInterest } from "@/components/EventInterest";
 import { ShareButton } from "@/components/ShareButton";
@@ -380,6 +380,58 @@ function SocialCard({
       {post.image_url && (
         <img src={post.image_url} alt={`Publicação de ${name}`} loading="lazy" className="w-full object-cover" />
       )}
+
+      <PostActions
+        postId={post.id}
+        userId={currentUserId}
+        initialLiked={social.liked}
+        initialLikeCount={social.likeCount || post.likes_count || 0}
+        initialCommentCount={social.commentCount}
+        renderAvatar={(src, n) => <AvatarBubble src={src} name={n} className="size-7" />}
+      />
+    </li>
+  );
+}
+
+function PromotionCard({
+  post,
+  currentUserId,
+  name,
+  social,
+}: {
+  post: FeedPost;
+  currentUserId?: string | null;
+  name: string;
+  social: { liked: boolean; likeCount: number; commentCount: number };
+}) {
+  const author = post.profiles;
+
+  return (
+    <li className="overflow-hidden rounded-2xl border border-brand/50 bg-gradient-to-b from-brand/[0.12] to-transparent shadow-[0_0_0_1px_oklch(0.85_0.2_140/0.12),0_0_32px_-10px_oklch(0.85_0.2_140/0.6)]">
+      <div className="flex items-start gap-3 p-3.5">
+        <span className="shrink-0 rounded-full bg-gradient-to-tr from-brand to-[oklch(0.9_0.18_120)] p-[2px]">
+          <span className="block rounded-full border-2 border-surface">
+            <AvatarBubble src={author?.avatar_url} name={name} />
+          </span>
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <p className="truncate text-sm font-semibold">{name}</p>
+            <ChampionBadge active={!!author?.is_weekly_champion} />
+          </div>
+          <p className="text-[11px] font-bold uppercase tracking-widest text-brand">Graduação</p>
+        </div>
+        <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+      </div>
+
+      <div className="flex items-center gap-3 px-4 pb-5">
+        <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-brand/15 text-brand">
+          <Award className="size-6" strokeWidth={1.8} />
+        </span>
+        <p className="text-lg font-black italic leading-tight tracking-tight text-foreground">
+          {post.content}
+        </p>
+      </div>
 
       <PostActions
         postId={post.id}
