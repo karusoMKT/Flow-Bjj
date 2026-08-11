@@ -1,6 +1,19 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronLeft, Send } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  avatarFor,
+  clockTime,
+  displayName,
+  fetchConversationPeer,
+  fetchMessages,
+  markConversationRead,
+  sendMessage,
+  useCurrentUserId,
+} from "@/lib/inbox";
 
 export const Route = createFileRoute("/_authenticated/chat/$chatId")({
   head: () => ({
@@ -16,37 +29,74 @@ export const Route = createFileRoute("/_authenticated/chat/$chatId")({
   component: ChatPage,
 });
 
-const PEOPLE: Record<string, string> = {
-  "1": "João Santos",
-  "2": "Maria Almeida",
-  "3": "Alliance Barra",
-  "4": "Lucas Ferreira",
-};
-
-type Msg = { id: number; mine: boolean; text: string; time: string };
-
-const INITIAL: Msg[] = [
-  { id: 1, mine: false, text: "Fala! Treina hoje 19h?", time: "10:20" },
-  { id: 2, mine: true, text: "Tô dentro, levo o kimono novo", time: "10:26" },
-  { id: 3, mine: false, text: "Bora! Confirmado 🤙", time: "10:30" },
-];
-
 function ChatPage() {
   const { chatId } = Route.useParams();
   const router = useRouter();
-  const [messages, setMessages] = useState<Msg[]>(INITIAL);
+  const queryClient = useQueryClient();
   const [text, setText] = useState("");
-  const name = PEOPLE[chatId] ?? "Conversa";
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const { data: userId } = useCurrentUserId();
 
-  const send = (e: React.FormEvent) => {
+  const { data: messages = [], isLoading } = useQuery({
+    queryKey: ["messages", chatId],
+    queryFn: () => fetchMessages(chatId),
+  });
+
+  const { data: peer } = useQuery({
+    queryKey: ["conversation-peer", chatId, userId],
+    queryFn: () => fetchConversationPeer(chatId, userId!),
+    enabled: Boolean(userId),
+  });
+
+  // Realtime: novas mensagens desta conversa aparecem instantaneamente.
+  useEffect(() => {
+    const channel = supabase
+      .channel(`chat-${chatId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${chatId}` },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
+          queryClient.invalidateQueries({ queryKey: ["conversations"] });
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [chatId, queryClient]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length]);
+
+  useEffect(() => {
+    if (!userId || messages.length === 0) return;
+    void markConversationRead(chatId).then(() =>
+      queryClient.invalidateQueries({ queryKey: ["conversations"] }),
+    );
+  }, [chatId, userId, messages.length, queryClient]);
+
+  const name = displayName(peer);
+
+  const send = async (e: React.FormEvent) => {
     e.preventDefault();
     const value = text.trim();
-    if (!value) return;
-    setMessages((m) => [
-      ...m,
-      { id: m.length + 1, mine: true, text: value, time: "agora" },
-    ]);
+    if (!value || sending) return;
+    setSending(true);
     setText("");
+    try {
+      await sendMessage(chatId, value);
+      await queryClient.invalidateQueries({ queryKey: ["messages", chatId] });
+      queryClient.invalidateQueries({ queryKey: ["conversations"] });
+    } catch (error) {
+      setText(value);
+      toast.error(error instanceof Error ? error.message : "Não foi possível enviar a mensagem");
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -61,29 +111,43 @@ function ChatPage() {
           <ChevronLeft className="size-5" />
         </button>
         <img
-          src={`https://ui-avatars.com/api/?background=1A1A1A&color=D7FF3E&bold=true&name=${encodeURIComponent(name)}`}
+          src={peer?.avatar_url || avatarFor(name)}
           alt={`Avatar de ${name}`}
-          className="size-9 rounded-full"
+          className="size-9 rounded-full object-cover"
         />
         <h1 className="text-sm font-semibold text-foreground">{name}</h1>
       </header>
 
       <main className="mx-auto flex w-full max-w-md flex-1 flex-col gap-3 px-4 py-4">
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
-              m.mine
-                ? "self-end bg-brand text-brand-foreground"
-                : "self-start border border-white/5 bg-white/[0.04] text-foreground"
-            }`}
-          >
-            <p>{m.text}</p>
-            <span className={`mt-1 block text-[10px] ${m.mine ? "text-brand-foreground/70" : "text-muted-foreground"}`}>
-              {m.time}
-            </span>
-          </div>
-        ))}
+        {isLoading ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">Carregando conversa...</p>
+        ) : messages.length === 0 ? (
+          <p className="py-10 text-center text-sm text-muted-foreground">
+            Nenhuma mensagem ainda. Mande um oss!
+          </p>
+        ) : (
+          messages.map((m) => {
+            const mine = m.sender_id === userId;
+            return (
+              <div
+                key={m.id}
+                className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${
+                  mine
+                    ? "self-end bg-brand text-brand-foreground"
+                    : "self-start border border-white/5 bg-white/[0.04] text-foreground"
+                }`}
+              >
+                <p className="whitespace-pre-wrap break-words">{m.content}</p>
+                <span
+                  className={`mt-1 block text-[10px] ${mine ? "text-brand-foreground/70" : "text-muted-foreground"}`}
+                >
+                  {clockTime(m.created_at)}
+                </span>
+              </div>
+            );
+          })
+        )}
+        <div ref={bottomRef} />
       </main>
 
       <form
@@ -99,8 +163,9 @@ function ChatPage() {
         />
         <button
           type="submit"
+          disabled={sending}
           aria-label="Enviar"
-          className="flex size-11 items-center justify-center rounded-xl bg-brand text-brand-foreground"
+          className="flex size-11 items-center justify-center rounded-xl bg-brand text-brand-foreground disabled:opacity-60"
         >
           <Send className="size-4" />
         </button>
