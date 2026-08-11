@@ -157,6 +157,20 @@ function EditarPerfil() {
 
     const unlocked: Achievement[] = [];
     const beltUp = belt !== prevBelt && (BELT_ORDER[belt] ?? 0) > (BELT_ORDER[prevBelt] ?? 0);
+    const stripeUp = !beltUp && stripes > prevStripes;
+
+    if (beltUp || stripeUp) {
+      const content = beltUp
+        ? `Conquistou a Faixa ${belt}!`
+        : `Alcançou o ${stripes}º Grau na Faixa ${belt}!`;
+      await supabase.from("posts").insert({
+        user_id: profile.id,
+        post_type: "promotion",
+        content,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["feed"] });
+    }
+
     if (beltUp) unlocked.push(...(await runBeltPromotionAchievement(profile.id)));
     if (stripes > prevStripes) unlocked.push(...(await runStripePromotionAchievement(profile.id)));
 
