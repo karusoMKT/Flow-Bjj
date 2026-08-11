@@ -150,7 +150,9 @@ function HomeFeed() {
             className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:text-foreground"
           >
             <Bell className="size-5" />
-            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            {unreadNotifications > 0 && (
+              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            )}
           </Link>
           <Link
             to="/messages"
@@ -158,7 +160,9 @@ function HomeFeed() {
             className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:text-foreground"
           >
             <MessageSquare className="size-5" />
-            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            {unreadMessages > 0 && (
+              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            )}
           </Link>
         </div>
       </header>
