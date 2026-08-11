@@ -61,8 +61,6 @@ function HomeFeed() {
 
   const queryClient = useQueryClient();
 
-  const { data: currentUserId } = useCurrentUserId();
-  useInboxRealtime(currentUserId);
   const { data: unreadNotifications = 0 } = useQuery({
     queryKey: ["notifications-unread"],
     queryFn: fetchUnreadNotificationsCount,
