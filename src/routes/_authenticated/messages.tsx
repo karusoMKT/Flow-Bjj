@@ -1,6 +1,15 @@
 import { createFileRoute, Link, useRouter } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, Search, SquarePen } from "lucide-react";
 import { useMemo, useState } from "react";
+import {
+  avatarFor,
+  displayName,
+  fetchConversations,
+  timeAgo,
+  useCurrentUserId,
+  useInboxRealtime,
+} from "@/lib/inbox";
 
 export const Route = createFileRoute("/_authenticated/messages")({
   head: () => ({
@@ -16,27 +25,26 @@ export const Route = createFileRoute("/_authenticated/messages")({
   component: MessagesPage,
 });
 
-const CONVERSATIONS = [
-  { id: "1", name: "João Santos", preview: "Bora! Confirmado 🤙", time: "10:30", unread: 2, online: true },
-  { id: "2", name: "Maria Almeida", preview: "Aquele detalhe da raspagem salvou meu treino", time: "09:12", unread: 1, online: true },
-  { id: "3", name: "Alliance Barra", preview: "Aula extra de no-gi sábado às 10h", time: "Ontem", unread: 0, online: false },
-  { id: "4", name: "Lucas Ferreira", preview: "Treino amanhã cedo? Quero drillar guarda", time: "Seg", unread: 0, online: false },
-];
-
-const avatar = (name: string) =>
-  `https://ui-avatars.com/api/?background=1A1A1A&color=D7FF3E&bold=true&name=${encodeURIComponent(name)}`;
-
 function MessagesPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const { data: userId } = useCurrentUserId();
+  useInboxRealtime(userId);
+
+  const { data: conversations = [], isLoading } = useQuery({
+    queryKey: ["conversations"],
+    queryFn: fetchConversations,
+  });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return CONVERSATIONS;
-    return CONVERSATIONS.filter(
-      (c) => c.name.toLowerCase().includes(q) || c.preview.toLowerCase().includes(q),
+    if (!q) return conversations;
+    return conversations.filter(
+      (c) =>
+        displayName(c.other).toLowerCase().includes(q) ||
+        (c.lastMessage?.content ?? "").toLowerCase().includes(q),
     );
-  }, [query]);
+  }, [query, conversations]);
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -50,13 +58,13 @@ function MessagesPage() {
           <ChevronLeft className="size-5" />
         </button>
         <h1 className="text-base font-semibold text-foreground">Mensagens</h1>
-        <button
-          type="button"
+        <Link
+          to="/search"
           aria-label="Nova conversa"
           className="rounded-xl p-2 text-brand transition-colors hover:text-foreground"
         >
           <SquarePen className="size-5" />
-        </button>
+        </Link>
       </header>
 
       <main className="mx-auto max-w-md px-4">
@@ -71,46 +79,66 @@ function MessagesPage() {
           />
         </div>
 
-        <ul className="flex flex-col gap-4">
-          {filtered.map((c) => (
-            <li key={c.id}>
-              <Link
-                to="/chat/$chatId"
-                params={{ chatId: c.id }}
-                className="flex items-center gap-3 rounded-2xl border border-white/5 px-3 py-3 transition-colors hover:bg-white/[0.03]"
-              >
-                <span className="relative shrink-0">
-                  <img
-                    src={avatar(c.name)}
-                    alt={`Avatar de ${c.name}`}
-                    loading="lazy"
-                    className="size-12 rounded-full object-cover"
-                  />
-                  {c.online && (
-                    <span className="absolute bottom-0 right-0 size-3 rounded-full bg-emerald-400 ring-2 ring-background" />
-                  )}
-                </span>
-
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium text-foreground">{c.name}</span>
-                  <span className="block truncate text-xs text-muted-foreground">{c.preview}</span>
-                </span>
-
-                <span className="flex shrink-0 flex-col items-end gap-1.5">
-                  <span className="text-[11px] text-muted-foreground">{c.time}</span>
-                  {c.unread > 0 && (
-                    <span className="flex size-5 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground">
-                      {c.unread}
+        {isLoading ? (
+          <ul className="flex flex-col gap-4">
+            {[0, 1, 2].map((i) => (
+              <li key={i} className="flex items-center gap-3 px-3 py-3">
+                <div className="size-12 animate-pulse rounded-full bg-white/5" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-1/3 animate-pulse rounded bg-white/5" />
+                  <div className="h-2 w-2/3 animate-pulse rounded bg-white/5" />
+                </div>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <ul className="flex flex-col gap-4">
+            {filtered.map((c) => {
+              const name = displayName(c.other);
+              return (
+                <li key={c.id}>
+                  <Link
+                    to="/chat/$chatId"
+                    params={{ chatId: c.id }}
+                    className="flex items-center gap-3 rounded-2xl border border-white/5 px-3 py-3 transition-colors hover:bg-white/[0.03]"
+                  >
+                    <span className="relative shrink-0">
+                      <img
+                        src={c.other?.avatar_url || avatarFor(name)}
+                        alt={`Avatar de ${name}`}
+                        loading="lazy"
+                        className="size-12 rounded-full object-cover"
+                      />
                     </span>
-                  )}
-                </span>
-              </Link>
-            </li>
-          ))}
-          {filtered.length === 0 && (
-            <li className="py-10 text-center text-sm text-muted-foreground">Nenhuma conversa encontrada.</li>
-          )}
-        </ul>
+
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-medium text-foreground">{name}</span>
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {c.lastMessage?.content ?? "Diga oss e comece a conversa"}
+                      </span>
+                    </span>
+
+                    <span className="flex shrink-0 flex-col items-end gap-1.5">
+                      <span className="text-[11px] text-muted-foreground">
+                        {c.lastMessage ? timeAgo(c.lastMessage.created_at) : ""}
+                      </span>
+                      {c.unread > 0 && (
+                        <span className="flex size-5 items-center justify-center rounded-full bg-brand text-[11px] font-bold text-brand-foreground">
+                          {c.unread}
+                        </span>
+                      )}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+            {filtered.length === 0 && (
+              <li className="py-10 text-center text-sm text-muted-foreground">
+                {query ? "Nenhuma conversa encontrada." : "Você ainda não tem conversas."}
+              </li>
+            )}
+          </ul>
+        )}
       </main>
     </div>
   );

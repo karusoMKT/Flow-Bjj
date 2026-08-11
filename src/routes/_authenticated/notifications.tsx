@@ -1,106 +1,44 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Bell, Medal, MessageCircle, UserPlus, Heart, Trophy, Check } from "lucide-react";
+import { Bell, Check, Heart, Medal, MessageCircle, Trophy, UserPlus } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import {
+  avatarFor,
+  displayName,
+  fetchNotifications,
+  markAllNotificationsRead,
+  timeAgo,
+  useCurrentUserId,
+  useInboxRealtime,
+  type NotificationRow,
+} from "@/lib/inbox";
 
 const TABS = ["Todas", "Menções"] as const;
 type Tab = (typeof TABS)[number];
 
-type NotificationType = "like" | "comment" | "follow" | "achievement" | "challenge";
-
-type Notification = {
-  id: string;
-  type: NotificationType;
-  actor: string;
-  text: string;
-  time: string;
-  read: boolean;
-  avatarUrl?: string;
-};
-
-const NOTIFICATIONS: Notification[] = [
-  {
-    id: "1",
-    type: "like",
-    actor: "João Santos",
-    text: "curtiu seu treino",
-    time: "agora",
-    read: false,
-    avatarUrl: "https://ui-avatars.com/api/?name=João+Santos&background=random&color=fff",
-  },
-  {
-    id: "2",
-    type: "comment",
-    actor: "Maria Almeida",
-    text: "comentou: \"Treino pesado! \"",
-    time: "5m",
-    read: false,
-    avatarUrl: "https://ui-avatars.com/api/?name=Maria+Almeida&background=random&color=fff",
-  },
-  {
-    id: "3",
-    type: "achievement",
-    actor: "Sistema",
-    text: "Você conquistou a medalha \"30 dias seguidos\"",
-    time: "10m",
-    read: false,
-  },
-  {
-    id: "4",
-    type: "follow",
-    actor: "Novo seguidor",
-    text: "Lucas Lima começou a seguir você",
-    time: "15m",
-    read: true,
-    avatarUrl: "https://ui-avatars.com/api/?name=Lucas+Lima&background=random&color=fff",
-  },
-  {
-    id: "5",
-    type: "challenge",
-    actor: "Desafio",
-    text: "Desafio concluído: Semana Sem Faltar",
-    time: "20m",
-    read: true,
-  },
-  {
-    id: "6",
-    type: "like",
-    actor: "Carlos Mendes",
-    text: "curtiu sua foto",
-    time: "1h",
-    read: true,
-    avatarUrl: "https://ui-avatars.com/api/?name=Carlos+Mendes&background=random&color=fff",
-  },
-  {
-    id: "7",
-    type: "comment",
-    actor: "Ana Paula",
-    text: "comentou: \"Vamos treinar juntos! \"",
-    time: "2h",
-    read: true,
-    avatarUrl: "https://ui-avatars.com/api/?name=Ana+Paula&background=random&color=fff",
-  },
-];
-
-const TYPE_ICON: Record<NotificationType, React.ElementType> = {
+const TYPE_ICON: Record<string, React.ElementType> = {
   like: Heart,
   comment: MessageCircle,
   follow: UserPlus,
   achievement: Medal,
   challenge: Trophy,
+  system: Bell,
 };
 
-function NotificationItem({ notification }: { notification: Notification }) {
-  const Icon = TYPE_ICON[notification.type];
-  const isSystem = notification.type === "achievement" || notification.type === "challenge";
+function NotificationItem({ notification }: { notification: NotificationRow }) {
+  const Icon = TYPE_ICON[notification.type] ?? Bell;
+  const actorName = notification.actor ? displayName(notification.actor) : "Flow";
+  const hasActor = Boolean(notification.actor);
 
   return (
     <div className="flex items-start gap-3 py-3.5">
       <div className="relative shrink-0">
-        {notification.avatarUrl && !isSystem ? (
+        {hasActor ? (
           <img
-            src={notification.avatarUrl}
-            alt={notification.actor}
+            src={notification.actor?.avatar_url || avatarFor(actorName)}
+            alt={actorName}
+            loading="lazy"
             className="size-11 rounded-full object-cover ring-1 ring-white/10"
           />
         ) : (
@@ -108,17 +46,17 @@ function NotificationItem({ notification }: { notification: Notification }) {
             <Icon className="size-5" strokeWidth={1.8} />
           </div>
         )}
-        {!notification.read && (
+        {!notification.is_read && (
           <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-brand ring-2 ring-background" />
         )}
       </div>
 
       <div className="min-w-0 flex-1">
         <p className="text-[13px] leading-snug text-foreground">
-          <span className="font-semibold">{notification.actor}</span>{" "}
-          <span className="text-muted-foreground">{notification.text}</span>
+          {hasActor && <span className="font-semibold">{actorName} </span>}
+          <span className="text-muted-foreground">{notification.content}</span>
         </p>
-        <span className="mt-0.5 text-[11px] text-muted-foreground">{notification.time}</span>
+        <span className="mt-0.5 text-[11px] text-muted-foreground">{timeAgo(notification.created_at)}</span>
       </div>
     </div>
   );
@@ -126,12 +64,21 @@ function NotificationItem({ notification }: { notification: Notification }) {
 
 function NotificationsPage() {
   const [tab, setTab] = useState<Tab>("Todas");
-  const [items, setItems] = useState(NOTIFICATIONS);
+  const queryClient = useQueryClient();
+  const { data: userId } = useCurrentUserId();
+  useInboxRealtime(userId);
+
+  const { data: items = [], isLoading } = useQuery({
+    queryKey: ["notifications"],
+    queryFn: fetchNotifications,
+  });
 
   const filtered = items.filter((n) => (tab === "Menções" ? n.type === "comment" || n.type === "like" : true));
 
-  function markAllAsRead() {
-    setItems((prev) => prev.map((n) => ({ ...n, read: true })));
+  async function markAllAsRead() {
+    await markAllNotificationsRead();
+    queryClient.invalidateQueries({ queryKey: ["notifications"] });
+    queryClient.invalidateQueries({ queryKey: ["notifications-unread"] });
   }
 
   return (
@@ -157,8 +104,25 @@ function NotificationsPage() {
         </div>
 
         <section className="mt-4">
-          {filtered.length === 0 ? (
-            <p className="py-12 text-center text-sm text-muted-foreground">Nenhuma notificação por aqui.</p>
+          {isLoading ? (
+            <div className="divide-y divide-white/5">
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} className="flex items-center gap-3 py-3.5">
+                  <div className="size-11 animate-pulse rounded-full bg-white/5" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-2/3 animate-pulse rounded bg-white/5" />
+                    <div className="h-2 w-16 animate-pulse rounded bg-white/5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="py-12 text-center">
+              <p className="text-sm text-muted-foreground">Nenhuma notificação por aqui.</p>
+              <Link to="/home" className="mt-2 inline-block text-xs font-semibold text-brand">
+                Voltar ao feed
+              </Link>
+            </div>
           ) : (
             <div className="divide-y divide-white/5">
               {filtered.map((n) => (
@@ -168,16 +132,18 @@ function NotificationsPage() {
           )}
         </section>
 
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            onClick={markAllAsRead}
-            className="flex items-center gap-1.5 text-xs font-semibold text-brand transition-colors hover:text-brand/80"
-          >
-            <Check className="size-3.5" strokeWidth={2.5} />
-            Marcar todas como lidas
-          </button>
-        </div>
+        {items.some((n) => !n.is_read) && (
+          <div className="mt-6 flex justify-center">
+            <button
+              type="button"
+              onClick={markAllAsRead}
+              className="flex items-center gap-1.5 text-xs font-semibold text-brand transition-colors hover:text-brand/80"
+            >
+              <Check className="size-3.5" strokeWidth={2.5} />
+              Marcar todas como lidas
+            </button>
+          </div>
+        )}
       </main>
 
       <BottomNav />
@@ -192,6 +158,8 @@ export const Route = createFileRoute("/_authenticated/notifications")({
       { name: "description", content: "Acompanhe suas notificações e menções no Flow Jiu-Jitsu." },
       { property: "og:title", content: "Notificações | Flow Jiu-Jitsu" },
       { property: "og:description", content: "Acompanhe suas notificações e menções no Flow Jiu-Jitsu." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: NotificationsPage,

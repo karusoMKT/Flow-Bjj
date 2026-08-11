@@ -10,6 +10,7 @@ import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { FeedComposer } from "@/components/FeedComposer";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
+import { fetchUnreadMessagesCount, fetchUnreadNotificationsCount, useInboxRealtime } from "@/lib/inbox";
 
 
 
@@ -61,6 +62,15 @@ function HomeFeed() {
 
   const queryClient = useQueryClient();
 
+  const { data: unreadNotifications = 0 } = useQuery({
+    queryKey: ["notifications-unread"],
+    queryFn: fetchUnreadNotificationsCount,
+  });
+  const { data: unreadMessages = 0 } = useQuery({
+    queryKey: ["messages-unread"],
+    queryFn: fetchUnreadMessagesCount,
+  });
+
   async function onPickStory(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
@@ -89,6 +99,9 @@ function HomeFeed() {
     },
     staleTime: 5 * 60_000,
   });
+
+  useInboxRealtime(currentUserId);
+
   const { data: me } = useQuery({
     queryKey: ["my-profile-mini", currentUserId],
     enabled: !!currentUserId,
@@ -150,7 +163,9 @@ function HomeFeed() {
             className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:text-foreground"
           >
             <Bell className="size-5" />
-            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            {unreadNotifications > 0 && (
+              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            )}
           </Link>
           <Link
             to="/messages"
@@ -158,7 +173,9 @@ function HomeFeed() {
             className="relative rounded-xl p-2 text-muted-foreground transition-colors hover:text-foreground"
           >
             <MessageSquare className="size-5" />
-            <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            {unreadMessages > 0 && (
+              <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-destructive ring-2 ring-background" />
+            )}
           </Link>
         </div>
       </header>
