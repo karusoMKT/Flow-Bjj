@@ -6,6 +6,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Logo } from "@/components/Logo";
 import { markOnboardingSeen } from "@/lib/onboarding";
+import { markPushAskPending } from "@/lib/push";
 
 export const Route = createFileRoute("/login")({
   ssr: false,
@@ -64,6 +65,7 @@ function LoginPage() {
         toast.error("E-mail ou senha incorretos.");
         return;
       }
+      markPushAskPending();
       navigate({ to: "/home", replace: true });
     } finally {
       setLoading(false);

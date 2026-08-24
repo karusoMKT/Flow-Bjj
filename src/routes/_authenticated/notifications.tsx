@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bell, Check, Heart, Medal, MessageCircle, Trophy, UserCheck, UserPlus } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { PushPermissionPrompt } from "@/components/PushPermissionPrompt";
+import { PushReminderBanner } from "@/components/PushReminderBanner";
 import { ConnectionButton } from "@/components/ConnectionButton";
 import {
   avatarFor,
@@ -106,6 +107,12 @@ function NotificationsPage() {
     <div className="min-h-screen bg-background pb-28">
       <main className="mx-auto max-w-md px-4 pt-6">
         <h1 className="text-center font-sans text-lg font-semibold tracking-tight">Notificações</h1>
+
+        <PushReminderBanner
+          hasInteractions={items.some((n) =>
+            ["like", "comment", "connection_request", "connection_accepted", "follow"].includes(n.type),
+          )}
+        />
 
         <div className="mt-4 flex gap-2">
           {TABS.map((t) => (
