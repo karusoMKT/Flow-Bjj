@@ -316,7 +316,22 @@ function Explore() {
                   {results.athletes.length === 0 && <p className="text-xs text-muted-foreground">Nenhum atleta encontrado.</p>}
                 </div>
                 <div>
-                  <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Eventos</h2>
+                  <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <Building2 className="size-4 text-brand" /> Academias
+                  </h2>
+                  <ul className="flex flex-col gap-2">
+                    {results.gyms.map((g) => (
+                      <GymRow key={`${g.source}-${g.id}`} gym={g} />
+                    ))}
+                  </ul>
+                  {results.gyms.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nenhuma academia encontrada.</p>
+                  )}
+                </div>
+                <div>
+                  <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <CalendarDays className="size-4 text-brand" /> Eventos
+                  </h2>
                   <div className="scrollbar-hide flex gap-3 overflow-x-auto">
                     {results.events.map((e) => (
                       <EventCardCompact key={e.id} event={e} />
@@ -324,6 +339,7 @@ function Explore() {
                   </div>
                   {results.events.length === 0 && <p className="text-xs text-muted-foreground">Nenhum evento encontrado.</p>}
                 </div>
+
               </>
             )}
           </section>
