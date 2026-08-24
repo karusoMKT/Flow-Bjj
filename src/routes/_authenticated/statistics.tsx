@@ -182,10 +182,20 @@ function StatisticsPage() {
   );
 
   const summary = [
-    { icon: Clock, label: "Tempo total", value: formatDuration(data?.totalMinutes ?? 0) },
-    { icon: Dumbbell, label: "Treinos", value: String(data?.totalWorkouts ?? 0) },
-    { icon: Medal, label: "Competições", value: String(data?.totalCompetitions ?? 0) },
+    { icon: Dumbbell, label: "Total de Treinos", value: String(data?.totalWorkouts ?? 0) },
+    { icon: Clock, label: "Horas no Tatame", value: formatDuration(data?.totalMinutes ?? 0) },
+    { icon: Zap, label: "XP Acumulado", value: String(data?.totalXp ?? 0) },
   ];
+
+  const weekdayData = data?.byWeekday ?? [];
+  const gi = data?.gi ?? 0;
+  const noGi = data?.noGi ?? 0;
+  const modalityTotal = gi + noGi;
+  const modalityData = [
+    { name: "Gi (Kimono)", value: gi, color: "var(--brand)" },
+    { name: "No-Gi", value: noGi, color: "#9ca3af" },
+  ].filter((d) => d.value > 0);
+  const hasData = (data?.totalWorkouts ?? 0) > 0;
 
   return (
     <div className="min-h-screen bg-background pb-28">
