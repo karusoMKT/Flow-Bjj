@@ -201,14 +201,20 @@ function Perfil() {
             </>
           ) : (
             <>
-              <h2 className="mt-4 text-2xl font-black italic">{name}</h2>
+              <h2 className="mt-4 flex items-center justify-center gap-2 text-2xl font-black italic">
+                {name}
+                {profile?.is_pro && <ProBadge className="size-5" />}
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">{identity || "—"}</p>
               <p className="text-xs text-muted-foreground">{profile?.city ?? "—"}</p>
-              <span
-                className={`mt-3 inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${beltClass(profile?.belt)}`}
-              >
-                @{profile?.username ?? "—"}
-              </span>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
+                <span
+                  className={`inline-flex rounded-full px-3 py-1 text-[11px] font-semibold ${beltClass(profile?.belt)}`}
+                >
+                  @{profile?.username ?? "—"}
+                </span>
+                {profile?.is_competitor && profile?.is_pro && <CompetitorTag />}
+              </div>
             </>
           )}
         </section>
