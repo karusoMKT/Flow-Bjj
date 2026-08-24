@@ -3,7 +3,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Building2, CalendarDays, MapPin, Users } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
-import { FollowButton } from "@/components/FollowButton";
+import { ConnectionButton } from "@/components/ConnectionButton";
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { ProBadge, CompetitorTag } from "@/components/ProBadge";
 import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
