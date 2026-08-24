@@ -43,7 +43,7 @@ async function fetchStats(days: number) {
   since.setDate(since.getDate() - (days - 1));
   since.setHours(0, 0, 0, 0);
 
-  const [workoutsRes, compRes] = await Promise.all([
+  const [workoutsRes, compRes, profileRes] = await Promise.all([
     supabase
       .from("workouts")
       .select("id, created_at, duration_minutes, training_type")
@@ -56,6 +56,7 @@ async function fetchStats(days: number) {
       .eq("user_id", uid)
       .like("content", "[COMP]%")
       .gte("created_at", since.toISOString()),
+    supabase.from("profiles").select("xp").eq("id", uid).maybeSingle(),
   ]);
 
   if (workoutsRes.error) throw workoutsRes.error;
