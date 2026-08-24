@@ -563,7 +563,13 @@ function StatisticsPage() {
         </section>
       </main>
 
+      {/* Card em tamanho real, fora da tela, usado na captura */}
+      <div style={{ position: "fixed", top: 0, left: -20000, zIndex: -1, pointerEvents: "none" }}>
+        <StatsStoryCard ref={shareRef} data={shareData} />
+      </div>
+
       <BottomNav />
+
     </div>
   );
 }
