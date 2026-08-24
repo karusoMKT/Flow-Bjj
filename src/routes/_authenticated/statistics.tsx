@@ -1,7 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Clock, Dumbbell, Medal, ChevronLeft, Zap, BarChart3 } from "lucide-react";
+import {
+  ChevronDown,
+  Clock,
+  Dumbbell,
+  Loader2,
+  Medal,
+  ChevronLeft,
+  Share2,
+  Zap,
+  BarChart3,
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -13,7 +24,10 @@ import {
   XAxis,
 } from "recharts";
 import { BottomNav } from "@/components/BottomNav";
+import { StatsStoryCard } from "@/components/StatsStoryCard";
+import { downloadBlob, nodeToPngBlob } from "@/lib/shareService";
 import { supabase } from "@/integrations/supabase/client";
+
 
 const PERIODS = [
   { label: "Últimos 7 dias", days: 7 },
