@@ -38,6 +38,7 @@ import { Route as AuthenticatedSettingsNotificationsRouteImport } from './routes
 import { Route as AuthenticatedPerfilEditarRouteImport } from './routes/_authenticated/perfil_.editar'
 import { Route as AuthenticatedGymGymIdRouteImport } from './routes/_authenticated/gym.$gymId'
 import { Route as AuthenticatedChatChatIdRouteImport } from './routes/_authenticated/chat.$chatId'
+import { Route as AuthenticatedAtletaUserIdRouteImport } from './routes/_authenticated/atleta.$userId'
 
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
@@ -188,6 +189,12 @@ const AuthenticatedChatChatIdRoute = AuthenticatedChatChatIdRouteImport.update({
   path: '/chat/$chatId',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAtletaUserIdRoute =
+  AuthenticatedAtletaUserIdRouteImport.update({
+    id: '/atleta/$userId',
+    path: '/atleta/$userId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -214,6 +221,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/atleta/$userId': typeof AuthenticatedAtletaUserIdRoute
   '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/perfil/editar': typeof AuthenticatedPerfilEditarRoute
@@ -244,6 +252,7 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/statistics': typeof AuthenticatedStatisticsRoute
   '/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/atleta/$userId': typeof AuthenticatedAtletaUserIdRoute
   '/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/perfil/editar': typeof AuthenticatedPerfilEditarRoute
@@ -276,6 +285,7 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/statistics': typeof AuthenticatedStatisticsRoute
   '/_authenticated/training-plan': typeof AuthenticatedTrainingPlanRoute
+  '/_authenticated/atleta/$userId': typeof AuthenticatedAtletaUserIdRoute
   '/_authenticated/chat/$chatId': typeof AuthenticatedChatChatIdRoute
   '/_authenticated/gym/$gymId': typeof AuthenticatedGymGymIdRoute
   '/_authenticated/perfil_/editar': typeof AuthenticatedPerfilEditarRoute
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statistics'
     | '/training-plan'
+    | '/atleta/$userId'
     | '/chat/$chatId'
     | '/gym/$gymId'
     | '/perfil/editar'
@@ -338,6 +349,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/statistics'
     | '/training-plan'
+    | '/atleta/$userId'
     | '/chat/$chatId'
     | '/gym/$gymId'
     | '/perfil/editar'
@@ -369,6 +381,7 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/statistics'
     | '/_authenticated/training-plan'
+    | '/_authenticated/atleta/$userId'
     | '/_authenticated/chat/$chatId'
     | '/_authenticated/gym/$gymId'
     | '/_authenticated/perfil_/editar'
@@ -589,6 +602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatChatIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/atleta/$userId': {
+      id: '/_authenticated/atleta/$userId'
+      path: '/atleta/$userId'
+      fullPath: '/atleta/$userId'
+      preLoaderRoute: typeof AuthenticatedAtletaUserIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
@@ -612,6 +632,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedStatisticsRoute: typeof AuthenticatedStatisticsRoute
   AuthenticatedTrainingPlanRoute: typeof AuthenticatedTrainingPlanRoute
+  AuthenticatedAtletaUserIdRoute: typeof AuthenticatedAtletaUserIdRoute
   AuthenticatedChatChatIdRoute: typeof AuthenticatedChatChatIdRoute
   AuthenticatedGymGymIdRoute: typeof AuthenticatedGymGymIdRoute
   AuthenticatedPerfilEditarRoute: typeof AuthenticatedPerfilEditarRoute
@@ -638,6 +659,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedStatisticsRoute: AuthenticatedStatisticsRoute,
   AuthenticatedTrainingPlanRoute: AuthenticatedTrainingPlanRoute,
+  AuthenticatedAtletaUserIdRoute: AuthenticatedAtletaUserIdRoute,
   AuthenticatedChatChatIdRoute: AuthenticatedChatChatIdRoute,
   AuthenticatedGymGymIdRoute: AuthenticatedGymGymIdRoute,
   AuthenticatedPerfilEditarRoute: AuthenticatedPerfilEditarRoute,
