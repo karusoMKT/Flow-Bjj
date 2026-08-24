@@ -127,20 +127,30 @@ function HomeFeed() {
   const myName = me?.full_name?.split(" ")[0] ?? me?.username ?? "Você";
   const myAvatar = mine?.avatarUrl ?? me?.avatar_url ?? avatar(myName);
 
+  const { data: networkIds } = useQuery({
+    queryKey: ["connected-ids", currentUserId],
+    enabled: !!currentUserId && tab === "network",
+    queryFn: fetchConnectedUserIds,
+    staleTime: 60_000,
+  });
+
+  const networkReady = tab === "global" || (!!currentUserId && networkIds !== undefined);
+
   const { data: posts, isLoading, error, refetch } = useQuery({
-    queryKey: ["feed"],
+    queryKey: ["feed", tab, tab === "network" ? [currentUserId, ...(networkIds ?? [])].join(",") : ""],
+    enabled: networkReady,
     queryFn: async () => {
-      const { data, error: err } = await supabase
-        .from("posts")
-        .select(
-          FEED_SELECT,
-        )
-        .order("created_at", { ascending: false })
-        .limit(30);
+      let query = supabase.from("posts").select(FEED_SELECT);
+      if (tab === "network") {
+        const ids = [currentUserId!, ...(networkIds ?? [])];
+        query = query.in("user_id", ids);
+      }
+      const { data, error: err } = await query.order("created_at", { ascending: false }).limit(30);
       if (err) throw err;
       return data ?? [];
     },
   });
+
 
 
   return (
