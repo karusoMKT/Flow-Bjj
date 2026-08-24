@@ -162,6 +162,29 @@ function intensityClass(count: number): string {
   return LEVEL_CLASS[4];
 }
 
+function ChartTooltip({
+  active,
+  payload,
+  label,
+  suffix,
+}: {
+  active?: boolean;
+  payload?: Array<{ name?: string; value?: number }>;
+  label?: string;
+  suffix?: string;
+}) {
+  if (!active || !payload?.length) return null;
+  const item = payload[0];
+  return (
+    <div className="rounded-xl border border-brand/30 bg-zinc-900/95 px-3 py-2 shadow-[0_8px_24px_-12px_var(--brand)]">
+      <p className="text-[11px] font-semibold text-foreground">{label ?? item.name}</p>
+      <p className="text-[11px] text-brand">
+        {item.value} {suffix}
+      </p>
+    </div>
+  );
+}
+
 function StatisticsPage() {
   const [periodLabel, setPeriodLabel] = useState<string>(PERIODS[1].label);
   const days = PERIODS.find((p) => p.label === periodLabel)?.days ?? 30;
