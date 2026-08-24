@@ -10,6 +10,7 @@ import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { FeedComposer } from "@/components/FeedComposer";
 import { createStory, fetchActiveStories, groupStories, uploadShareImage, type StoryGroup } from "@/lib/stories";
+import { fetchConnectedUserIds } from "@/lib/connections";
 import { fetchUnreadMessagesCount, fetchUnreadNotificationsCount, useInboxRealtime } from "@/lib/inbox";
 
 
@@ -56,6 +57,7 @@ function StoryRing({ children, champion }: { children: React.ReactNode; champion
 
 function HomeFeed() {
   
+  const [tab, setTab] = useState<"global" | "network">("global");
   const [viewing, setViewing] = useState<StoryGroup | null>(null);
   const [uploading, setUploading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -127,20 +129,30 @@ function HomeFeed() {
   const myName = me?.full_name?.split(" ")[0] ?? me?.username ?? "Você";
   const myAvatar = mine?.avatarUrl ?? me?.avatar_url ?? avatar(myName);
 
+  const { data: networkIds } = useQuery({
+    queryKey: ["connected-ids", currentUserId],
+    enabled: !!currentUserId && tab === "network",
+    queryFn: fetchConnectedUserIds,
+    staleTime: 60_000,
+  });
+
+  const networkReady = tab === "global" || (!!currentUserId && networkIds !== undefined);
+
   const { data: posts, isLoading, error, refetch } = useQuery({
-    queryKey: ["feed"],
+    queryKey: ["feed", tab, tab === "network" ? [currentUserId, ...(networkIds ?? [])].join(",") : ""],
+    enabled: networkReady,
     queryFn: async () => {
-      const { data, error: err } = await supabase
-        .from("posts")
-        .select(
-          FEED_SELECT,
-        )
-        .order("created_at", { ascending: false })
-        .limit(30);
+      let query = supabase.from("posts").select(FEED_SELECT);
+      if (tab === "network") {
+        const ids = [currentUserId!, ...(networkIds ?? [])];
+        query = query.in("user_id", ids);
+      }
+      const { data, error: err } = await query.order("created_at", { ascending: false }).limit(30);
       if (err) throw err;
       return data ?? [];
     },
   });
+
 
 
   return (
@@ -251,7 +263,30 @@ function HomeFeed() {
           avatarUrl={me?.avatar_url}
         />
 
-        {isLoading ? (
+        <div role="tablist" aria-label="Filtro do feed" className="sticky top-[57px] z-30 mb-3 flex border-b border-white/5 bg-background/95 px-4 backdrop-blur">
+          {([
+            { id: "global", label: "Global" },
+            { id: "network", label: "Minha Rede" },
+          ] as const).map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              role="tab"
+              aria-selected={tab === t.id}
+              onClick={() => setTab(t.id)}
+              className={`relative flex-1 py-3 text-sm font-semibold transition-colors ${
+                tab === t.id ? "text-white" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+              {tab === t.id && (
+                <span className="absolute inset-x-4 -bottom-px h-0.5 rounded-full bg-brand shadow-[0_0_10px_var(--brand)]" />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {(isLoading || !networkReady) ? (
           <ul className="flex flex-col gap-4 px-4" aria-busy="true">
             <PostCardSkeleton />
             <PostCardSkeleton />
@@ -269,6 +304,19 @@ function HomeFeed() {
             </button>
           </div>
         ) : !posts?.length ? (
+          tab === "network" ? (
+            <div className="mx-4 rounded-2xl border border-white/5 bg-surface p-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                Seu tatame está vazio. Conecte-se com parceiros de treino para ver suas atualizações!
+              </p>
+              <Link
+                to="/explore"
+                className="mt-4 inline-block rounded-xl bg-brand px-5 py-2.5 text-xs font-bold text-brand-foreground shadow-[0_0_20px_-4px_var(--brand)]"
+              >
+                Procurar Atletas
+              </Link>
+            </div>
+          ) : (
           <div className="mx-4 rounded-2xl border border-white/5 bg-surface p-6 text-center">
             <p className="text-sm text-muted-foreground">
               Nenhum treino registrado ainda. Seja o primeiro a fazer o check-in!
@@ -280,6 +328,7 @@ function HomeFeed() {
               Fazer check-in
             </Link>
           </div>
+          )
         ) : (
           <ul className="flex flex-col gap-4 px-4">
             {(posts as unknown as FeedPost[]).map((post) => (

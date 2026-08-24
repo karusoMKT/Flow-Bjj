@@ -107,3 +107,16 @@ export async function fetchConnectionWith(targetId: string): Promise<ConnectionE
     state: data.status === "accepted" ? "connected" : data.requester_id === uid ? "outgoing" : "incoming",
   };
 }
+
+/** IDs dos atletas com conexão aceita com o usuário logado. */
+export async function fetchConnectedUserIds(): Promise<string[]> {
+  const uid = await getCurrentUserId();
+  if (!uid) return [];
+  const { data, error } = await supabase
+    .from("connections")
+    .select("requester_id, receiver_id")
+    .eq("status", "accepted")
+    .or(`requester_id.eq.${uid},receiver_id.eq.${uid}`);
+  if (error) throw error;
+  return (data ?? []).map((r) => (r.requester_id === uid ? r.receiver_id : r.requester_id));
+}
