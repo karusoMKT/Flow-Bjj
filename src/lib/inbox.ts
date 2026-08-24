@@ -229,3 +229,49 @@ export async function fetchUnreadMessagesCount() {
   const conversations = await fetchConversations();
   return conversations.reduce((sum, c) => sum + c.unread, 0);
 }
+
+/* ---------------- Conexões e chat ---------------- */
+
+/** Abre (ou cria) a conversa 1:1 com outro atleta. Exige conexão aceita. */
+export async function getOrCreateConversation(otherUserId: string): Promise<string> {
+  const userId = await getCurrentUserId();
+  if (!userId) throw new Error("Sessão expirada");
+
+  const { data: connected, error: connError } = await supabase.rpc("are_connected", {
+    _a: userId,
+    _b: otherUserId,
+  });
+  if (connError) throw connError;
+  if (!connected) throw new Error("Conecte-se para enviar mensagens");
+
+  const { data: mine } = await supabase
+    .from("conversation_participants")
+    .select("conversation_id")
+    .eq("user_id", userId);
+  const ids = (mine ?? []).map((r) => r.conversation_id);
+
+  if (ids.length) {
+    const { data: shared } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id")
+      .eq("user_id", otherUserId)
+      .in("conversation_id", ids)
+      .limit(1);
+    if (shared?.[0]) return shared[0].conversation_id;
+  }
+
+  const { data: conversation, error } = await supabase
+    .from("conversations")
+    .insert({ created_by: userId })
+    .select("id")
+    .single();
+  if (error) throw error;
+
+  const { error: partError } = await supabase.from("conversation_participants").insert([
+    { conversation_id: conversation.id, user_id: userId },
+    { conversation_id: conversation.id, user_id: otherUserId },
+  ]);
+  if (partError) throw partError;
+
+  return conversation.id;
+}
