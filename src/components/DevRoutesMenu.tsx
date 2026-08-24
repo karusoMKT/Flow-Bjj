@@ -38,7 +38,7 @@ export function DevRoutesMenu() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-[60] flex items-end bg-black/70 backdrop-blur-sm" role="dialog" aria-modal="true">
+        <div className="fixed inset-0 z-[60] flex items-end bg-black/70 animate-fade-in backdrop-blur-sm" role="dialog" aria-modal="true">
           <button type="button" aria-label="Fechar" className="absolute inset-0" onClick={() => setOpen(false)} />
           <div className="relative mx-auto max-h-[80vh] w-full max-w-md overflow-y-auto rounded-t-3xl border-t border-white/10 bg-surface p-5">
             <div className="flex items-center justify-between">
