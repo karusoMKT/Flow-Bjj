@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Bell, Check, Heart, Medal, MessageCircle, Trophy, UserCheck, UserPlus } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { PushPermissionPrompt } from "@/components/PushPermissionPrompt";
 import { ConnectionButton } from "@/components/ConnectionButton";
 import {
   avatarFor,
@@ -165,6 +166,8 @@ function NotificationsPage() {
           </div>
         )}
       </main>
+
+      <PushPermissionPrompt />
 
       <BottomNav />
     </div>
