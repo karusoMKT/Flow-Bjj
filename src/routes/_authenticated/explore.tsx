@@ -237,6 +237,30 @@ function EventCardCompact({ event }: { event: EventPost }) {
   );
 }
 
+function GymRow({ gym }: { gym: GymResult }) {
+  return (
+    <li>
+      <Link
+        to="/gym/$gymId"
+        params={{ gymId: gym.id }}
+        className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5 transition-colors hover:border-brand/50"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-brand/30 bg-brand/10 text-brand">
+          <Building2 className="size-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">{gym.name}</span>
+          <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+            <MapPin className="size-3 shrink-0" />
+            {gym.address ?? "Academia da comunidade"}
+          </span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </Link>
+    </li>
+  );
+}
+
 function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string }) {
   return (
     <li className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5">
@@ -255,15 +279,12 @@ function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string })
       {badge && (
         <span className="rounded-full bg-brand/15 px-2 py-1 text-[10px] font-bold uppercase text-brand">{badge}</span>
       )}
-      <Link
-        to="/perfil"
-        className="rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-foreground transition-colors hover:border-brand/60 hover:text-brand"
-      >
-        Ver perfil
-      </Link>
+      <FollowButton targetId={profile.id} />
     </li>
   );
 }
+
+
 
 function Explore() {
   const [term, setTerm] = useState("");
