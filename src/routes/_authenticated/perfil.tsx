@@ -9,6 +9,7 @@ import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/compo
 import { beltClass } from "@/lib/feed";
 import { AchievementIcon } from "@/components/AchievementModal";
 import { ShareButton } from "@/components/ShareButton";
+import { ProBadge, CompetitorTag } from "@/components/ProBadge";
 import { fetchAchievements } from "@/lib/achievements";
 import { levelProgress, syncXp } from "@/lib/xp";
 
