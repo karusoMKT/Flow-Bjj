@@ -130,7 +130,7 @@ async function searchGyms(like: string): Promise<GymResult[]> {
   const gyms: GymResult[] = (gymsRes.data ?? []).map((g) => ({
     id: g.id,
     name: g.name,
-    address: g.address ?? [g.city, g.state].filter(Boolean).join(", ") || null,
+    address: g.address ?? ([g.city, g.state].filter(Boolean).join(", ") || null),
     source: "gym" as const,
   }));
   return [...custom, ...gyms];
