@@ -306,22 +306,35 @@ function StatisticsPage() {
             <h1 className="font-sans text-xl font-semibold">Estatísticas</h1>
           </div>
 
-          <div className="relative">
-            <select
-              value={periodLabel}
-              onChange={(e) => setPeriodLabel(e.target.value)}
-              aria-label="Selecionar período"
-              className="appearance-none rounded-full border border-white/10 bg-surface py-2 pl-3 pr-8 text-xs font-medium text-foreground outline-none focus:border-brand/60"
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <select
+                value={periodLabel}
+                onChange={(e) => setPeriodLabel(e.target.value)}
+                aria-label="Selecionar período"
+                className="appearance-none rounded-full border border-white/10 bg-surface py-2 pl-3 pr-8 text-xs font-medium text-foreground outline-none focus:border-brand/60"
+              >
+                {PERIODS.map((p) => (
+                  <option key={p.label} value={p.label} className="bg-surface">
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-brand" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleShare}
+              disabled={sharing || isLoading}
+              aria-label="Compartilhar estatísticas"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {PERIODS.map((p) => (
-                <option key={p.label} value={p.label} className="bg-surface">
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-brand" />
+              {sharing ? <Loader2 className="size-4 animate-spin" /> : <Share2 className="size-4" />}
+            </button>
           </div>
         </header>
+
 
         <section className="mt-5 grid grid-cols-3 gap-2">
           {summary.map(({ icon: Icon, label, value }) => (
