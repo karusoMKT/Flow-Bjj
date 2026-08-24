@@ -81,12 +81,33 @@ async function fetchStats(days: number) {
     return acc;
   }, {});
 
+  // Frequência por dia da semana (Seg..Dom)
+  const weekdayCounts = [0, 0, 0, 0, 0, 0, 0];
+  for (const w of workouts) {
+    const idx = (new Date(w.created_at).getDay() + 6) % 7;
+    weekdayCounts[idx] += 1;
+  }
+  const byWeekday = WEEKDAYS.map((label, i) => ({ label, value: weekdayCounts[i] }));
+
+  // Gi x No-Gi
+  let gi = 0;
+  let noGi = 0;
+  for (const w of workouts) {
+    const t = (w.training_type ?? "").toLowerCase();
+    if (t.includes("no-gi") || t.includes("nogi") || t.includes("no gi")) noGi += 1;
+    else if (t.includes("kimono") || t === "gi") gi += 1;
+  }
+
   return {
     totalWorkouts: workouts.length,
     totalCompetitions: compRes.count ?? 0,
     totalMinutes,
+    totalXp: profileRes.data?.xp ?? 0,
     types,
     perDay,
+    byWeekday,
+    gi,
+    noGi,
     since: since.toISOString(),
   };
 }
