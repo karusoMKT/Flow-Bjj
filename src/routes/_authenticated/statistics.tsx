@@ -122,6 +122,13 @@ async function fetchStats(days: number) {
     totalCompetitions: compRes.count ?? 0,
     totalMinutes,
     totalXp: profileRes.data?.xp ?? 0,
+    profile: {
+      athlete: profileRes.data?.full_name ?? "Atleta Flow",
+      username: profileRes.data?.username ?? null,
+      belt: profileRes.data?.belt ?? null,
+      avatarUrl: profileRes.data?.avatar_url ?? null,
+    },
+
     types,
     perDay,
     byWeekday,
