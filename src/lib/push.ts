@@ -89,3 +89,39 @@ export async function requestPushPermission(): Promise<PushPermission> {
   }
   return "granted";
 }
+
+/** Marca que o usuário acabou de entrar/cadastrar — pedimos permissão logo no início. */
+export const PUSH_ASK_PENDING_KEY = "flow:pushAskPending";
+
+export function markPushAskPending() {
+  if (typeof window !== "undefined") localStorage.setItem(PUSH_ASK_PENDING_KEY, "1");
+}
+
+export function clearPushAskPending() {
+  if (typeof window !== "undefined") localStorage.removeItem(PUSH_ASK_PENDING_KEY);
+}
+
+export function isPushAskPending(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem(PUSH_ASK_PENDING_KEY) === "1";
+}
+
+/** Pedir agora? (primeiro acesso pós-login ou usuário ainda não perguntado) */
+export function shouldAskForPushNow(): boolean {
+  if (getPushPermission() !== "default") return false;
+  return isPushAskPending() || !hasSeenPushPrompt();
+}
+
+export const PUSH_BANNER_DISMISSED_KEY = "flow:pushBannerDismissed";
+
+export function dismissPushBanner() {
+  if (typeof window !== "undefined") localStorage.setItem(PUSH_BANNER_DISMISSED_KEY, "1");
+}
+
+/** Banner de lembrete no sininho: permissão negada/ignorada e usuário não fechou o aviso. */
+export function shouldShowPushBanner(): boolean {
+  if (typeof window === "undefined") return false;
+  const perm = getPushPermission();
+  if (perm !== "denied" && perm !== "default") return false;
+  return localStorage.getItem(PUSH_BANNER_DISMISSED_KEY) !== "1";
+}
