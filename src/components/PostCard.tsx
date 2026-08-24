@@ -3,6 +3,7 @@ import { PostActions } from "@/components/PostActions";
 import { EventInterest } from "@/components/EventInterest";
 import { ShareButton } from "@/components/ShareButton";
 import { ChampionBadge } from "@/components/ChampionBadge";
+import { ProBadge, CompetitorTag } from "@/components/ProBadge";
 import { socialCounts } from "@/lib/social";
 import { timeAgo, beltClass } from "@/lib/feed";
 import { parseCompetition, placementTone } from "@/lib/competition";
