@@ -81,7 +81,7 @@ export async function fetchRanking(period: RankingPeriod): Promise<RankingRow[]>
 
   const { data: profiles, error: profilesError } = await supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, belt, stripes, team, home_academy, is_competitor, is_weekly_champion");
+    .select("id, username, full_name, avatar_url, belt, stripes, team, home_academy, is_competitor, is_pro, is_weekly_champion");
   if (profilesError) throw profilesError;
 
   return (profiles ?? [])
