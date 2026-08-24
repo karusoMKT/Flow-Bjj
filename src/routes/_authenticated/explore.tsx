@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Building2, CalendarDays, ChevronRight, MapPin, Search, Users } from "lucide-react";
-import { FollowButton } from "@/components/FollowButton";
+import { ConnectionButton } from "@/components/ConnectionButton";
 
 import { BottomNav } from "@/components/BottomNav";
 import { ChampionBadge } from "@/components/ChampionBadge";
@@ -282,7 +282,7 @@ function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string })
       {badge && (
         <span className="rounded-full bg-brand/15 px-2 py-1 text-[10px] font-bold uppercase text-brand">{badge}</span>
       )}
-      <FollowButton targetId={profile.id} />
+      <ConnectionButton targetId={profile.id} />
     </li>
   );
 }
