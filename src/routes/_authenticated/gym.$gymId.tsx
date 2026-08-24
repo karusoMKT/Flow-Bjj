@@ -1,151 +1,215 @@
+import { useState } from "react";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { ArrowLeft, CalendarDays, MapPin, QrCode, Star, Users } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, Building2, CalendarDays, MapPin, Users } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { FollowButton } from "@/components/FollowButton";
+import { ChampionBadge } from "@/components/ChampionBadge";
+import { ProBadge, CompetitorTag } from "@/components/ProBadge";
+import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
+import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { FEED_SELECT } from "@/lib/social";
 
-type Gym = {
+type Member = {
+  id: string;
+  username: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  belt: string | null;
+  xp: number | null;
+  is_pro: boolean | null;
+  is_competitor: boolean | null;
+  is_weekly_champion: boolean | null;
+};
+
+type GymData = {
   name: string;
-  address: string;
-  students: number;
-  professors: number;
-  rating: number;
-  top: { name: string; xp: number }[];
+  address: string | null;
+  members: Member[];
+  events: FeedPost[];
+  feed: FeedPost[];
+  uid: string | null;
 };
 
-const GYMS: Record<string, Gym> = {
-  "alliance-barra": {
-    name: "Alliance Barra da Tijuca",
-    address: "Av. das Américas, 3500 — Barra da Tijuca, Rio de Janeiro, RJ",
-    students: 248,
-    professors: 6,
-    rating: 4.9,
-    top: [
-      { name: "João Santos", xp: 2950 },
-      { name: "Thiago Alves", xp: 2310 },
-      { name: "Marina Souza", xp: 1980 },
-    ],
-  },
-  "checkmat-ipanema": {
-    name: "Checkmat Ipanema",
-    address: "R. Visconde de Pirajá, 550 — Ipanema, Rio de Janeiro, RJ",
-    students: 132,
-    professors: 4,
-    rating: 4.7,
-    top: [
-      { name: "Carlos Oliveira", xp: 1870 },
-      { name: "Rafael Barbosa", xp: 1420 },
-      { name: "Felipe Lima", xp: 1300 },
-    ],
-  },
-};
+async function fetchGym(gymId: string): Promise<GymData> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id ?? null;
 
-const FALLBACK: Gym = {
-  name: "Academia Flow",
-  address: "Endereço não informado",
-  students: 0,
-  professors: 0,
-  rating: 0,
-  top: [],
-};
+  const [customRes, gymRes] = await Promise.all([
+    supabase.from("custom_locations").select("name, address").eq("id", gymId).maybeSingle(),
+    supabase.from("gyms").select("name, address, city, state").eq("id", gymId).maybeSingle(),
+  ]);
 
-const avatarUrl = (name: string) =>
-  `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=1f1f22&color=d7ff3e&bold=true&size=160`;
+  const name = customRes.data?.name ?? gymRes.data?.name ?? null;
+  if (!name) throw new Error("Academia não encontrada");
+  const address =
+    customRes.data?.address ??
+    gymRes.data?.address ??
+    ([gymRes.data?.city, gymRes.data?.state].filter(Boolean).join(", ") || null);
 
-const POSITION_STYLE = ["text-brand", "text-white/80", "text-amber-500"];
+  const like = `%${name}%`;
+  const { data: members, error: membersError } = await supabase
+    .from("profiles")
+    .select("id, username, full_name, avatar_url, belt, xp, is_pro, is_competitor, is_weekly_champion")
+    .or(`home_academy.ilike.${like},team.ilike.${like}`)
+    .order("xp", { ascending: false })
+    .limit(100);
+  if (membersError) throw membersError;
+
+  const memberIds = (members ?? []).map((m) => m.id);
+
+  const [eventsRes, feedRes] = await Promise.all([
+    supabase
+      .from("posts")
+      .select(FEED_SELECT)
+      .eq("post_type", "event")
+      .ilike("event_location", like)
+      .order("event_date", { ascending: true })
+      .limit(20),
+    memberIds.length
+      ? supabase
+          .from("posts")
+          .select(FEED_SELECT)
+          .in("user_id", memberIds)
+          .neq("post_type", "event")
+          .order("created_at", { ascending: false })
+          .limit(30)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  return {
+    name,
+    address,
+    members: (members ?? []) as Member[],
+    events: ((eventsRes.data ?? []) as unknown as FeedPost[]) ?? [],
+    feed: ((feedRes.data ?? []) as unknown as FeedPost[]) ?? [],
+    uid,
+  };
+}
+
+const TABS = [
+  { id: "members", label: "Alunos" },
+  { id: "events", label: "Eventos" },
+  { id: "mat", label: "Tatame" },
+] as const;
 
 function GymPage() {
   const { gymId } = useParams({ from: "/_authenticated/gym/$gymId" });
-  const gym = GYMS[gymId] ?? FALLBACK;
+  const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("members");
+  const { data, isLoading, error } = useQuery({ queryKey: ["gym", gymId], queryFn: () => fetchGym(gymId) });
 
   return (
     <div className="min-h-screen bg-background pb-28">
-      <header className="relative h-56 w-full overflow-hidden">
+      <header className="relative overflow-hidden border-b border-border">
         <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_0%,var(--color-surface-2),var(--color-background))]" />
-        <div className="absolute inset-0 hero-fade" />
-        <Link
-          to="/search"
-          aria-label="Voltar"
-          className="absolute left-4 top-4 flex size-9 items-center justify-center rounded-full border border-border bg-black/40 text-foreground backdrop-blur"
-        >
-          <ArrowLeft className="size-5" />
-        </Link>
-        <div className="absolute inset-x-0 bottom-6 flex flex-col items-center">
-          <div className="flex size-24 items-center justify-center rounded-2xl border border-brand/40 bg-black/60 shadow-[0_10px_40px_-12px_var(--brand)]">
-            <span className="text-2xl font-black italic tracking-tight">
-              <span className="text-brand">{gym.name.charAt(0)}</span>
-              <span className="text-foreground">{gym.name.split(" ")[0].slice(1, 4).toUpperCase()}</span>
+        <div className="relative mx-auto max-w-md px-4 pb-6 pt-5">
+          <Link
+            to="/explore"
+            aria-label="Voltar"
+            className="flex size-9 items-center justify-center rounded-full border border-border bg-black/40 text-foreground backdrop-blur"
+          >
+            <ArrowLeft className="size-5" />
+          </Link>
+
+          <div className="mt-4 flex flex-col items-center text-center">
+            <span className="grid size-20 place-items-center rounded-2xl border border-brand/40 bg-black/60 text-brand shadow-[0_10px_40px_-14px_var(--brand)]">
+              <Building2 className="size-9" />
             </span>
+            {isLoading ? (
+              <Skeleton className="mt-4 h-6 w-48" />
+            ) : (
+              <h1 className="mt-4 text-xl font-black italic tracking-tight">{data?.name ?? "Academia"}</h1>
+            )}
+            <p className="mt-2 flex max-w-xs items-start justify-center gap-1.5 text-xs text-muted-foreground">
+              <MapPin className="mt-0.5 size-3.5 shrink-0" />
+              {error ? "Academia não encontrada" : (data?.address ?? "Endereço não informado")}
+            </p>
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-[11px] font-bold text-brand">
+              <Users className="size-3.5" />
+              {data?.members.length ?? 0} alunos registrados
+            </p>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto -mt-2 max-w-md px-4">
-        <h1 className="text-center font-sans text-xl font-semibold not-italic tracking-tight">{gym.name}</h1>
-        <p className="mx-auto mt-2 flex max-w-xs items-start justify-center gap-1.5 text-center text-xs text-muted-foreground">
-          <MapPin className="mt-0.5 size-3.5 shrink-0" />
-          {gym.address}
-        </p>
-
-        <div className="mt-6 grid grid-cols-3 divide-x divide-white/5 rounded-2xl border border-border bg-surface py-4">
-          {[
-            { label: "Alunos", value: gym.students, icon: Users },
-            { label: "Professores", value: gym.professors, icon: Users },
-            { label: "Avaliação", value: gym.rating.toFixed(1), icon: Star },
-          ].map(({ label, value, icon: Icon }) => (
-            <div key={label} className="flex flex-col items-center gap-1">
-              <Icon className="size-4 text-brand" />
-              <span className="text-lg font-bold">{value}</span>
-              <span className="text-[11px] text-muted-foreground">{label}</span>
-            </div>
+      <main className="mx-auto max-w-md px-4 pt-4">
+        <div className="grid grid-cols-3 gap-1 rounded-full border border-border bg-surface p-1">
+          {TABS.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => setTab(t.id)}
+              className={`rounded-full py-2 text-xs font-bold transition-colors ${
+                tab === t.id ? "bg-brand text-brand-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {t.label}
+            </button>
           ))}
         </div>
 
-        <div className="mt-5 space-y-3">
-          <Link
-            to="/checkin"
-            className="flex w-full items-center justify-center gap-2 rounded-full bg-brand py-3.5 text-sm font-bold text-brand-foreground shadow-[0_10px_30px_-12px_var(--brand)]"
-          >
-            <QrCode className="size-4" strokeWidth={2.5} />
-            Fazer check-in
-          </Link>
-          <button
-            type="button"
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-border bg-surface py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-surface-2"
-          >
-            <CalendarDays className="size-4" />
-            Ver agenda
-          </button>
-        </div>
-
-        <section className="mt-8">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-semibold">Ranking da academia</h2>
-            <Link to="/ranking" className="text-xs font-semibold text-brand">
-              Ver todos
-            </Link>
+        {isLoading ? (
+          <div className="mt-4 space-y-2">
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
+            <Skeleton className="h-16 w-full rounded-2xl" />
           </div>
-
-          <ul className="mt-2 divide-y divide-white/5">
-            {gym.top.map((athlete, i) => (
-              <li key={athlete.name} className="flex items-center gap-3 py-3">
-                <span className={`w-5 text-sm font-bold ${POSITION_STYLE[i] ?? "text-muted-foreground"}`}>
-                  {i + 1}
-                </span>
-                <img
-                  src={avatarUrl(athlete.name)}
-                  alt={athlete.name}
-                  loading="lazy"
-                  className="size-10 rounded-full object-cover ring-1 ring-white/10"
-                />
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold">{athlete.name}</span>
-                <span className="font-mono text-sm text-brand">{athlete.xp.toLocaleString("pt-BR")} XP</span>
-              </li>
+        ) : tab === "members" ? (
+          data?.members.length ? (
+            <ul className="mt-4 flex flex-col gap-2">
+              {data.members.map((m) => (
+                <li key={m.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5">
+                  <AvatarBubble src={m.avatar_url} name={m.full_name ?? m.username} className="size-11" />
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-1 truncate text-sm font-semibold">
+                      {m.full_name || m.username}
+                      {m.is_pro && <ProBadge className="size-3" />}
+                      <ChampionBadge active={m.is_weekly_champion} />
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {[m.belt, `${m.xp ?? 0} XP`].filter(Boolean).join(" • ")}
+                    </p>
+                    {m.is_competitor && m.is_pro && <CompetitorTag className="mt-1" />}
+                  </div>
+                  <FollowButton targetId={m.id} />
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-6 rounded-2xl border border-white/5 bg-surface p-6 text-center text-sm text-muted-foreground">
+              Nenhum aluno vinculou o perfil a esta academia ainda.
+            </p>
+          )
+        ) : tab === "events" ? (
+          data?.events.length ? (
+            <ul className="mt-4 flex flex-col gap-4">
+              {data.events.map((p) => (
+                <PostCard key={p.id} post={p} currentUserId={data.uid ?? undefined} />
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-6 flex flex-col items-center gap-2 rounded-2xl border border-white/5 bg-surface p-6 text-center text-sm text-muted-foreground">
+              <CalendarDays className="size-6 text-brand" />
+              Nenhum evento nesta academia por enquanto.
+            </p>
+          )
+        ) : data?.feed.length ? (
+          <ul className="mt-4 flex flex-col gap-4">
+            {data.feed.map((p) => (
+              <PostCard key={p.id} post={p} currentUserId={data.uid ?? undefined} />
             ))}
-            {gym.top.length === 0 && (
-              <li className="py-4 text-sm text-muted-foreground">Ranking ainda não disponível.</li>
-            )}
           </ul>
-        </section>
+        ) : (
+          <ul className="mt-4 flex flex-col gap-4">
+            <PostCardSkeleton />
+            <p className="text-center text-sm text-muted-foreground">
+              O tatame ainda está vazio. Faça o primeiro check-in por aqui!
+            </p>
+          </ul>
+        )}
       </main>
+
       <BottomNav />
     </div>
   );
@@ -154,12 +218,18 @@ function GymPage() {
 export const Route = createFileRoute("/_authenticated/gym/$gymId")({
   head: () => ({
     meta: [
-      { title: "Academia | Flow Jiu-Jitsu" },
-      { name: "description", content: "Veja informações, agenda e ranking da academia de Jiu-Jitsu." },
-      { property: "og:title", content: "Academia | Flow Jiu-Jitsu" },
-      { property: "og:description", content: "Veja informações, agenda e ranking da academia de Jiu-Jitsu." },
+      { title: "Comunidade da academia | Flow Jiu-Jitsu" },
+      {
+        name: "description",
+        content: "Veja alunos, eventos e o tatame (feed) da academia de Jiu-Jitsu na comunidade Flow.",
+      },
+      { property: "og:title", content: "Comunidade da academia | Flow Jiu-Jitsu" },
+      {
+        property: "og:description",
+        content: "Veja alunos, eventos e o tatame (feed) da academia de Jiu-Jitsu na comunidade Flow.",
+      },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: GymPage,
