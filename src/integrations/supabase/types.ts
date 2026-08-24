@@ -517,6 +517,7 @@ export type Database = {
           is_weekly_champion: boolean
           level: number
           professor: string | null
+          push_token: string | null
           stripes: number
           team: string | null
           total_xp: number
@@ -538,6 +539,7 @@ export type Database = {
           is_weekly_champion?: boolean
           level?: number
           professor?: string | null
+          push_token?: string | null
           stripes?: number
           team?: string | null
           total_xp?: number
@@ -559,6 +561,7 @@ export type Database = {
           is_weekly_champion?: boolean
           level?: number
           professor?: string | null
+          push_token?: string | null
           stripes?: number
           team?: string | null
           total_xp?: number
