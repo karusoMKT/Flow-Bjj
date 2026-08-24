@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Bell, Check, Heart, Medal, MessageCircle, Trophy, UserPlus } from "lucide-react";
+import { Bell, Check, Heart, Medal, MessageCircle, Trophy, UserCheck, UserPlus } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { ConnectionButton } from "@/components/ConnectionButton";
 import {
   avatarFor,
   displayName,
@@ -21,10 +22,13 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   like: Heart,
   comment: MessageCircle,
   follow: UserPlus,
+  connection_request: UserPlus,
+  connection_accepted: UserCheck,
   achievement: Medal,
   challenge: Trophy,
   system: Bell,
 };
+
 
 function NotificationItem({ notification }: { notification: NotificationRow }) {
   const Icon = TYPE_ICON[notification.type] ?? Bell;
