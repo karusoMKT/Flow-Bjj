@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { CalendarDays, MapPin, Search, Users } from "lucide-react";
+import { Building2, CalendarDays, ChevronRight, MapPin, Search, Users } from "lucide-react";
+import { FollowButton } from "@/components/FollowButton";
+
 import { BottomNav } from "@/components/BottomNav";
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { ProBadge, CompetitorTag } from "@/components/ProBadge";
@@ -114,9 +116,31 @@ const eventsQuery = queryOptions({ queryKey: ["explore", "events"], queryFn: fet
 const mediaQuery = queryOptions({ queryKey: ["explore", "media"], queryFn: fetchMedia });
 const athletesQuery = queryOptions({ queryKey: ["explore", "athletes"], queryFn: fetchAthletes });
 
+export type GymResult = { id: string; name: string; address: string | null; source: "custom" | "gym" };
+
+async function searchGyms(like: string): Promise<GymResult[]> {
+  const [customRes, gymsRes] = await Promise.all([
+    supabase.from("custom_locations").select("id, name, address").ilike("name", like).limit(10),
+    supabase.from("gyms").select("id, name, address, city, state").ilike("name", like).limit(10),
+  ]);
+  const custom: GymResult[] = (customRes.data ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    address: g.address,
+    source: "custom" as const,
+  }));
+  const gyms: GymResult[] = (gymsRes.data ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    address: g.address ?? ([g.city, g.state].filter(Boolean).join(", ") || null),
+    source: "gym" as const,
+  }));
+  return [...custom, ...gyms];
+}
+
 async function search(term: string) {
   const like = `%${term}%`;
-  const [profilesRes, eventsRes] = await Promise.all([
+  const [profilesRes, eventsRes, gyms] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion, is_pro, is_competitor")
@@ -129,14 +153,17 @@ async function search(term: string) {
       .ilike("event_title", like)
       .order("event_date", { ascending: true })
       .limit(15),
+    searchGyms(like),
   ]);
   if (profilesRes.error) throw profilesRes.error;
   if (eventsRes.error) throw eventsRes.error;
   return {
     athletes: (profilesRes.data ?? []) as ProfileRow[],
     events: (eventsRes.data ?? []) as unknown as EventPost[],
+    gyms,
   };
 }
+
 
 function initials(name: string) {
   return name
@@ -210,6 +237,30 @@ function EventCardCompact({ event }: { event: EventPost }) {
   );
 }
 
+function GymRow({ gym }: { gym: GymResult }) {
+  return (
+    <li>
+      <Link
+        to="/gym/$gymId"
+        params={{ gymId: gym.id }}
+        className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5 transition-colors hover:border-brand/50"
+      >
+        <span className="grid size-11 shrink-0 place-items-center rounded-xl border border-brand/30 bg-brand/10 text-brand">
+          <Building2 className="size-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-semibold text-foreground">{gym.name}</span>
+          <span className="flex items-center gap-1 truncate text-xs text-muted-foreground">
+            <MapPin className="size-3 shrink-0" />
+            {gym.address ?? "Academia da comunidade"}
+          </span>
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+      </Link>
+    </li>
+  );
+}
+
 function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string }) {
   return (
     <li className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5">
@@ -228,15 +279,12 @@ function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string })
       {badge && (
         <span className="rounded-full bg-brand/15 px-2 py-1 text-[10px] font-bold uppercase text-brand">{badge}</span>
       )}
-      <Link
-        to="/perfil"
-        className="rounded-full border border-border px-3 py-1.5 text-[11px] font-bold text-foreground transition-colors hover:border-brand/60 hover:text-brand"
-      >
-        Ver perfil
-      </Link>
+      <FollowButton targetId={profile.id} />
     </li>
   );
 }
+
+
 
 function Explore() {
   const [term, setTerm] = useState("");
@@ -291,7 +339,22 @@ function Explore() {
                   {results.athletes.length === 0 && <p className="text-xs text-muted-foreground">Nenhum atleta encontrado.</p>}
                 </div>
                 <div>
-                  <h2 className="mb-2 text-sm font-semibold text-muted-foreground">Eventos</h2>
+                  <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <Building2 className="size-4 text-brand" /> Academias
+                  </h2>
+                  <ul className="flex flex-col gap-2">
+                    {results.gyms.map((g) => (
+                      <GymRow key={`${g.source}-${g.id}`} gym={g} />
+                    ))}
+                  </ul>
+                  {results.gyms.length === 0 && (
+                    <p className="text-xs text-muted-foreground">Nenhuma academia encontrada.</p>
+                  )}
+                </div>
+                <div>
+                  <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                    <CalendarDays className="size-4 text-brand" /> Eventos
+                  </h2>
                   <div className="scrollbar-hide flex gap-3 overflow-x-auto">
                     {results.events.map((e) => (
                       <EventCardCompact key={e.id} event={e} />
@@ -299,6 +362,7 @@ function Explore() {
                   </div>
                   {results.events.length === 0 && <p className="text-xs text-muted-foreground">Nenhum evento encontrado.</p>}
                 </div>
+
               </>
             )}
           </section>
