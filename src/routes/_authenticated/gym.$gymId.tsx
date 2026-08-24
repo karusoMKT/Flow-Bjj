@@ -3,7 +3,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, Building2, CalendarDays, MapPin, Users } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
-import { FollowButton } from "@/components/FollowButton";
+import { ConnectionButton } from "@/components/ConnectionButton";
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { ProBadge, CompetitorTag } from "@/components/ProBadge";
 import { PostCard, PostCardSkeleton, AvatarBubble, type FeedPost } from "@/components/PostCard";
@@ -161,19 +161,26 @@ function GymPage() {
             <ul className="mt-4 flex flex-col gap-2">
               {data.members.map((m) => (
                 <li key={m.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5">
-                  <AvatarBubble src={m.avatar_url} name={m.full_name ?? m.username} className="size-11" />
-                  <div className="min-w-0 flex-1">
-                    <p className="flex flex-wrap items-center gap-1 truncate text-sm font-semibold">
-                      {m.full_name || m.username}
-                      {m.is_pro && <ProBadge className="size-3" />}
-                      <ChampionBadge active={m.is_weekly_champion} />
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {[m.belt, `${m.xp ?? 0} XP`].filter(Boolean).join(" • ")}
-                    </p>
-                    {m.is_competitor && m.is_pro && <CompetitorTag className="mt-1" />}
-                  </div>
-                  <FollowButton targetId={m.id} />
+                  <Link
+                    to="/atleta/$userId"
+                    params={{ userId: m.id }}
+                    className="flex min-w-0 flex-1 items-center gap-3"
+                  >
+                    <AvatarBubble src={m.avatar_url} name={m.full_name ?? m.username} className="size-11" />
+                    <div className="min-w-0 flex-1">
+                      <p className="flex flex-wrap items-center gap-1 truncate text-sm font-semibold">
+                        {m.full_name || m.username}
+                        {m.is_pro && <ProBadge className="size-3" />}
+                        <ChampionBadge active={m.is_weekly_champion} />
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {[m.belt, `${m.xp ?? 0} XP`].filter(Boolean).join(" • ")}
+                      </p>
+                      {m.is_competitor && m.is_pro && <CompetitorTag className="mt-1" />}
+                    </div>
+                  </Link>
+                  <ConnectionButton targetId={m.id} />
+
                 </li>
               ))}
             </ul>

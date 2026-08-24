@@ -1,8 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Bell, Check, Heart, Medal, MessageCircle, Trophy, UserPlus } from "lucide-react";
+import { Bell, Check, Heart, Medal, MessageCircle, Trophy, UserCheck, UserPlus } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { ConnectionButton } from "@/components/ConnectionButton";
 import {
   avatarFor,
   displayName,
@@ -21,35 +22,48 @@ const TYPE_ICON: Record<string, React.ElementType> = {
   like: Heart,
   comment: MessageCircle,
   follow: UserPlus,
+  connection_request: UserPlus,
+  connection_accepted: UserCheck,
   achievement: Medal,
   challenge: Trophy,
   system: Bell,
 };
+
 
 function NotificationItem({ notification }: { notification: NotificationRow }) {
   const Icon = TYPE_ICON[notification.type] ?? Bell;
   const actorName = notification.actor ? displayName(notification.actor) : "Flow";
   const hasActor = Boolean(notification.actor);
 
+  const avatar = (
+    <div className="relative shrink-0">
+      {hasActor ? (
+        <img
+          src={notification.actor?.avatar_url || avatarFor(actorName)}
+          alt={actorName}
+          loading="lazy"
+          className="size-11 rounded-full object-cover ring-1 ring-white/10"
+        />
+      ) : (
+        <div className="grid size-11 place-items-center rounded-full bg-brand/10 text-brand ring-1 ring-white/10">
+          <Icon className="size-5" strokeWidth={1.8} />
+        </div>
+      )}
+      {!notification.is_read && (
+        <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-brand ring-2 ring-background" />
+      )}
+    </div>
+  );
+
   return (
     <div className="flex items-start gap-3 py-3.5">
-      <div className="relative shrink-0">
-        {hasActor ? (
-          <img
-            src={notification.actor?.avatar_url || avatarFor(actorName)}
-            alt={actorName}
-            loading="lazy"
-            className="size-11 rounded-full object-cover ring-1 ring-white/10"
-          />
-        ) : (
-          <div className="grid size-11 place-items-center rounded-full bg-brand/10 text-brand ring-1 ring-white/10">
-            <Icon className="size-5" strokeWidth={1.8} />
-          </div>
-        )}
-        {!notification.is_read && (
-          <span className="absolute -right-0.5 -top-0.5 size-2.5 rounded-full bg-brand ring-2 ring-background" />
-        )}
-      </div>
+      {notification.actor_id ? (
+        <Link to="/atleta/$userId" params={{ userId: notification.actor_id }}>
+          {avatar}
+        </Link>
+      ) : (
+        avatar
+      )}
 
       <div className="min-w-0 flex-1">
         <p className="text-[13px] leading-snug text-foreground">
@@ -57,9 +71,15 @@ function NotificationItem({ notification }: { notification: NotificationRow }) {
           <span className="text-muted-foreground">{notification.content}</span>
         </p>
         <span className="mt-0.5 text-[11px] text-muted-foreground">{timeAgo(notification.created_at)}</span>
+        {notification.type === "connection_request" && notification.actor_id && (
+          <div className="mt-2">
+            <ConnectionButton targetId={notification.actor_id} />
+          </div>
+        )}
       </div>
     </div>
   );
+
 }
 
 function NotificationsPage() {

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Building2, CalendarDays, ChevronRight, MapPin, Search, Users } from "lucide-react";
-import { FollowButton } from "@/components/FollowButton";
+import { ConnectionButton } from "@/components/ConnectionButton";
 
 import { BottomNav } from "@/components/BottomNav";
 import { ChampionBadge } from "@/components/ChampionBadge";
@@ -264,22 +264,25 @@ function GymRow({ gym }: { gym: GymResult }) {
 function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string }) {
   return (
     <li className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5">
-      <Avatar profile={profile} />
-      <div className="min-w-0 flex-1">
-        <p className="flex flex-wrap items-center gap-1 truncate text-sm font-semibold text-foreground">
-          {profile.full_name || profile.username}
-          {profile.is_pro && <ProBadge className="size-3" />}
-          <ChampionBadge active={profile.is_weekly_champion} />
-        </p>
-        <p className="truncate text-xs text-muted-foreground">
-          {[profile.belt, profile.home_academy || profile.team].filter(Boolean).join(" • ") || `@${profile.username}`}
-        </p>
-        {profile.is_competitor && profile.is_pro && <CompetitorTag className="mt-1" />}
-      </div>
+      <Link to="/atleta/$userId" params={{ userId: profile.id }} className="flex min-w-0 flex-1 items-center gap-3">
+        <Avatar profile={profile} />
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-1 truncate text-sm font-semibold text-foreground">
+            {profile.full_name || profile.username}
+            {profile.is_pro && <ProBadge className="size-3" />}
+            <ChampionBadge active={profile.is_weekly_champion} />
+          </p>
+          <p className="truncate text-xs text-muted-foreground">
+            {[profile.belt, profile.home_academy || profile.team].filter(Boolean).join(" • ") || `@${profile.username}`}
+          </p>
+          {profile.is_competitor && profile.is_pro && <CompetitorTag className="mt-1" />}
+        </div>
+      </Link>
+
       {badge && (
         <span className="rounded-full bg-brand/15 px-2 py-1 text-[10px] font-bold uppercase text-brand">{badge}</span>
       )}
-      <FollowButton targetId={profile.id} />
+      <ConnectionButton targetId={profile.id} />
     </li>
   );
 }
