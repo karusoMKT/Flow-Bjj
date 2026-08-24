@@ -214,6 +214,7 @@ function Ranking() {
                     </div>
                     <p className="mt-2 flex max-w-full items-center justify-center gap-1 text-xs font-medium text-foreground">
                       <span className="truncate">{a.name}</span>
+                      {a.isPro && <ProBadge className="size-3" />}
                       <ChampionBadge active={a.isChampion} className="size-3.5" />
                     </p>
                     <BeltDot belt={a.belt} />
@@ -246,6 +247,7 @@ function Ranking() {
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-1 text-sm font-medium text-foreground">
                       <span className="truncate">{a.name}</span>
+                      {a.isPro && <ProBadge className="size-3" />}
                       <ChampionBadge active={a.isChampion} className="size-3.5" />
                     </p>
                     <div className="flex items-center gap-2 truncate">
