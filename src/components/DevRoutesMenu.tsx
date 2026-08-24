@@ -17,7 +17,7 @@ const ROUTES: Entry[] = [
   { to: "/notifications", label: "Notificações" },
   { to: "/settings", label: "Configurações" },
   { to: "/settings/notifications", label: "Preferências de notificação" },
-  { to: "/premium", label: "Flow Premium" },
+  { to: "/pro", label: "Flow PRO" },
   { to: "/coach", label: "IA Coach" },
   { to: "/training-plan", label: "Plano de Treino" },
   { to: "/analysis", label: "Análise" },
