@@ -243,6 +243,116 @@ function StatisticsPage() {
           ))}
         </section>
 
+        <div className="mt-2 flex items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
+          <Medal className="size-3.5 text-brand" />
+          {data?.totalCompetitions ?? 0} competição(ões) no período
+        </div>
+
+        {!isLoading && !hasData ? (
+          <section className="card-elevated mt-4 flex flex-col items-center rounded-2xl px-6 py-10 text-center">
+            <span className="flex size-14 items-center justify-center rounded-full bg-brand/10">
+              <BarChart3 className="size-7 text-brand" />
+            </span>
+            <p className="mt-4 text-sm font-semibold">Continue treinando para desbloquear suas estatísticas!</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Seus gráficos aparecem assim que você registrar o primeiro check-in.
+            </p>
+            <Link
+              to="/create"
+              className="mt-5 rounded-full bg-brand px-5 py-2.5 text-xs font-bold text-brand-foreground"
+            >
+              Fazer check-in
+            </Link>
+          </section>
+        ) : (
+          <>
+            <section className="card-elevated mt-4 rounded-2xl bg-zinc-900/60 p-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Consistência por dia
+              </h2>
+              <div className="mt-3 h-44 w-full">
+                {isLoading ? (
+                  <div className="h-full w-full animate-pulse rounded-xl bg-white/5" />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={weekdayData} margin={{ top: 8, right: 4, left: 4, bottom: 0 }}>
+                      <XAxis
+                        dataKey="label"
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fill: "hsl(0 0% 60%)", fontSize: 11 }}
+                      />
+                      <Tooltip
+                        cursor={{ fill: "rgba(255,255,255,0.05)" }}
+                        content={<ChartTooltip suffix="treino(s)" />}
+                      />
+                      <Bar dataKey="value" radius={[6, 6, 2, 2]} fill="var(--brand)" maxBarSize={26} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </section>
+
+            <section className="card-elevated mt-4 rounded-2xl bg-zinc-900/60 p-4">
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                Gi vs No-Gi
+              </h2>
+              {modalityTotal === 0 ? (
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Registre treinos de Kimono ou No-Gi para ver a distribuição.
+                </p>
+              ) : (
+                <div className="mt-2 flex items-center gap-4">
+                  <div className="h-36 w-36 shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={modalityData}
+                          dataKey="value"
+                          nameKey="name"
+                          innerRadius={44}
+                          outerRadius={64}
+                          paddingAngle={3}
+                          stroke="none"
+                        >
+                          {modalityData.map((d) => (
+                            <Cell key={d.name} fill={d.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<ChartTooltip suffix="treino(s)" />} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <ul className="flex-1 space-y-3 text-xs">
+                    {[
+                      { label: "Gi (Kimono)", value: gi, color: "var(--brand)" },
+                      { label: "No-Gi", value: noGi, color: "#9ca3af" },
+                    ].map((m) => (
+                      <li key={m.label}>
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2">
+                            <span className="size-2.5 rounded-full" style={{ background: m.color }} />
+                            {m.label}
+                          </span>
+                          <span className="font-semibold">
+                            {Math.round((m.value / modalityTotal) * 100)}%
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-surface-2">
+                          <div
+                            className="h-full rounded-full"
+                            style={{ width: `${(m.value / modalityTotal) * 100}%`, background: m.color }}
+                          />
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </section>
+          </>
+        )}
+
         <section className="card-elevated mt-4 rounded-2xl p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Mapa de calor</h2>
