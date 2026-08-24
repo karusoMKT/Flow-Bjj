@@ -1,7 +1,18 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronDown, Clock, Dumbbell, Medal, ChevronLeft, Zap, BarChart3 } from "lucide-react";
+import {
+  ChevronDown,
+  Clock,
+  Dumbbell,
+  Loader2,
+  Medal,
+  ChevronLeft,
+  Share2,
+  Zap,
+  BarChart3,
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   Bar,
   BarChart,
@@ -13,7 +24,10 @@ import {
   XAxis,
 } from "recharts";
 import { BottomNav } from "@/components/BottomNav";
+import { StatsStoryCard } from "@/components/StatsStoryCard";
+import { downloadBlob, nodeToPngBlob } from "@/lib/shareService";
 import { supabase } from "@/integrations/supabase/client";
+
 
 const PERIODS = [
   { label: "Últimos 7 dias", days: 7 },
@@ -56,7 +70,12 @@ async function fetchStats(days: number) {
       .eq("user_id", uid)
       .like("content", "[COMP]%")
       .gte("created_at", since.toISOString()),
-    supabase.from("profiles").select("xp").eq("id", uid).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("xp, full_name, username, belt, avatar_url")
+      .eq("id", uid)
+      .maybeSingle(),
+
   ]);
 
   if (workoutsRes.error) throw workoutsRes.error;
@@ -103,6 +122,13 @@ async function fetchStats(days: number) {
     totalCompetitions: compRes.count ?? 0,
     totalMinutes,
     totalXp: profileRes.data?.xp ?? 0,
+    profile: {
+      athlete: profileRes.data?.full_name ?? "Atleta Flow",
+      username: profileRes.data?.username ?? null,
+      belt: profileRes.data?.belt ?? null,
+      avatarUrl: profileRes.data?.avatar_url ?? null,
+    },
+
     types,
     perDay,
     byWeekday,
@@ -220,6 +246,51 @@ function StatisticsPage() {
   ].filter((d) => d.value > 0);
   const hasData = (data?.totalWorkouts ?? 0) > 0;
 
+  const shareRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+
+  const shareData = {
+    athlete: data?.profile.athlete ?? "Atleta Flow",
+    username: data?.profile.username ?? null,
+    belt: data?.profile.belt ?? null,
+    avatarUrl: data?.profile.avatarUrl ?? null,
+    periodLabel,
+    summary: summary.map((s) => ({ label: s.label, value: s.value })),
+    weekdays: weekdayData,
+    heatmap,
+    gi,
+    noGi,
+  };
+
+  async function handleShare() {
+    if (sharing || !shareRef.current) return;
+    setSharing(true);
+    try {
+      const blob = await nodeToPngBlob(shareRef.current);
+      if (!blob) throw new Error("Não foi possível gerar a imagem");
+
+      const file = new File([blob], "flow-estatisticas.png", { type: "image/png" });
+      const text = `Minhas estatísticas no tatame (${periodLabel}) 🥋 #Flow`;
+
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text, title: "Flow" });
+          return;
+        } catch (e) {
+          if ((e as Error)?.name === "AbortError") return;
+        }
+      }
+
+      downloadBlob(blob, "flow-estatisticas.png");
+      toast.success("Imagem salva! Poste no seu Story 🔥");
+    } catch (e) {
+      toast.error((e as Error)?.message ?? "Não foi possível compartilhar");
+    } finally {
+      setSharing(false);
+    }
+  }
+
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <main className="mx-auto max-w-md px-4 pt-6">
@@ -235,22 +306,35 @@ function StatisticsPage() {
             <h1 className="font-sans text-xl font-semibold">Estatísticas</h1>
           </div>
 
-          <div className="relative">
-            <select
-              value={periodLabel}
-              onChange={(e) => setPeriodLabel(e.target.value)}
-              aria-label="Selecionar período"
-              className="appearance-none rounded-full border border-white/10 bg-surface py-2 pl-3 pr-8 text-xs font-medium text-foreground outline-none focus:border-brand/60"
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <select
+                value={periodLabel}
+                onChange={(e) => setPeriodLabel(e.target.value)}
+                aria-label="Selecionar período"
+                className="appearance-none rounded-full border border-white/10 bg-surface py-2 pl-3 pr-8 text-xs font-medium text-foreground outline-none focus:border-brand/60"
+              >
+                {PERIODS.map((p) => (
+                  <option key={p.label} value={p.label} className="bg-surface">
+                    {p.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-brand" />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleShare}
+              disabled={sharing || isLoading}
+              aria-label="Compartilhar estatísticas"
+              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
-              {PERIODS.map((p) => (
-                <option key={p.label} value={p.label} className="bg-surface">
-                  {p.label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 size-3.5 -translate-y-1/2 text-brand" />
+              {sharing ? <Loader2 className="size-4 animate-spin" /> : <Share2 className="size-4" />}
+            </button>
           </div>
         </header>
+
 
         <section className="mt-5 grid grid-cols-3 gap-2">
           {summary.map(({ icon: Icon, label, value }) => (
@@ -479,7 +563,13 @@ function StatisticsPage() {
         </section>
       </main>
 
+      {/* Card em tamanho real, fora da tela, usado na captura */}
+      <div style={{ position: "fixed", top: 0, left: -20000, zIndex: -1, pointerEvents: "none" }}>
+        <StatsStoryCard ref={shareRef} data={shareData} />
+      </div>
+
       <BottomNav />
+
     </div>
   );
 }
