@@ -3,6 +3,7 @@ import { PostActions } from "@/components/PostActions";
 import { EventInterest } from "@/components/EventInterest";
 import { ShareButton } from "@/components/ShareButton";
 import { ChampionBadge } from "@/components/ChampionBadge";
+import { ProBadge, CompetitorTag } from "@/components/ProBadge";
 import { socialCounts } from "@/lib/social";
 import { timeAgo, beltClass } from "@/lib/feed";
 import { parseCompetition, placementTone } from "@/lib/competition";
@@ -19,6 +20,8 @@ export type FeedPost = {
     avatar_url: string | null;
     belt: string | null;
     is_weekly_champion?: boolean | null;
+    is_pro?: boolean | null;
+    is_competitor?: boolean | null;
   } | null;
   workouts?: {
     duration_minutes: number | null;
@@ -135,8 +138,9 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
           <AvatarBubble src={author?.avatar_url} name={name} />
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="truncate text-sm font-semibold">{name}</p>
+            {author?.is_pro && <ProBadge className="size-3.5" />}
             <ChampionBadge active={champion} />
             {comp && <Medal className="size-4 shrink-0 text-[oklch(0.85_0.16_92)]" />}
             {author?.belt && (
@@ -145,6 +149,11 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
               </span>
             )}
           </div>
+          {author?.is_competitor && author?.is_pro && (
+            <div className="mt-1">
+              <CompetitorTag />
+            </div>
+          )}
           {comp ? (
             <div className="mt-1">
               <p className="flex items-center gap-1.5 text-sm font-bold text-foreground">
@@ -344,8 +353,9 @@ function SocialCard({
       <div className="flex items-start gap-3 p-3.5">
         <AvatarBubble src={author?.avatar_url} name={name} />
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="truncate text-sm font-semibold">{name}</p>
+            {author?.is_pro && <ProBadge className="size-3.5" />}
             <ChampionBadge active={champion} />
             {author?.belt && (
               <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${beltClass(author.belt)}`}>
@@ -353,6 +363,11 @@ function SocialCard({
               </span>
             )}
           </div>
+          {author?.is_competitor && author?.is_pro && (
+            <div className="mt-1">
+              <CompetitorTag />
+            </div>
+          )}
           {post.content && (
             <p className="mt-1.5 whitespace-pre-wrap text-sm leading-snug text-foreground">{post.content}</p>
           )}
@@ -415,8 +430,9 @@ function PromotionCard({
           </span>
         </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <p className="truncate text-sm font-semibold">{name}</p>
+            {author?.is_pro && <ProBadge className="size-3.5" />}
             <ChampionBadge active={!!author?.is_weekly_champion} />
           </div>
           <p className="text-[11px] font-bold uppercase tracking-widest text-brand">Graduação</p>

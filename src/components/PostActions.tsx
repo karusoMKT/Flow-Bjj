@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { timeAgo } from "@/lib/feed";
 import { ChampionBadge } from "@/components/ChampionBadge";
+import { ProBadge } from "@/components/ProBadge";
 
 type CommentRow = {
   id: string;
@@ -15,6 +16,7 @@ type CommentRow = {
     username: string | null;
     avatar_url: string | null;
     is_weekly_champion?: boolean | null;
+    is_pro?: boolean | null;
   } | null;
 };
 
@@ -83,7 +85,7 @@ export function PostActions({
     queryFn: async () => {
       const { data, error } = await supabase
         .from("comments")
-        .select("id, content, created_at, profiles:user_id (full_name, username, avatar_url, is_weekly_champion)")
+        .select("id, content, created_at, profiles:user_id (full_name, username, avatar_url, is_weekly_champion, is_pro)")
         .eq("post_id", postId)
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -160,6 +162,7 @@ export function PostActions({
                       <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm bg-white/[0.04] px-3 py-2">
                         <p className="flex items-baseline gap-2">
                           <span className="truncate text-xs font-bold text-foreground">{name}</span>
+                          {c.profiles?.is_pro && <ProBadge className="size-3" />}
                           <ChampionBadge active={c.profiles?.is_weekly_champion} className="size-3.5" />
                           <span className="shrink-0 text-[10px] text-muted-foreground">{timeAgo(c.created_at)}</span>
                         </p>

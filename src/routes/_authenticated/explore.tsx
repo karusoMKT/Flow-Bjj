@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { CalendarDays, MapPin, Search, Users } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { ChampionBadge } from "@/components/ChampionBadge";
+import { ProBadge, CompetitorTag } from "@/components/ProBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +17,7 @@ type Author = {
   avatar_url: string | null;
   belt: string | null;
   is_weekly_champion: boolean | null;
+  is_pro: boolean | null;
 };
 
 type EventPost = {
@@ -46,9 +48,11 @@ type ProfileRow = {
   home_academy: string | null;
   team: string | null;
   is_weekly_champion: boolean | null;
+  is_pro: boolean | null;
+  is_competitor: boolean | null;
 };
 
-const AUTHOR = "profiles:user_id (full_name, username, avatar_url, belt, is_weekly_champion)";
+const AUTHOR = "profiles:user_id (full_name, username, avatar_url, belt, is_weekly_champion, is_pro)";
 
 async function fetchTrendingEvents(): Promise<EventPost[]> {
   const { data, error } = await supabase
@@ -79,7 +83,7 @@ async function fetchAthletes(): Promise<{ champions: ProfileRow[]; newcomers: Pr
 
   const { data: recent, error } = await supabase
     .from("profiles")
-    .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion")
+    .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion, is_pro, is_competitor")
     .order("created_at", { ascending: false })
     .limit(12);
   if (error) throw error;
@@ -93,7 +97,7 @@ async function fetchAthletes(): Promise<{ champions: ProfileRow[]; newcomers: Pr
     if (missing.length) {
       const { data: extra } = await supabase
         .from("profiles")
-        .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion")
+        .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion, is_pro, is_competitor")
         .in("id", missing);
       champions = topIds
         .map((id) => byId.get(id) ?? (extra as ProfileRow[] | null)?.find((p) => p.id === id))
@@ -115,7 +119,7 @@ async function search(term: string) {
   const [profilesRes, eventsRes] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion")
+      .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion, is_pro, is_competitor")
       .or(`full_name.ilike.${like},username.ilike.${like}`)
       .limit(15),
     supabase
@@ -211,13 +215,15 @@ function AthleteRow({ profile, badge }: { profile: ProfileRow; badge?: string })
     <li className="flex items-center gap-3 rounded-2xl border border-border bg-surface px-3 py-2.5">
       <Avatar profile={profile} />
       <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1 truncate text-sm font-semibold text-foreground">
+        <p className="flex flex-wrap items-center gap-1 truncate text-sm font-semibold text-foreground">
           {profile.full_name || profile.username}
+          {profile.is_pro && <ProBadge className="size-3" />}
           <ChampionBadge active={profile.is_weekly_champion} />
         </p>
         <p className="truncate text-xs text-muted-foreground">
           {[profile.belt, profile.home_academy || profile.team].filter(Boolean).join(" • ") || `@${profile.username}`}
         </p>
+        {profile.is_competitor && profile.is_pro && <CompetitorTag className="mt-1" />}
       </div>
       {badge && (
         <span className="rounded-full bg-brand/15 px-2 py-1 text-[10px] font-bold uppercase text-brand">{badge}</span>
@@ -364,9 +370,10 @@ function Explore() {
               <div className="flex flex-col gap-2 p-4">
                 <div className="flex items-center gap-2">
                   <Avatar profile={openPost.profiles ?? {}} className="size-9" />
-                  <div className="min-w-0">
-                    <p className="flex items-center gap-1 truncate text-sm font-semibold">
+                <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-1 truncate text-sm font-semibold">
                       {openPost.profiles?.full_name || openPost.profiles?.username || "Atleta"}
+                      {openPost.profiles?.is_pro && <ProBadge className="size-3" />}
                       <ChampionBadge active={openPost.profiles?.is_weekly_champion} />
                     </p>
                     <p className="text-[11px] text-muted-foreground">{timeAgo(openPost.created_at)}</p>
