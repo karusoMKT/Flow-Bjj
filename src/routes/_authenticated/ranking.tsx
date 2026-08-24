@@ -5,6 +5,7 @@ import { Crown, Medal, Trophy } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 import { ChampionBadge } from "@/components/ChampionBadge";
+import { ProBadge } from "@/components/ProBadge";
 import {
   beltColor,
   fetchRanking,
