@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { queryOptions, useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { CalendarDays, MapPin, Search, Users } from "lucide-react";
+import { Building2, CalendarDays, ChevronRight, MapPin, Search, Users } from "lucide-react";
+import { FollowButton } from "@/components/FollowButton";
+
 import { BottomNav } from "@/components/BottomNav";
 import { ChampionBadge } from "@/components/ChampionBadge";
 import { ProBadge, CompetitorTag } from "@/components/ProBadge";
