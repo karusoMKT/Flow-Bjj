@@ -114,9 +114,31 @@ const eventsQuery = queryOptions({ queryKey: ["explore", "events"], queryFn: fet
 const mediaQuery = queryOptions({ queryKey: ["explore", "media"], queryFn: fetchMedia });
 const athletesQuery = queryOptions({ queryKey: ["explore", "athletes"], queryFn: fetchAthletes });
 
+export type GymResult = { id: string; name: string; address: string | null; source: "custom" | "gym" };
+
+async function searchGyms(like: string): Promise<GymResult[]> {
+  const [customRes, gymsRes] = await Promise.all([
+    supabase.from("custom_locations").select("id, name, address").ilike("name", like).limit(10),
+    supabase.from("gyms").select("id, name, address, city, state").ilike("name", like).limit(10),
+  ]);
+  const custom: GymResult[] = (customRes.data ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    address: g.address,
+    source: "custom" as const,
+  }));
+  const gyms: GymResult[] = (gymsRes.data ?? []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    address: g.address ?? [g.city, g.state].filter(Boolean).join(", ") || null,
+    source: "gym" as const,
+  }));
+  return [...custom, ...gyms];
+}
+
 async function search(term: string) {
   const like = `%${term}%`;
-  const [profilesRes, eventsRes] = await Promise.all([
+  const [profilesRes, eventsRes, gyms] = await Promise.all([
     supabase
       .from("profiles")
       .select("id, username, full_name, avatar_url, belt, home_academy, team, is_weekly_champion, is_pro, is_competitor")
@@ -129,14 +151,17 @@ async function search(term: string) {
       .ilike("event_title", like)
       .order("event_date", { ascending: true })
       .limit(15),
+    searchGyms(like),
   ]);
   if (profilesRes.error) throw profilesRes.error;
   if (eventsRes.error) throw eventsRes.error;
   return {
     athletes: (profilesRes.data ?? []) as ProfileRow[],
     events: (eventsRes.data ?? []) as unknown as EventPost[],
+    gyms,
   };
 }
+
 
 function initials(name: string) {
   return name
