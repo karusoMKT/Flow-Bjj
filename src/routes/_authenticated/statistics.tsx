@@ -70,7 +70,12 @@ async function fetchStats(days: number) {
       .eq("user_id", uid)
       .like("content", "[COMP]%")
       .gte("created_at", since.toISOString()),
-    supabase.from("profiles").select("xp").eq("id", uid).maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("xp, full_name, username, belt, avatar_url")
+      .eq("id", uid)
+      .maybeSingle(),
+
   ]);
 
   if (workoutsRes.error) throw workoutsRes.error;
