@@ -97,6 +97,7 @@ export async function fetchRanking(period: RankingPeriod): Promise<RankingRow[]>
         team: p.team,
         academy: p.home_academy ?? p.team ?? null,
         isCompetitor: p.is_competitor,
+        isPro: !!p.is_pro,
         isChampion: !!p.is_weekly_champion,
         total: s.total,
         minutes: s.minutes,
