@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Bell, X } from "lucide-react";
 import { toast } from "sonner";
-import { markPushPromptSeen, requestPushPermission, shouldAskForPush } from "@/lib/push";
+import { clearPushAskPending, markPushPromptSeen, requestPushPermission, shouldAskForPushNow } from "@/lib/push";
 
 /**
  * Alerta amigável (não nativo) pedindo permissão de notificações.
@@ -13,7 +13,7 @@ export function PushPermissionPrompt({ enabled = true }: { enabled?: boolean }) 
 
   useEffect(() => {
     if (!enabled) return;
-    const t = setTimeout(() => setOpen(shouldAskForPush()), 900);
+    const t = setTimeout(() => setOpen(shouldAskForPushNow()), 900);
     return () => clearTimeout(t);
   }, [enabled]);
 
@@ -21,6 +21,7 @@ export function PushPermissionPrompt({ enabled = true }: { enabled?: boolean }) 
 
   function dismiss() {
     markPushPromptSeen();
+    clearPushAskPending();
     setOpen(false);
   }
 
@@ -31,6 +32,7 @@ export function PushPermissionPrompt({ enabled = true }: { enabled?: boolean }) 
       if (result === "granted") toast.success("Pronto! Você será avisado das novidades 🔔");
       else if (result === "denied") toast.info("Sem problemas — você pode ativar depois nas configurações.");
     } finally {
+      clearPushAskPending();
       setLoading(false);
       setOpen(false);
     }

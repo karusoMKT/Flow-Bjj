@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { City, Country, State } from "country-state-city";
 import { supabase } from "@/integrations/supabase/client";
+import { markPushAskPending } from "@/lib/push";
 import { TeamCombobox } from "@/components/TeamCombobox";
 import { BELTS } from "@/lib/feed";
 
@@ -113,6 +114,7 @@ function SignupPage() {
       }
       const { data } = await supabase.auth.getSession();
       if (data.session) {
+        markPushAskPending();
         navigate({ to: "/home", replace: true });
       } else {
         toast.success("Conta criada! Confirme seu e-mail para entrar.");
