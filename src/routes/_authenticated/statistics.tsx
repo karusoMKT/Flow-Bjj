@@ -246,6 +246,51 @@ function StatisticsPage() {
   ].filter((d) => d.value > 0);
   const hasData = (data?.totalWorkouts ?? 0) > 0;
 
+  const shareRef = useRef<HTMLDivElement>(null);
+  const [sharing, setSharing] = useState(false);
+
+  const shareData = {
+    athlete: data?.profile.athlete ?? "Atleta Flow",
+    username: data?.profile.username ?? null,
+    belt: data?.profile.belt ?? null,
+    avatarUrl: data?.profile.avatarUrl ?? null,
+    periodLabel,
+    summary: summary.map((s) => ({ label: s.label, value: s.value })),
+    weekdays: weekdayData,
+    heatmap,
+    gi,
+    noGi,
+  };
+
+  async function handleShare() {
+    if (sharing || !shareRef.current) return;
+    setSharing(true);
+    try {
+      const blob = await nodeToPngBlob(shareRef.current);
+      if (!blob) throw new Error("Não foi possível gerar a imagem");
+
+      const file = new File([blob], "flow-estatisticas.png", { type: "image/png" });
+      const text = `Minhas estatísticas no tatame (${periodLabel}) 🥋 #Flow`;
+
+      if (typeof navigator !== "undefined" && navigator.canShare?.({ files: [file] })) {
+        try {
+          await navigator.share({ files: [file], text, title: "Flow" });
+          return;
+        } catch (e) {
+          if ((e as Error)?.name === "AbortError") return;
+        }
+      }
+
+      downloadBlob(blob, "flow-estatisticas.png");
+      toast.success("Imagem salva! Poste no seu Story 🔥");
+    } catch (e) {
+      toast.error((e as Error)?.message ?? "Não foi possível compartilhar");
+    } finally {
+      setSharing(false);
+    }
+  }
+
+
   return (
     <div className="min-h-screen bg-background pb-28">
       <main className="mx-auto max-w-md px-4 pt-6">
