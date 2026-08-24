@@ -467,6 +467,7 @@ export type Database = {
           home_academy: string | null
           id: string
           is_competitor: boolean
+          is_pro: boolean
           is_recovering: boolean | null
           is_weekly_champion: boolean
           level: number
@@ -487,6 +488,7 @@ export type Database = {
           home_academy?: string | null
           id: string
           is_competitor?: boolean
+          is_pro?: boolean
           is_recovering?: boolean | null
           is_weekly_champion?: boolean
           level?: number
@@ -507,6 +509,7 @@ export type Database = {
           home_academy?: string | null
           id?: string
           is_competitor?: boolean
+          is_pro?: boolean
           is_recovering?: boolean | null
           is_weekly_champion?: boolean
           level?: number
