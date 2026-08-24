@@ -30,7 +30,7 @@ const MENU: { items: MenuItem[] }[] = [
       { icon: UserRound, label: "Editar perfil", to: "/perfil/editar" },
 
 
-      { icon: Crown, label: "Flow Premium", to: "/premium", value: "Upgrade" },
+      { icon: Crown, label: "Assinatura Flow PRO", to: "/pro", value: "Assinar" },
       { icon: Bell, label: "Notificações", to: "/settings/notifications" },
     ],
   },
