@@ -298,7 +298,7 @@ function StatisticsPage() {
           <div className="flex items-center gap-2">
             <Link
               to="/perfil"
-              className="flex size-9 items-center justify-center rounded-full bg-surface text-muted-foreground"
+              className="flex size-11 items-center justify-center rounded-full bg-surface text-muted-foreground transition-all duration-200 ease-in-out active:scale-95"
               aria-label="Voltar"
             >
               <ChevronLeft className="size-5" />
@@ -328,7 +328,7 @@ function StatisticsPage() {
               onClick={handleShare}
               disabled={sharing || isLoading}
               aria-label="Compartilhar estatísticas"
-              className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
             >
               {sharing ? <Loader2 className="size-4 animate-spin" /> : <Share2 className="size-4" />}
             </button>

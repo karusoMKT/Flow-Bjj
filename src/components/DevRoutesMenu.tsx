@@ -47,7 +47,7 @@ export function DevRoutesMenu() {
                 type="button"
                 aria-label="Fechar mapeamento"
                 onClick={() => setOpen(false)}
-                className="rounded-lg p-1.5 text-muted-foreground hover:text-foreground"
+                className="grid size-11 place-items-center rounded-lg text-muted-foreground hover:text-foreground"
               >
                 <X className="size-5" />
               </button>
