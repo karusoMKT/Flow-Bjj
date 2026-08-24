@@ -186,3 +186,67 @@
 @utility animate-accordion-open {
   animation: flow-accordion-open 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
+
+/* --- UX Polish: touch targets, press feedback, safe areas --- */
+
+@layer base {
+  html,
+  body {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    overflow-wrap: break-word;
+  }
+
+  button,
+  a,
+  [role="button"] {
+    transition-property: color, background-color, border-color, opacity, box-shadow, transform;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    touch-action: manipulation;
+  }
+
+  button:active:not(:disabled),
+  [role="button"]:active {
+    transform: scale(0.97);
+  }
+
+  img {
+    object-fit: cover;
+  }
+}
+
+/* Minimum 44x44 mobile touch target without changing visual size */
+@utility tap-target {
+  position: relative;
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@utility tap-target-hit {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 50% 50% 50% 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@utility safe-bottom {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

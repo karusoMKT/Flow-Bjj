@@ -157,7 +157,7 @@ function CreateEventPage() {
                   type="button"
                   onClick={clearCover}
                   aria-label="Remover capa"
-                  className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-foreground"
+                  className="absolute right-2 top-2 grid size-11 place-items-center rounded-full bg-black/70 text-foreground"
                 >
                   <X className="size-4" />
                 </button>

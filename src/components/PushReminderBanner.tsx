@@ -72,7 +72,7 @@ export function PushReminderBanner({ hasInteractions }: { hasInteractions: boole
         type="button"
         onClick={close}
         aria-label="Fechar aviso"
-        className="-mr-1 -mt-1 rounded-full p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+        className="-mr-1 -mt-1 grid size-11 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:text-foreground"
       >
         <X className="size-3.5" />
       </button>

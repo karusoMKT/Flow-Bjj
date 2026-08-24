@@ -108,7 +108,7 @@ function GymPage() {
           <Link
             to="/explore"
             aria-label="Voltar"
-            className="flex size-9 items-center justify-center rounded-full border border-border bg-black/40 text-foreground backdrop-blur"
+            className="flex size-11 items-center justify-center rounded-full border border-border bg-black/40 text-foreground backdrop-blur transition-all duration-200 ease-in-out active:scale-95"
           >
             <ArrowLeft className="size-5" />
           </Link>
