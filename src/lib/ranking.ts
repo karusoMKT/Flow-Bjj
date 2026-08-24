@@ -13,6 +13,7 @@ export type RankingRow = {
   team: string | null;
   academy: string | null;
   isCompetitor: boolean;
+  isPro: boolean;
   isChampion: boolean;
   total: number;
   minutes: number;
