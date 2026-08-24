@@ -337,6 +337,26 @@ function Perfil() {
           </Link>
         </section>
 
+        {!profile?.is_pro && (
+          <Link
+            to="/pro"
+            className="mt-4 flex items-center gap-3 rounded-2xl border border-[oklch(0.85_0.16_92)]/45 bg-gradient-to-r from-[oklch(0.85_0.16_92)]/10 to-brand/10 p-3.5 shadow-[0_0_30px_-14px_oklch(0.85_0.16_92/0.9)]"
+          >
+            <div className="grid size-10 shrink-0 place-items-center rounded-xl bg-[oklch(0.85_0.16_92)]/15 text-[oklch(0.9_0.14_95)]">
+              <Crown className="size-5" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black italic">
+                Seja <span className="text-brand">PRO</span>
+              </p>
+              <p className="text-[11px] text-muted-foreground">Selo exclusivo, tag de competidor e mais destaque.</p>
+            </div>
+            <span className="shrink-0 rounded-full bg-brand px-3 py-1.5 text-[11px] font-bold text-brand-foreground">
+              Assinar
+            </span>
+          </Link>
+        )}
+
         <Link
           to="/premium"
           className="mt-4 flex items-center gap-3 rounded-2xl border border-brand/30 bg-brand/5 p-3.5"
@@ -351,6 +371,7 @@ function Perfil() {
             <p className="text-[11px] text-muted-foreground">IA Coach ilimitado e análise avançada.</p>
           </div>
         </Link>
+
 
         <DevRoutesMenu />
 
