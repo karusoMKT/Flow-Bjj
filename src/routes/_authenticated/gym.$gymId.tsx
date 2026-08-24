@@ -82,8 +82,9 @@ async function fetchGym(gymId: string): Promise<GymData> {
     name,
     address,
     members: (members ?? []) as Member[],
-    events: ((eventsRes.data ?? []) as unknown as FeedPost[]) ?? [],
-    feed: ((feedRes.data ?? []) as unknown as FeedPost[]) ?? [],
+    events: (eventsRes.data ?? []) as unknown as FeedPost[],
+    feed: (feedRes.data ?? []) as unknown as FeedPost[],
+
     uid,
   };
 }
