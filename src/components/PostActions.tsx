@@ -115,7 +115,7 @@ export function PostActions({
           onClick={onLike}
           aria-pressed={liked}
           aria-label={liked ? "Remover Oss" : "Dar Oss"}
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-200 active:scale-90 ${
+          className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition-all duration-200 ease-in-out active:scale-95 active:opacity-80 ${
             liked ? "bg-brand/15 text-brand" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
           }`}
         >
@@ -133,7 +133,7 @@ export function PostActions({
           type="button"
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
-          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold transition-all duration-200 active:scale-90 ${
+          className={`inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-2 text-xs font-bold transition-all duration-200 ease-in-out active:scale-95 active:opacity-80 ${
             open ? "bg-white/5 text-foreground" : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
           }`}
         >
@@ -188,13 +188,13 @@ export function PostActions({
                 onChange={(e) => setDraft(e.target.value)}
                 placeholder="Deixe um comentário..."
                 aria-label="Deixe um comentário"
-                className="h-10 flex-1 rounded-full border border-white/10 bg-surface px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-brand)_18%,transparent)]"
+                className="h-11 flex-1 rounded-full border border-white/10 bg-surface px-4 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-brand focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-brand)_18%,transparent)]"
               />
               <button
                 type="submit"
                 disabled={!draft.trim() || addComment.isPending}
                 aria-label="Enviar comentário"
-                className="grid size-10 shrink-0 place-items-center rounded-full bg-brand text-background transition-transform active:scale-90 disabled:opacity-40"
+                className="grid size-11 shrink-0 place-items-center rounded-full bg-brand text-background transition-transform active:scale-90 disabled:opacity-40"
               >
                 {addComment.isPending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
               </button>

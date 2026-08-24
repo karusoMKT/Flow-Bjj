@@ -202,7 +202,7 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
 
 
       {post.image_url && (
-        <img src={post.image_url} alt={`Treino de ${name}`} loading="lazy" className="h-60 w-full object-cover" />
+        <img src={post.image_url} alt={`Treino de ${name}`} loading="lazy" className="aspect-[4/3] w-full bg-surface-2 object-cover" />
       )}
 
       <div className="flex items-center gap-2 px-3.5 py-3">
@@ -289,7 +289,7 @@ function EventCard({
           src={post.image_url}
           alt={post.event_title ?? "Evento"}
           loading="lazy"
-          className="h-52 w-full object-cover"
+          className="aspect-[16/9] w-full bg-surface-2 object-cover"
         />
       )}
 
@@ -393,7 +393,7 @@ function SocialCard({
       </div>
 
       {post.image_url && (
-        <img src={post.image_url} alt={`Publicação de ${name}`} loading="lazy" className="w-full object-cover" />
+        <img src={post.image_url} alt={`Publicação de ${name}`} loading="lazy" className="max-h-[70vh] w-full bg-surface-2 object-cover" />
       )}
 
       <PostActions
