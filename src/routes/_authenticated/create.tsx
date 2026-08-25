@@ -96,6 +96,37 @@ function CreatePost() {
     }
   }, [homeAcademy, locationTouched, trainLocation]);
 
+  // Limpa a mídia ao trocar de modo para evitar foto do treino na competição (e vice-versa).
+  useEffect(() => {
+    setMediaFile(null);
+    setMediaPreview(null);
+  }, [mode]);
+
+  function pickMedia(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setMediaFile(file);
+    setMediaPreview(URL.createObjectURL(file));
+  }
+
+  function removeMedia() {
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaFile(null);
+    setMediaPreview(null);
+  }
+
+  async function uploadMedia(uid: string): Promise<string | null> {
+    if (!mediaFile) return null;
+    try {
+      return await uploadShareImage(mediaFile, uid);
+    } catch (err) {
+      console.error("Erro ao enviar mídia:", err);
+      toast.error("Não foi possível enviar a imagem. Tente novamente.");
+      return null;
+    }
+  }
+
   /** Concede XP do check-in e devolve o nível quando o atleta sobe. */
   async function grantXp(uid: string, kind: "treino" | "competicao") {
     const result = await awardXp(uid, kind);
