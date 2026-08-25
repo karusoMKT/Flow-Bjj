@@ -26,6 +26,25 @@ function getErrorMessage(error: unknown) {
   }
 }
 
+function normalizeHistory(history: CoachInput["history"]) {
+  const normalized: { role: "user" | "model"; parts: { text: string }[] }[] = [];
+
+  for (const message of history) {
+    const role = message.role === "assistant" ? "model" : "user";
+    if (normalized.length === 0 && role === "model") continue;
+
+    const previous = normalized.at(-1);
+    if (previous?.role === role) {
+      previous.parts[0].text += `\n\n${message.text}`;
+    } else {
+      normalized.push({ role, parts: [{ text: message.text }] });
+    }
+  }
+
+  if (normalized.at(-1)?.role === "user") normalized.pop();
+  return normalized;
+}
+
 export async function generateCoachReply(data: CoachInput) {
   const apiKey = process.env["GEMINI_API_KEY"];
   if (!apiKey) {
@@ -40,10 +59,7 @@ export async function generateCoachReply(data: CoachInput) {
       model: MODEL,
       systemInstruction: SYSTEM_INSTRUCTION,
     });
-    const history = data.history.map((message) => ({
-      role: message.role === "assistant" ? "model" : "user",
-      parts: [{ text: message.text }],
-    }));
+    const history = normalizeHistory(data.history);
     const chat = model.startChat({
       history,
       generationConfig: { temperature: 0.8, maxOutputTokens: 1200 },
