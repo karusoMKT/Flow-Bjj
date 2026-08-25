@@ -1,11 +1,12 @@
 import { useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { CalendarDays, Image as ImageIcon, Link2, Loader2, MapPin, X } from "lucide-react";
+import { AtSign, CalendarDays, Image as ImageIcon, Link2, Loader2, MapPin, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { uploadShareImage } from "@/lib/stories";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { AvatarBubble } from "@/components/PostCard";
+import { MentionPicker } from "@/components/MentionPicker";
 
 const PLACEHOLDERS = [
   "O que rolou no tatame hoje?",
@@ -37,6 +38,8 @@ export function FeedComposer({
   const [eventMode, setEventMode] = useState(false);
   const [eventTitle, setEventTitle] = useState("");
   const [eventDate, setEventDate] = useState("");
+  const [mentions, setMentions] = useState<string[]>([]);
+  const [showMentions, setShowMentions] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const placeholder = useMemo(
@@ -44,8 +47,8 @@ export function FeedComposer({
     [],
   );
 
-  const expanded = focused || !!text || !!imagePreview || showLocation || showLink || eventMode;
-  const canPost = eventMode ? !!eventTitle.trim() : !!text.trim() || !!imageFile;
+  const expanded = focused || !!text || !!imagePreview || showLocation || showLink || eventMode || mentions.length > 0;
+  const canPost = eventMode ? !!eventTitle.trim() : !!text.trim() || !!imageFile || mentions.length > 0;
 
 
   function pickImage(e: React.ChangeEvent<HTMLInputElement>) {
@@ -68,6 +71,7 @@ export function FeedComposer({
     setEventMode(false);
     setEventTitle("");
     setEventDate("");
+    setMentions([]);
   }
 
   async function publish() {
@@ -78,13 +82,15 @@ export function FeedComposer({
     if (!canPost) return;
     setSaving(true);
     try {
+      const mentionText = mentions.length ? mentions.map((m) => `@${m}`).join(" ") : "";
+      const body = [text.trim(), mentionText].filter(Boolean).join("\n\n");
       let imageUrl: string | null = null;
       if (imageFile) imageUrl = await uploadShareImage(imageFile, userId);
       const payload = eventMode
         ? {
             user_id: userId,
             post_type: "event",
-            content: text.trim() || null,
+            content: body || null,
             image_url: imageUrl,
             event_title: eventTitle.trim(),
             event_date: eventDate ? new Date(eventDate).toISOString() : null,
@@ -93,7 +99,7 @@ export function FeedComposer({
         : {
             user_id: userId,
             post_type: "social",
-            content: text.trim() || null,
+            content: body || null,
             image_url: imageUrl,
             location: location.trim() || null,
             link: link.trim() || null,
@@ -178,6 +184,26 @@ export function FeedComposer({
             </div>
           )}
 
+          {mentions.length > 0 && (
+            <div className="flex flex-wrap gap-1.5">
+              {mentions.map((m) => (
+                <span
+                  key={m}
+                  className="inline-flex items-center gap-1 rounded-full bg-brand/15 px-2.5 py-1 text-[11px] font-semibold text-brand"
+                >
+                  @{m}
+                  <button
+                    type="button"
+                    aria-label={`Remover ${m}`}
+                    onClick={() => setMentions((prev) => prev.filter((x) => x !== m))}
+                  >
+                    <X className="size-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+
           {showLocation && (
             <LocationAutocomplete
               value={location}
@@ -210,6 +236,12 @@ export function FeedComposer({
             onClick={() => fileRef.current?.click()}
             active={!!imagePreview}
           />
+          <ComposerAction
+            icon={AtSign}
+            label="Marcar"
+            onClick={() => setShowMentions(true)}
+            active={mentions.length > 0}
+          />
           <ComposerAction icon={MapPin} label="Local" onClick={() => setShowLocation((v) => !v)} active={showLocation} />
           {!eventMode && (
             <ComposerAction icon={Link2} label="Link" onClick={() => setShowLink((v) => !v)} active={showLink} />
@@ -237,6 +269,18 @@ export function FeedComposer({
           </button>
         </div>
       </div>
+
+      <MentionPicker
+        open={showMentions}
+        onClose={() => setShowMentions(false)}
+        currentUserId={userId}
+        selected={mentions}
+        onToggle={(username) =>
+          setMentions((prev) =>
+            prev.includes(username) ? prev.filter((x) => x !== username) : [...prev, username],
+          )
+        }
+      />
     </section>
   );
 }
