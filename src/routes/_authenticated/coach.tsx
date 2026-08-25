@@ -103,10 +103,13 @@ function CoachPage() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
+  const askCoach = useServerFn(askGeminiCoach);
+
   async function send(text: string) {
     const value = text.trim();
     if (!value || typing || locked) return;
 
+    const history = messages.map((m) => ({ role: m.role, text: m.text }));
     setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: "user", text: value }]);
     setInput("");
     setTyping(true);
@@ -118,12 +121,35 @@ function CoachPage() {
       queryClient.invalidateQueries({ queryKey: ["coach-gate"] });
     }
 
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: MOCK_ANSWER }]);
+    try {
+      const result = await askCoach({
+        data: {
+          message: value,
+          history,
+          belt: profile?.belt ?? null,
+          stripes: profile?.stripes ?? 0,
+        },
+      });
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          text: result.error ? `⚠️ ${result.error}` : result.text,
+        },
+      ]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev,
+        { id: `a-${Date.now()}`, role: "assistant", text: "⚠️ Não consegui falar com o Coach agora." },
+      ]);
+    } finally {
       setTyping(false);
       inputRef.current?.focus();
-    }, 2000);
+    }
   }
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-40">
