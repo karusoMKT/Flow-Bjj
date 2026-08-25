@@ -13,7 +13,7 @@ const SYSTEM_INSTRUCTION =
   "Adapte o nível da resposta para a faixa do usuário que está perguntando. " +
   "Foco em fundamentos e prevenção de lesões. Use Markdown";
 
-const PRIMARY_MODEL = "gemini-1.5-flash-latest";
+const PRIMARY_MODEL = "gemini-3.6-flash";
 const FALLBACK_MODEL = "gemini-pro";
 
 function getErrorMessage(error: unknown) {
