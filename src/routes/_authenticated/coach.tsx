@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ProBadge } from "@/components/ProBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { getNextBeltObjective } from "@/lib/belt";
 
 // System Prompt: Você é um professor faixa preta de Jiu-Jitsu. Ajude o atleta com drills, táticas e prevenção de lesões.
 
@@ -45,7 +46,13 @@ O erro clássico é ficar com o peso alto e o braço perto do quadril do oponent
 
 *Prevenção:* mantenha o joelho preso alinhado ao pé para evitar torção no LCM.`;
 
-type ProfileGate = { is_pro: boolean; ai_queries_used: number; id: string };
+type ProfileGate = {
+  id: string;
+  is_pro: boolean;
+  ai_queries_used: number;
+  belt: string | null;
+  stripes: number;
+};
 
 function TypingBubble() {
   return (
@@ -91,7 +98,7 @@ function CoachPage() {
       if (!auth.user) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, is_pro, ai_queries_used")
+        .select("id, is_pro, ai_queries_used, belt, stripes")
         .eq("id", auth.user.id)
         .maybeSingle();
       if (error) throw error;
@@ -103,6 +110,7 @@ function CoachPage() {
   const used = usedLocal ?? profile?.ai_queries_used ?? 0;
   const remaining = Math.max(FREE_LIMIT - used, 0);
   const locked = !isLoading && !isPro && remaining <= 0;
+  const nextObjective = getNextBeltObjective(profile?.belt ?? null, profile?.stripes ?? 0);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -150,18 +158,24 @@ function CoachPage() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <Link
-            to="/training-plan"
-            className="press flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 transition-colors hover:border-brand/40"
+          <button
+            type="button"
+            disabled={locked || isLoading}
+            onClick={() =>
+              void send(
+                `Monte um plano de treinos e drills focado em me preparar para o meu próximo objetivo no Jiu-Jitsu: ${nextObjective}`
+              )
+            }
+            className="press flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 text-left transition-colors hover:border-brand/40 disabled:opacity-50"
           >
             <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
               <CalendarDays className="size-4" />
             </div>
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold">Plano de Treino</p>
-              <p className="truncate text-[10px] text-muted-foreground">Operação Faixa Azul</p>
+              <p className="truncate text-[10px] text-muted-foreground">{nextObjective}</p>
             </div>
-          </Link>
+          </button>
           <Link
             to="/analysis"
             className="press flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 transition-colors hover:border-brand/40"
