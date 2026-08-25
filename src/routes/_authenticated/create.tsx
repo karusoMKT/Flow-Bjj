@@ -188,6 +188,12 @@ function CreatePost() {
     const minutes = Number(duration) || 60;
     const notes = [text.trim(), `Intensidade: ${intensity}`].filter(Boolean).join(" · ") || null;
 
+    const imageUrl = mediaFile ? await uploadMedia(uid) : null;
+    if (mediaFile && !imageUrl) {
+      setSaving(false);
+      return;
+    }
+
     const { data: workout, error: workoutError } = await supabase
       .from("workouts")
       .insert({
@@ -212,6 +218,7 @@ function CreatePost() {
       user_id: uid,
       workout_id: workout.id,
       content: text.trim() || `Treino de ${type} · ${minutes} min · ${intensity}`,
+      image_url: imageUrl,
     });
 
     // Mantém compatibilidade com o feed atual baseado em sessions
