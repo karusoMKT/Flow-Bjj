@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Check, ChevronLeft, Crown, Loader2, Sparkles, Trophy, Users } from "lucide-react";
+import { BarChart3, Brain, Check, ChevronLeft, Crown, Loader2, Sparkles, Trophy, Users } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 
 const BENEFITS = [
+  {
+    icon: Brain,
+    title: "IA Coach Ilimitado",
+    description: "Acesso 24h a um assistente inteligente para tirar dúvidas técnicas, criar cronogramas de drills e ajudar no seu jogo.",
+  },
   { icon: Sparkles, title: "Selo exclusivo de Atleta PRO", description: "Seu nome com o raio neon em todo o app." },
   { icon: Trophy, title: "Tag de Competidor Oficial", description: "Chip dourado no feed e no seu perfil." },
   { icon: BarChart3, title: "Estatísticas avançadas", description: "Gráficos de longo prazo e histórico completo." },
@@ -208,12 +213,12 @@ export const Route = createFileRoute("/_authenticated/pro")({
       { title: "Flow PRO | Assine e destaque seu jiu-jitsu" },
       {
         name: "description",
-        content: "Selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
+        content: "IA Coach ilimitado, selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
       },
       { property: "og:title", content: "Flow PRO | Assine e destaque seu jiu-jitsu" },
       {
         property: "og:description",
-        content: "Selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
+        content: "IA Coach ilimitado, selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
