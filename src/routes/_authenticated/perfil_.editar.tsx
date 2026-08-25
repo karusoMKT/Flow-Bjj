@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { AchievementModal } from "@/components/AchievementModal";
 import {
+  runBeltAchievements,
   runBeltPromotionAchievement,
   runStripePromotionAchievement,
   type Achievement,
@@ -171,7 +172,10 @@ function EditarPerfil() {
       await queryClient.invalidateQueries({ queryKey: ["feed"] });
     }
 
-    if (beltUp) unlocked.push(...(await runBeltPromotionAchievement(profile.id)));
+    if (beltUp) {
+      unlocked.push(...(await runBeltPromotionAchievement(profile.id)));
+      unlocked.push(...(await runBeltAchievements(profile.id, belt)));
+    }
     if (stripes > prevStripes) unlocked.push(...(await runStripePromotionAchievement(profile.id)));
 
     await queryClient.invalidateQueries({ queryKey: ["profile"] });
