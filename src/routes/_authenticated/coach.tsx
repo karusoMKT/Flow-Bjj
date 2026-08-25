@@ -46,7 +46,13 @@ O erro clássico é ficar com o peso alto e o braço perto do quadril do oponent
 
 *Prevenção:* mantenha o joelho preso alinhado ao pé para evitar torção no LCM.`;
 
-type ProfileGate = { is_pro: boolean; ai_queries_used: number; id: string };
+type ProfileGate = {
+  id: string;
+  is_pro: boolean;
+  ai_queries_used: number;
+  belt: string | null;
+  stripes: number;
+};
 
 function TypingBubble() {
   return (
