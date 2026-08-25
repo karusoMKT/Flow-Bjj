@@ -6,6 +6,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ProBadge } from "@/components/ProBadge";
 import { supabase } from "@/integrations/supabase/client";
+import { getNextBeltObjective } from "@/lib/belt";
 
 // System Prompt: Você é um professor faixa preta de Jiu-Jitsu. Ajude o atleta com drills, táticas e prevenção de lesões.
 
