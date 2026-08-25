@@ -105,24 +105,31 @@ async function fetchGallery(): Promise<GalleryItem[]> {
 
 function HexTrophy({ item, onClick }: { item: GalleryItem; onClick: () => void }) {
   const hex = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+  const gold = item.category === "Graduação";
 
   return (
     <button type="button" onClick={onClick} className="flex flex-col items-center gap-2 text-center">
       <div
         className={`relative grid size-[76px] place-items-center transition-transform active:scale-95 ${
           item.unlocked
-            ? "bg-brand/12 shadow-[0_0_26px_-6px_var(--brand)]"
+            ? gold
+              ? "bg-amber-400/12 shadow-[0_0_26px_-6px_#fbbf24]"
+              : "bg-brand/12 shadow-[0_0_26px_-6px_var(--brand)]"
             : "bg-surface-2/60 opacity-50 grayscale"
         }`}
         style={{ clipPath: hex }}
       >
         <div
-          className={`absolute inset-0 border-2 ${item.unlocked ? "border-brand" : "border-white/15"}`}
+          className={`absolute inset-0 border-2 ${
+            item.unlocked ? (gold ? "border-amber-400" : "border-brand") : "border-white/15"
+          }`}
           style={{ clipPath: hex }}
         />
         <TrophyIcon
           name={item.icon_name}
-          className={`size-8 ${item.unlocked ? "text-brand" : "text-muted-foreground"}`}
+          className={`size-8 ${
+            item.unlocked ? (gold ? "text-amber-400" : "text-brand") : "text-muted-foreground"
+          }`}
         />
         {!item.unlocked && (
           <span className="absolute bottom-3 right-3 grid size-4 place-items-center rounded-full bg-background/90">
