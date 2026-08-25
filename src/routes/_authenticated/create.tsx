@@ -321,6 +321,15 @@ function CreatePost() {
           ))}
         </div>
 
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={pickMedia}
+          aria-hidden="true"
+        />
+
         {mode === "treino" ? (
           <div key="treino" className="flex flex-col gap-6 animate-fade-in">
         {/* Texto + mídia */}
