@@ -66,6 +66,11 @@ function CreatePost() {
   const [compLocation, setCompLocation] = useState("");
   const [compSummary, setCompSummary] = useState("");
 
+  // Mídia do post (foto do treino ou da competição)
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+
   // Academia principal do perfil (preenche o local automaticamente)
   const { data: me } = useQuery({
     queryKey: ["home-academy"],
