@@ -382,6 +382,7 @@ function HomeFeed() {
 
 
       <PushPermissionPrompt enabled={!!currentUserId} />
+      <InstallPwaPrompt enabled={!!currentUserId} />
 
       <BottomNav />
     </div>
