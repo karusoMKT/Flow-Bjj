@@ -4,7 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { icons, Lock, Trophy, X } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
-import { ACHIEVEMENTS, type AchievementDef } from "@/lib/achievements";
+import {
+  ACHIEVEMENTS,
+  BELT_ACHIEVEMENT_BY_INDEX,
+  beltIndex,
+  countGoldMedals,
+  countWorkouts,
+  hasStreak,
+  type AchievementCategory,
+  type AchievementDef,
+} from "@/lib/achievements";
 
 const TABS = ["Todas", "Desbloqueadas", "Bloqueadas"] as const;
 type Tab = (typeof TABS)[number];
@@ -19,7 +28,25 @@ const HOW_TO: Record<string, string> = {
   first_victory: "Suba ao pódio: ouro, prata ou bronze em um campeonato.",
   stripe_promotion: "Atualize o seu perfil ao receber um novo grau.",
   belt_promotion: "Atualize o seu perfil ao ser graduado em uma nova faixa.",
+  belt_blue: "Seja graduado faixa azul e atualize a sua faixa no perfil.",
+  belt_purple: "Seja graduado faixa roxa e atualize a sua faixa no perfil.",
+  belt_brown: "Seja graduado faixa marrom e atualize a sua faixa no perfil.",
+  belt_black: "Seja graduado faixa preta e atualize a sua faixa no perfil.",
+  "50_trainings": "Registre 50 treinos.",
+  "500_trainings": "Registre 500 treinos.",
+  gold_collector: "Conquiste 3 medalhas de ouro em campeonatos.",
+  "30_days_streak": "Treine 30 dias seguidos, sem falhar nenhum.",
+  war_veteran: "Complete mais de 5 anos de prática registrados no Flow.",
+  submission_expert: "Registre 50 finalizações aplicadas nos seus treinos.",
 };
+
+const CATEGORY_ORDER: AchievementCategory[] = [
+  "Graduação",
+  "Volume",
+  "Consistência",
+  "Competição",
+  "Jornada",
+];
 
 const CATALOG = Object.values(ACHIEVEMENTS) as AchievementDef[];
 
@@ -35,41 +62,74 @@ async function fetchGallery(): Promise<GalleryItem[]> {
   const uid = auth.user?.id;
   if (!uid) throw new Error("Sem sessão");
 
-  const { data, error } = await supabase
-    .from("user_achievements")
-    .select("title, unlocked_at")
-    .eq("user_id", uid);
+  const [{ data, error }, { data: profile }, workouts, golds, streak30] = await Promise.all([
+    supabase.from("user_achievements").select("title, unlocked_at").eq("user_id", uid),
+    supabase.from("profiles").select("belt, created_at").eq("id", uid).maybeSingle(),
+    countWorkouts(uid),
+    countGoldMedals(uid),
+    hasStreak(uid, 30),
+  ]);
   if (error) throw error;
 
   const owned = new Map((data ?? []).map((r) => [r.title, r.unlocked_at as string]));
+  const currentBelt = beltIndex(profile?.belt);
+
+  const yearsPracticing = profile?.created_at
+    ? (Date.now() - new Date(profile.created_at).getTime()) / (365.25 * 86_400_000)
+    : 0;
+
+  /** Regras derivadas do estado atual do atleta (independem de registro na tabela). */
+  const derived: Record<string, boolean> = {
+    belt_blue: currentBelt >= 1,
+    belt_purple: currentBelt >= 2,
+    belt_brown: currentBelt >= 3,
+    belt_black: currentBelt >= 4,
+    first_training: workouts >= 1,
+    "10_trainings": workouts >= 10,
+    "50_trainings": workouts >= 50,
+    "100_trainings": workouts >= 100,
+    "500_trainings": workouts >= 500,
+    gold_collector: golds >= 3,
+    "30_days_streak": streak30,
+    war_veteran: yearsPracticing >= 5,
+  };
+
+  void BELT_ACHIEVEMENT_BY_INDEX;
 
   return CATALOG.map((def) => ({
     ...def,
-    unlocked: owned.has(def.title),
+    unlocked: owned.has(def.title) || derived[def.key] === true,
     unlockedAt: owned.get(def.title) ?? null,
   }));
 }
 
 function HexTrophy({ item, onClick }: { item: GalleryItem; onClick: () => void }) {
   const hex = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
+  const gold = item.category === "Graduação";
 
   return (
     <button type="button" onClick={onClick} className="flex flex-col items-center gap-2 text-center">
       <div
         className={`relative grid size-[76px] place-items-center transition-transform active:scale-95 ${
           item.unlocked
-            ? "bg-brand/12 shadow-[0_0_26px_-6px_var(--brand)]"
+            ? gold
+              ? "bg-amber-400/12 shadow-[0_0_26px_-6px_#fbbf24]"
+              : "bg-brand/12 shadow-[0_0_26px_-6px_var(--brand)]"
             : "bg-surface-2/60 opacity-50 grayscale"
         }`}
         style={{ clipPath: hex }}
       >
         <div
-          className={`absolute inset-0 border-2 ${item.unlocked ? "border-brand" : "border-white/15"}`}
+          className={`absolute inset-0 border-2 ${
+            item.unlocked ? (gold ? "border-amber-400" : "border-brand") : "border-white/15"
+          }`}
           style={{ clipPath: hex }}
         />
         <TrophyIcon
           name={item.icon_name}
-          className={`size-8 ${item.unlocked ? "text-brand" : "text-muted-foreground"}`}
+          className={`size-8 ${
+            item.unlocked ? (gold ? "text-amber-400" : "text-brand") : "text-muted-foreground"
+          }`}
         />
         {!item.unlocked && (
           <span className="absolute bottom-3 right-3 grid size-4 place-items-center rounded-full bg-background/90">
@@ -204,10 +264,25 @@ function AchievementsPage() {
           ) : filtered.length === 0 ? (
             <p className="mt-8 text-center text-sm text-muted-foreground">Nenhum troféu nesta aba ainda.</p>
           ) : (
-            <div className="mt-6 grid grid-cols-3 gap-x-4 gap-y-6">
-              {filtered.map((item) => (
-                <HexTrophy key={item.key} item={item} onClick={() => setSelected(item)} />
-              ))}
+            <div className="mt-6 space-y-8">
+              {CATEGORY_ORDER.filter((c) => filtered.some((i) => i.category === c)).map((cat) => {
+                const group = filtered.filter((i) => i.category === cat);
+                return (
+                  <div key={cat}>
+                    <div className="mb-3 flex items-center justify-between">
+                      <h2 className="text-[11px] font-bold uppercase tracking-widest text-brand">{cat}</h2>
+                      <span className="text-[11px] text-muted-foreground">
+                        {group.filter((i) => i.unlocked).length}/{group.length}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-x-4 gap-y-6">
+                      {group.map((item) => (
+                        <HexTrophy key={item.key} item={item} onClick={() => setSelected(item)} />
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </section>
