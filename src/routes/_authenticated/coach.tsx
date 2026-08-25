@@ -110,6 +110,7 @@ function CoachPage() {
   const used = usedLocal ?? profile?.ai_queries_used ?? 0;
   const remaining = Math.max(FREE_LIMIT - used, 0);
   const locked = !isLoading && !isPro && remaining <= 0;
+  const nextObjective = getNextBeltObjective(profile?.belt ?? null, profile?.stripes ?? 0);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
