@@ -98,7 +98,7 @@ function CoachPage() {
       if (!auth.user) return null;
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, is_pro, ai_queries_used")
+        .select("id, is_pro, ai_queries_used, belt, stripes")
         .eq("id", auth.user.id)
         .maybeSingle();
       if (error) throw error;
