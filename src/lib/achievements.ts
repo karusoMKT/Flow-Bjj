@@ -353,3 +353,31 @@ export async function fetchAchievements(userId: string): Promise<Achievement[]> 
   if (error) throw error;
   return (data ?? []) as Achievement[];
 }
+
+/* ------------------------------------------------------------------ */
+/* Graduação (faixas) — derivada da faixa atual do perfil              */
+/* ------------------------------------------------------------------ */
+
+export const BELT_ACHIEVEMENT_BY_INDEX: Record<number, AchievementDef> = {
+  1: ACHIEVEMENTS.belt_blue,
+  2: ACHIEVEMENTS.belt_purple,
+  3: ACHIEVEMENTS.belt_brown,
+  4: ACHIEVEMENTS.belt_black,
+};
+
+/** Concede todas as faixas até a faixa atual do usuário. */
+export async function runBeltAchievements(
+  userId: string,
+  belt: string | null,
+): Promise<Achievement[]> {
+  const idx = beltIndex(belt);
+  const owned = await fetchOwnedTitles(userId);
+  const unlocked: Achievement[] = [];
+  for (let i = 1; i <= idx; i++) {
+    const def = BELT_ACHIEVEMENT_BY_INDEX[i];
+    if (!def) continue;
+    const earned = await grantOnce(userId, def, true, owned);
+    if (earned) unlocked.push(earned);
+  }
+  return unlocked;
+}
