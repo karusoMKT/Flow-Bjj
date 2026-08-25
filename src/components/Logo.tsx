@@ -1,7 +1,6 @@
 import { useState } from "react";
-import logoAsset from "@/assets/flow-logo.png.asset.json";
 
-/** Marca tipográfica usada quando nenhuma imagem consegue carregar. */
+/** Marca tipográfica usada quando a imagem oficial não consegue carregar. */
 function WordmarkFallback({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <span
@@ -22,23 +21,25 @@ function WordmarkFallback({ className, style }: { className?: string; style?: Re
 export function Logo({
   className = "h-10 w-auto",
   style,
+  variant = "full",
 }: {
   className?: string;
   style?: React.CSSProperties;
+  /** "full" = lockup completo (splash/login). "mark" = apenas o ícone "F" (header). */
+  variant?: "full" | "mark";
 }) {
-  // 1º: asset no CDN. 2º: /logo.png em /public. 3º: marca tipográfica.
-  const [stage, setStage] = useState<0 | 1 | 2>(0);
+  const [failed, setFailed] = useState(false);
 
-  if (stage === 2) return <WordmarkFallback className={className} style={style} />;
+  if (failed) return <WordmarkFallback className={className} style={style} />;
 
   return (
     <img
-      src={stage === 0 ? logoAsset.url : "/logo.png"}
+      src={variant === "mark" ? "/logo-mark.png" : "/logo.png"}
       alt="Flow Jiu-Jitsu"
       className={`select-none object-contain ${className}`}
       draggable={false}
       style={style}
-      onError={() => setStage((s) => (s === 0 ? 1 : 2))}
+      onError={() => setFailed(true)}
     />
   );
 }
