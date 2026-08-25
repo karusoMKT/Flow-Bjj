@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,6 +13,7 @@ import { awardXp, XP_REWARDS } from "@/lib/xp";
 import { PLACEMENTS, encodeCompetition } from "@/lib/competition";
 import { LocationAutocomplete } from "@/components/LocationAutocomplete";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { uploadShareImage } from "@/lib/stories";
 
 
 
@@ -65,6 +66,11 @@ function CreatePost() {
   const [compLocation, setCompLocation] = useState("");
   const [compSummary, setCompSummary] = useState("");
 
+  // Mídia do post (foto do treino ou da competição)
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+
   // Academia principal do perfil (preenche o local automaticamente)
   const { data: me } = useQuery({
     queryKey: ["home-academy"],
@@ -89,6 +95,37 @@ function CreatePost() {
       setTrainLocation(homeAcademy);
     }
   }, [homeAcademy, locationTouched, trainLocation]);
+
+  // Limpa a mídia ao trocar de modo para evitar foto do treino na competição (e vice-versa).
+  useEffect(() => {
+    setMediaFile(null);
+    setMediaPreview(null);
+  }, [mode]);
+
+  function pickMedia(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setMediaFile(file);
+    setMediaPreview(URL.createObjectURL(file));
+  }
+
+  function removeMedia() {
+    if (mediaPreview) URL.revokeObjectURL(mediaPreview);
+    setMediaFile(null);
+    setMediaPreview(null);
+  }
+
+  async function uploadMedia(uid: string): Promise<string | null> {
+    if (!mediaFile) return null;
+    try {
+      return await uploadShareImage(mediaFile, uid);
+    } catch (err) {
+      console.error("Erro ao enviar mídia:", err);
+      toast.error("Não foi possível enviar a imagem. Tente novamente.");
+      return null;
+    }
+  }
 
   /** Concede XP do check-in e devolve o nível quando o atleta sobe. */
   async function grantXp(uid: string, kind: "treino" | "competicao") {
@@ -116,6 +153,11 @@ function CreatePost() {
         toast.error("Informe o nome do campeonato.");
         return;
       }
+      const imageUrl = mediaFile ? await uploadMedia(uid) : null;
+      if (mediaFile && !imageUrl) {
+        setSaving(false);
+        return;
+      }
       const { error: compError } = await supabase.from("posts").insert({
         user_id: uid,
         content: encodeCompetition({
@@ -124,6 +166,7 @@ function CreatePost() {
           location: compLocation,
           summary: compSummary,
         }),
+        image_url: imageUrl,
       });
       setSaving(false);
       if (compError) {
@@ -144,6 +187,12 @@ function CreatePost() {
 
     const minutes = Number(duration) || 60;
     const notes = [text.trim(), `Intensidade: ${intensity}`].filter(Boolean).join(" · ") || null;
+
+    const imageUrl = mediaFile ? await uploadMedia(uid) : null;
+    if (mediaFile && !imageUrl) {
+      setSaving(false);
+      return;
+    }
 
     const { data: workout, error: workoutError } = await supabase
       .from("workouts")
@@ -169,6 +218,7 @@ function CreatePost() {
       user_id: uid,
       workout_id: workout.id,
       content: text.trim() || `Treino de ${type} · ${minutes} min · ${intensity}`,
+      image_url: imageUrl,
     });
 
     // Mantém compatibilidade com o feed atual baseado em sessions
@@ -271,6 +321,15 @@ function CreatePost() {
           ))}
         </div>
 
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={pickMedia}
+          aria-hidden="true"
+        />
+
         {mode === "treino" ? (
           <div key="treino" className="flex flex-col gap-6 animate-fade-in">
         {/* Texto + mídia */}
@@ -293,13 +352,32 @@ function CreatePost() {
           </div>
         </section>
 
-        <button
-          type="button"
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 text-muted-foreground transition-colors hover:border-brand/40 hover:text-foreground"
-        >
-          <Camera className="size-6" />
-          <span className="text-sm">Adicionar foto ou vídeo</span>
-        </button>
+        {mediaPreview ? (
+          <div className="relative overflow-hidden rounded-2xl">
+            <img
+              src={mediaPreview}
+              alt="Pré-visualização da foto do treino"
+              className="aspect-[4/3] w-full object-cover"
+            />
+            <button
+              type="button"
+              onClick={removeMedia}
+              aria-label="Remover foto"
+              className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-black/70 text-white backdrop-blur-sm tap-target transition-opacity hover:bg-black/90"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 text-muted-foreground transition-colors hover:border-brand/40 hover:text-foreground tap-target"
+          >
+            <Camera className="size-6" />
+            <span className="text-sm">Adicionar foto ou vídeo</span>
+          </button>
+        )}
 
         {/* Academia / Local do treino (unificado) */}
         <section className="flex flex-col gap-3">
@@ -462,13 +540,32 @@ function CreatePost() {
               />
             </section>
 
-            <button
-              type="button"
-              className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 text-muted-foreground transition-colors hover:border-brand/40 hover:text-foreground"
-            >
-              <ImagePlus className="size-6" />
-              <span className="text-sm">Adicionar foto do evento</span>
-            </button>
+            {mediaPreview ? (
+              <div className="relative overflow-hidden rounded-2xl">
+                <img
+                  src={mediaPreview}
+                  alt="Pré-visualização da foto do evento"
+                  className="aspect-[4/3] w-full object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={removeMedia}
+                  aria-label="Remover foto"
+                  className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-black/70 text-white backdrop-blur-sm tap-target transition-opacity hover:bg-black/90"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 text-muted-foreground transition-colors hover:border-brand/40 hover:text-foreground tap-target"
+              >
+                <ImagePlus className="size-6" />
+                <span className="text-sm">Adicionar foto do evento</span>
+              </button>
+            )}
           </div>
         )}
 
