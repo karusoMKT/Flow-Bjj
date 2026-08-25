@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { LogOut, Settings, Flame, Clock, Crown, Dumbbell, Trophy, Medal, Target, Zap } from "lucide-react";
-import { DevRoutesMenu } from "@/components/DevRoutesMenu";
+
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
 import { BottomNav } from "@/components/BottomNav";
@@ -356,11 +356,6 @@ function Perfil() {
             </span>
           </Link>
         )}
-
-
-
-
-        <DevRoutesMenu />
 
         <section className="mt-8">
           <h3 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
