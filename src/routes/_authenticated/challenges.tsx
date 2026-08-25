@@ -1,129 +1,42 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import {
-  Award,
-  CalendarCheck,
-  Clock,
-  Dumbbell,
-  Flame,
-  Footprints,
-  Gift,
-  Target,
-  Trophy,
-} from "lucide-react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Gift, Trophy, icons } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
+import { supabase } from "@/integrations/supabase/client";
+import { fetchChallenges, type Challenge, type ChallengeStatus } from "@/lib/challenges";
 
 const TABS = ["Ativos", "Disponíveis", "Concluídos"] as const;
 type Tab = (typeof TABS)[number];
 
-type Challenge = {
-  id: string;
-  title: string;
-  description: string;
-  current: number;
-  target: number;
-  daysLeft: number | null;
-  reward: string;
-  icon: React.ElementType;
-  status: Exclude<Tab, "Disponíveis"> | "available";
+const TAB_STATUS: Record<Tab, ChallengeStatus> = {
+  Ativos: "active",
+  "Disponíveis": "available",
+  "Concluídos": "completed",
 };
 
-const CHALLENGES: Challenge[] = [
-  {
-    id: "1",
-    title: "Desafio 20 Treinos",
-    description: "Treine 20 vezes este mês.",
-    current: 16,
-    target: 20,
-    daysLeft: 4,
-    reward: "500 XP",
-    icon: Dumbbell,
-    status: "Ativos",
-  },
-  {
-    id: "2",
-    title: "100 Horas no Tatame",
-    description: "Acumule 100 horas de treino.",
-    current: 78,
-    target: 100,
-    daysLeft: 12,
-    reward: "Emblema Lendário",
-    icon: Clock,
-    status: "Ativos",
-  },
-  {
-    id: "3",
-    title: "Semana Sem Faltar",
-    description: "Treine todos os dias da semana.",
-    current: 5,
-    target: 7,
-    daysLeft: 1,
-    reward: "250 XP",
-    icon: CalendarCheck,
-    status: "Ativos",
-  },
-  {
-    id: "4",
-    title: "50 Quedas Treinadas",
-    description: "Treine 50 quedas diferentes.",
-    current: 26,
-    target: 50,
-    daysLeft: 7,
-    reward: "Emblema Mítico",
-    icon: Footprints,
-    status: "Ativos",
-  },
-  {
-    id: "5",
-    title: "Faixa Azul",
-    description: "Conquiste a faixa azul com seu professor.",
-    current: 0,
-    target: 1,
-    daysLeft: null,
-    reward: "Título especial",
-    icon: Award,
-    status: "available",
-  },
-  {
-    id: "6",
-    title: "Primeira Competição",
-    description: "Participe de uma competição oficial.",
-    current: 0,
-    target: 1,
-    daysLeft: null,
-    reward: "Emblema Épico",
-    icon: Trophy,
-    status: "available",
-  },
-  {
-    id: "7",
-    title: "30 Dias Seguidos",
-    description: "Complete 30 dias de treino consecutivos.",
-    current: 30,
-    target: 30,
-    daysLeft: null,
-    reward: "750 XP",
-    icon: Flame,
-    status: "Concluídos",
-  },
-  {
-    id: "8",
-    title: "10 Rolas",
-    description: "Complete 10 rolas de sparring.",
-    current: 10,
-    target: 10,
-    daysLeft: null,
-    reward: "200 XP",
-    icon: Target,
-    status: "Concluídos",
-  },
-];
+async function loadChallenges(): Promise<Challenge[]> {
+  const { data: auth } = await supabase.auth.getUser();
+  const uid = auth.user?.id;
+  if (!uid) throw new Error("Sem sessão");
+  return fetchChallenges(uid);
+}
+
+function ChallengeIcon({ name, className }: { name: string; className?: string }) {
+  const Icon = (icons as Record<string, React.ElementType>)[name] ?? Trophy;
+  return <Icon className={className} strokeWidth={1.8} />;
+}
 
 function ChallengeCard({ challenge }: { challenge: Challenge }) {
   const progress = Math.min(100, (challenge.current / challenge.target) * 100);
+  const done = challenge.status === "completed";
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-white/5 bg-surface p-4 transition-colors hover:border-white/10">
+    <div
+      className={`relative overflow-hidden rounded-2xl border p-4 transition-colors ${
+        done ? "border-brand/40 bg-brand/5" : "border-white/5 bg-surface hover:border-white/10"
+      }`}
+    >
       <div className="flex items-start gap-3">
         <div className="flex min-w-0 flex-1 flex-col">
           <div className="flex items-center justify-between gap-2">
@@ -137,18 +50,29 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
               <span className="font-semibold text-foreground">
                 {challenge.current} / {challenge.target}
               </span>
-              {challenge.daysLeft !== null && (
-                <span className="text-muted-foreground">{challenge.daysLeft} dias restantes</span>
+              {done ? (
+                <span className="font-semibold text-brand">Concluído • recompensa liberada</span>
+              ) : (
+                challenge.daysLeft !== null && (
+                  <span className="text-muted-foreground">{challenge.daysLeft} dias restantes</span>
+                )
               )}
             </div>
             <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-2">
-              <div className="h-full rounded-full bg-brand transition-all" style={{ width: `${progress}%` }} />
+              <div
+                className={`h-full rounded-full transition-all ${done ? "bg-brand shadow-[0_0_12px_var(--brand)]" : "bg-brand"}`}
+                style={{ width: `${progress}%` }}
+              />
             </div>
           </div>
         </div>
 
-        <div className="grid size-10 shrink-0 place-items-center rounded-full bg-brand/10 text-brand">
-          <Gift className="size-5" />
+        <div
+          className={`grid size-10 shrink-0 place-items-center rounded-full ${
+            done ? "bg-brand text-brand-foreground" : "bg-brand/10 text-brand"
+          }`}
+        >
+          {done ? <Gift className="size-5" /> : <ChallengeIcon name={challenge.icon_name} className="size-5" />}
         </div>
       </div>
 
@@ -159,8 +83,12 @@ function ChallengeCard({ challenge }: { challenge: Challenge }) {
 
 function ChallengesPage() {
   const [tab, setTab] = useState<Tab>("Ativos");
+  const { data, isLoading } = useQuery({ queryKey: ["challenges"], queryFn: loadChallenges });
 
-  const filtered = CHALLENGES.filter((c) => (tab === "Disponíveis" ? c.status === "available" : c.status === tab));
+  const filtered = useMemo(
+    () => (data ?? []).filter((c) => c.status === TAB_STATUS[tab]),
+    [data, tab],
+  );
 
   return (
     <div className="min-h-screen bg-background pb-28">
@@ -183,9 +111,17 @@ function ChallengesPage() {
         </div>
 
         <section className="mt-6 space-y-3">
-          {filtered.map((challenge) => (
-            <ChallengeCard key={challenge.id} challenge={challenge} />
-          ))}
+          {isLoading ? (
+            Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-28 animate-pulse rounded-2xl bg-white/5" />
+            ))
+          ) : filtered.length === 0 ? (
+            <p className="mt-8 text-center text-sm text-muted-foreground">
+              Nenhum desafio nesta aba por enquanto.
+            </p>
+          ) : (
+            filtered.map((challenge) => <ChallengeCard key={challenge.id} challenge={challenge} />)
+          )}
         </section>
       </main>
 

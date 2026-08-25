@@ -179,6 +179,7 @@ function CreatePost() {
       queryClient.invalidateQueries({ queryKey: ["profile"] });
       const unlockedList = await runCompetitionAchievements(uid, placement);
       queryClient.invalidateQueries({ queryKey: ["achievements"] });
+    queryClient.invalidateQueries({ queryKey: ["challenges"] });
       showUnlocked(unlockedList, leveledComp);
 
       return;
@@ -244,6 +245,7 @@ function CreatePost() {
     // Motor de conquistas (volume, ofensiva) — sem duplicar troféus.
     const unlockedList = await runWorkoutAchievements(uid);
     queryClient.invalidateQueries({ queryKey: ["achievements"] });
+    queryClient.invalidateQueries({ queryKey: ["challenges"] });
     showUnlocked(unlockedList, leveled);
 
   }
