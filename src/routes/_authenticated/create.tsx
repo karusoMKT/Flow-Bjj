@@ -343,13 +343,41 @@ function CreatePost() {
           </div>
         </section>
 
-        <button
-          type="button"
-          className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 text-muted-foreground transition-colors hover:border-brand/40 hover:text-foreground"
-        >
-          <Camera className="size-6" />
-          <span className="text-sm">Adicionar foto ou vídeo</span>
-        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={pickMedia}
+          aria-hidden="true"
+        />
+
+        {mediaPreview ? (
+          <div className="relative overflow-hidden rounded-2xl">
+            <img
+              src={mediaPreview}
+              alt="Pré-visualização da foto do treino"
+              className="aspect-[4/3] w-full object-cover"
+            />
+            <button
+              type="button"
+              onClick={removeMedia}
+              aria-label="Remover foto"
+              className="absolute right-2 top-2 grid size-8 place-items-center rounded-full bg-black/70 text-white backdrop-blur-sm tap-target transition-opacity hover:bg-black/90"
+            >
+              <X className="size-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/15 py-8 text-muted-foreground transition-colors hover:border-brand/40 hover:text-foreground tap-target"
+          >
+            <Camera className="size-6" />
+            <span className="text-sm">Adicionar foto ou vídeo</span>
+          </button>
+        )}
 
         {/* Academia / Local do treino (unificado) */}
         <section className="flex flex-col gap-3">
