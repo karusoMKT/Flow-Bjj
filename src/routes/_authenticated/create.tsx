@@ -153,6 +153,11 @@ function CreatePost() {
         toast.error("Informe o nome do campeonato.");
         return;
       }
+      const imageUrl = mediaFile ? await uploadMedia(uid) : null;
+      if (mediaFile && !imageUrl) {
+        setSaving(false);
+        return;
+      }
       const { error: compError } = await supabase.from("posts").insert({
         user_id: uid,
         content: encodeCompetition({
@@ -161,6 +166,7 @@ function CreatePost() {
           location: compLocation,
           summary: compSummary,
         }),
+        image_url: imageUrl,
       });
       setSaving(false);
       if (compError) {
