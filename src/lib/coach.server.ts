@@ -76,7 +76,7 @@ export async function generateCoachReply(data: CoachInput) {
       });
       const chat = model.startChat({
         history,
-        generationConfig: { temperature: 0.8, maxOutputTokens: 1200 },
+        generationConfig: { temperature: 0.8, maxOutputTokens: 2048 },
       });
       return chat.sendMessage(prompt);
     };
