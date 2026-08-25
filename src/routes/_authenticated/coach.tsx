@@ -158,18 +158,24 @@ function CoachPage() {
         )}
 
         <div className="grid grid-cols-2 gap-3">
-          <Link
-            to="/training-plan"
-            className="press flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 transition-colors hover:border-brand/40"
+          <button
+            type="button"
+            disabled={locked || isLoading}
+            onClick={() =>
+              void send(
+                `Monte um plano de treinos e drills focado em me preparar para o meu próximo objetivo no Jiu-Jitsu: ${nextObjective}`
+              )
+            }
+            className="press flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 text-left transition-colors hover:border-brand/40 disabled:opacity-50"
           >
             <div className="grid size-9 shrink-0 place-items-center rounded-xl bg-brand/10 text-brand">
               <CalendarDays className="size-4" />
             </div>
             <div className="min-w-0">
               <p className="truncate text-xs font-semibold">Plano de Treino</p>
-              <p className="truncate text-[10px] text-muted-foreground">Operação Faixa Azul</p>
+              <p className="truncate text-[10px] text-muted-foreground">{nextObjective}</p>
             </div>
-          </Link>
+          </button>
           <Link
             to="/analysis"
             className="press flex items-center gap-2.5 rounded-2xl border border-white/10 bg-surface p-3 transition-colors hover:border-brand/40"
