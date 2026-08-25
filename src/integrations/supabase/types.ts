@@ -504,6 +504,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          ai_queries_used: number
           avatar_url: string | null
           belt: string | null
           city: string | null
@@ -526,6 +527,7 @@ export type Database = {
           xp: number
         }
         Insert: {
+          ai_queries_used?: number
           avatar_url?: string | null
           belt?: string | null
           city?: string | null
@@ -548,6 +550,7 @@ export type Database = {
           xp?: number
         }
         Update: {
+          ai_queries_used?: number
           avatar_url?: string | null
           belt?: string | null
           city?: string | null
