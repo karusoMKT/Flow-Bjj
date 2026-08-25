@@ -1,5 +1,7 @@
 import { Award, CalendarDays, Link2 as LinkIcon, MapPin, Medal, Play, Trophy, Zap } from "lucide-react";
 import { PostActions } from "@/components/PostActions";
+import { PostMenu } from "@/components/PostMenu";
+import { renderWithMentions } from "@/lib/mentions";
 import { EventInterest } from "@/components/EventInterest";
 import { ShareButton } from "@/components/ShareButton";
 import { ChampionBadge } from "@/components/ChampionBadge";
