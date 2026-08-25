@@ -13,7 +13,8 @@ const SYSTEM_INSTRUCTION =
   "Adapte o nível da resposta para a faixa do usuário que está perguntando. " +
   "Foco em fundamentos e prevenção de lesões. Use Markdown";
 
-const MODEL = "gemini-1.5-flash";
+const PRIMARY_MODEL = "gemini-1.5-flash-latest";
+const FALLBACK_MODEL = "gemini-pro";
 
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message;
@@ -24,6 +25,15 @@ function getErrorMessage(error: unknown) {
   } catch {
     return "Erro desconhecido ao chamar o Gemini.";
   }
+}
+
+function isModelNotFoundError(error: unknown) {
+  if (typeof error === "object" && error !== null && "status" in error) {
+    if (error.status === 404) return true;
+  }
+
+  const message = getErrorMessage(error).toLowerCase();
+  return message.includes("404") || message.includes("not found");
 }
 
 function normalizeHistory(history: CoachInput["history"]) {
@@ -55,19 +65,33 @@ export async function generateCoachReply(data: CoachInput) {
 
   try {
     const client = new GoogleGenerativeAI(apiKey);
-    const model = client.getGenerativeModel({
-      model: MODEL,
-      systemInstruction: SYSTEM_INSTRUCTION,
-    });
     const history = normalizeHistory(data.history);
-    const chat = model.startChat({
-      history,
-      generationConfig: { temperature: 0.8, maxOutputTokens: 1200 },
-    });
     const prompt =
       `[Perfil do atleta: faixa ${data.belt ?? "Branca"}, ${data.stripes} grau(s)]\n\n` +
       data.message;
-    const result = await chat.sendMessage(prompt);
+    const sendMessage = async (modelName: string) => {
+      const model = client.getGenerativeModel({
+        model: modelName,
+        systemInstruction: SYSTEM_INSTRUCTION,
+      });
+      const chat = model.startChat({
+        history,
+        generationConfig: { temperature: 0.8, maxOutputTokens: 1200 },
+      });
+      return chat.sendMessage(prompt);
+    };
+
+    let result;
+    try {
+      result = await sendMessage(PRIMARY_MODEL);
+    } catch (primaryError) {
+      if (!isModelNotFoundError(primaryError)) throw primaryError;
+
+      console.warn(
+        `[gemini-coach] Modelo ${PRIMARY_MODEL} indisponível. Tentando fallback ${FALLBACK_MODEL}.`,
+      );
+      result = await sendMessage(FALLBACK_MODEL);
+    }
     const text = result.response.text();
 
     if (!text.trim()) {
