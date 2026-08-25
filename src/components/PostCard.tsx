@@ -10,6 +10,7 @@ import { parseCompetition, placementTone } from "@/lib/competition";
 
 export type FeedPost = {
   id: string;
+  user_id?: string | null;
   content: string | null;
   image_url: string | null;
   likes_count: number | null;
