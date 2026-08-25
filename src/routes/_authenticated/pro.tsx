@@ -213,12 +213,12 @@ export const Route = createFileRoute("/_authenticated/pro")({
       { title: "Flow PRO | Assine e destaque seu jiu-jitsu" },
       {
         name: "description",
-        content: "Selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
+        content: "IA Coach ilimitado, selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
       },
       { property: "og:title", content: "Flow PRO | Assine e destaque seu jiu-jitsu" },
       {
         property: "og:description",
-        content: "Selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
+        content: "IA Coach ilimitado, selo PRO, tag de competidor, estatísticas avançadas e mais visibilidade na comunidade Flow.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
