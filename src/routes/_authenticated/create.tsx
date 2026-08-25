@@ -352,15 +352,6 @@ function CreatePost() {
           </div>
         </section>
 
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={pickMedia}
-          aria-hidden="true"
-        />
-
         {mediaPreview ? (
           <div className="relative overflow-hidden rounded-2xl">
             <img
