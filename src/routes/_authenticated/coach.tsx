@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { ArrowUp, BarChart3, Bot, CalendarDays, Lock, Sparkles } from "lucide-react";
 import { BottomNav } from "@/components/BottomNav";
 import { MarkdownText } from "@/components/MarkdownText";
 import { ProBadge } from "@/components/ProBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { getNextBeltObjective } from "@/lib/belt";
+import { askGeminiCoach } from "@/lib/coach.functions";
 
 // System Prompt: Você é um professor faixa preta de Jiu-Jitsu. Ajude o atleta com drills, táticas e prevenção de lesões.
 
@@ -30,21 +32,6 @@ const INITIAL_MESSAGES: Message[] = [
   },
 ];
 
-const MOCK_ANSWER = `**Meia-guarda: pare de ser raspado**
-
-O erro clássico é ficar com o peso alto e o braço perto do quadril do oponente. Corrija a base antes de pensar em passagem.
-
-1. **Mate o underhook.** Assim que ele buscar o underhook, encaixe o *whizzer* e cole a orelha no ombro dele.
-2. **Peso na diagonal.** Jogue o peso no ombro do lado do whizzer — não sobre o joelho preso.
-3. **Livre o joelho preso.** Use o joelho de fora como cunha e "pise" para fora do bloqueio.
-4. **Cabeça sempre acima.** Se a sua cabeça passar da linha do peito dele, a raspagem chega.
-
-**Drills sugeridos (3 rounds de 5 min)**
-- Drill de whizzer isolado: parceiro tenta o underhook 20x, você só defende.
-- Passagem em knee-cut a partir da meia-guarda, 10x cada lado.
-- Situacional posicional: começar preso na meia e sobreviver 2 min sem ser raspado.
-
-*Prevenção:* mantenha o joelho preso alinhado ao pé para evitar torção no LCM.`;
 
 type ProfileGate = {
   id: string;
@@ -116,10 +103,13 @@ function CoachPage() {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, typing]);
 
+  const askCoach = useServerFn(askGeminiCoach);
+
   async function send(text: string) {
     const value = text.trim();
     if (!value || typing || locked) return;
 
+    const history = messages.map((m) => ({ role: m.role, text: m.text }));
     setMessages((prev) => [...prev, { id: `u-${Date.now()}`, role: "user", text: value }]);
     setInput("");
     setTyping(true);
@@ -131,12 +121,35 @@ function CoachPage() {
       queryClient.invalidateQueries({ queryKey: ["coach-gate"] });
     }
 
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: "assistant", text: MOCK_ANSWER }]);
+    try {
+      const result = await askCoach({
+        data: {
+          message: value,
+          history,
+          belt: profile?.belt ?? null,
+          stripes: profile?.stripes ?? 0,
+        },
+      });
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          text: result.error ? `⚠️ ${result.error}` : result.text,
+        },
+      ]);
+    } catch (err) {
+      console.error(err);
+      setMessages((prev) => [
+        ...prev,
+        { id: `a-${Date.now()}`, role: "assistant", text: "⚠️ Não consegui falar com o Coach agora." },
+      ]);
+    } finally {
       setTyping(false);
       inputRef.current?.focus();
-    }, 2000);
+    }
   }
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background pb-40">
