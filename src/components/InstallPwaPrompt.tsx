@@ -24,7 +24,10 @@ export function InstallPwaPrompt({ enabled = true }: { enabled?: boolean }) {
   useEffect(() => {
     initPwaInstallCapture();
     setPrompt(getDeferredPrompt());
-    return onDeferredPromptChange(setPrompt);
+    const off = onDeferredPromptChange(setPrompt);
+    return () => {
+      off();
+    };
   }, []);
 
   useEffect(() => {
