@@ -5,6 +5,7 @@ import { Bell, Loader2, MessageSquare, Plus, Sparkles, X } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { PushPermissionPrompt } from "@/components/PushPermissionPrompt";
+import { InstallPwaPrompt } from "@/components/InstallPwaPrompt";
 import { supabase } from "@/integrations/supabase/client";
 import { FEED_SELECT } from "@/lib/social";
 import { PostCard, PostCardSkeleton, type FeedPost } from "@/components/PostCard";
