@@ -160,9 +160,8 @@ function HomeFeed() {
   return (
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-40 flex items-center justify-between border-b border-white/5 bg-background/95 px-4 py-3 backdrop-blur">
-        <span className="select-none font-display text-2xl font-black italic tracking-tight text-brand">
-          FLOW
-        </span>
+        <Logo variant="mark" className="h-9 w-9 rounded-lg" />
+
         <div className="flex items-center gap-1">
           <Link
             to="/coach"
