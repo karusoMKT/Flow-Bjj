@@ -195,12 +195,17 @@ export function PostCard({ post, currentUserId }: { post: FeedPost; currentUserI
                   <span className="truncate">{workout.location}</span>
                 </p>
               )}
-              {post.content && <p className="mt-1 text-sm leading-snug text-foreground">{post.content}</p>}
+              {post.content && (
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-snug text-foreground">{renderWithMentions(post.content)}</p>
+              )}
 
             </>
           )}
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+        <div className="flex shrink-0 items-center gap-1">
+          <span className="text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+          <PostMenu postId={post.id} authorId={post.user_id} currentUserId={currentUserId} content={post.content} />
+        </div>
       </div>
 
 
@@ -285,6 +290,7 @@ function EventCard({
         <CalendarDays className="size-4 text-brand" />
         <span className="text-[11px] font-black uppercase tracking-widest text-brand">Evento</span>
         <span className="ml-auto text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+        <PostMenu postId={post.id} authorId={post.user_id} currentUserId={currentUserId} content={post.content} />
       </div>
 
       {post.image_url && (
@@ -314,7 +320,9 @@ function EventCard({
               <span className="truncate">{post.event_location}</span>
             </p>
           )}
-          {post.content && <p className="mt-2 text-sm leading-snug text-foreground">{post.content}</p>}
+          {post.content && (
+            <p className="mt-2 whitespace-pre-wrap text-sm leading-snug text-foreground">{renderWithMentions(post.content)}</p>
+          )}
           <div className="mt-2.5 flex items-center gap-2">
             <AvatarBubble src={author?.avatar_url} name={name} className="size-6" />
             <span className="truncate text-xs text-muted-foreground">por {name}</span>
@@ -372,7 +380,7 @@ function SocialCard({
             </div>
           )}
           {post.content && (
-            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-snug text-foreground">{post.content}</p>
+            <p className="mt-1.5 whitespace-pre-wrap text-sm leading-snug text-foreground">{renderWithMentions(post.content)}</p>
           )}
           {post.location && (
             <p className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
@@ -392,7 +400,10 @@ function SocialCard({
             </a>
           )}
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+        <div className="flex shrink-0 items-center gap-1">
+          <span className="text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+          <PostMenu postId={post.id} authorId={post.user_id} currentUserId={currentUserId} content={post.content} />
+        </div>
       </div>
 
       {post.image_url && (
@@ -440,7 +451,10 @@ function PromotionCard({
           </div>
           <p className="text-[11px] font-bold uppercase tracking-widest text-brand">Graduação</p>
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+        <div className="flex shrink-0 items-center gap-1">
+          <span className="text-xs text-muted-foreground">{timeAgo(post.created_at)}</span>
+          <PostMenu postId={post.id} authorId={post.user_id} currentUserId={currentUserId} content={post.content} />
+        </div>
       </div>
 
       <div className="flex items-center gap-3 px-4 pb-5">
