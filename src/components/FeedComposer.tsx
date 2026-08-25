@@ -148,95 +148,94 @@ export function FeedComposer({
         </div>
       )}
 
-      <div className="flex items-start gap-3 p-3">
-        <AvatarBubble src={avatarUrl} name={name} className="size-9" />
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          onFocus={() => setFocused(true)}
-          rows={expanded ? 3 : 1}
-          placeholder={eventMode ? "Conte como vai ser o evento..." : placeholder}
-          aria-label="Escreva uma publicação"
-          className="mt-0.5 w-full flex-1 resize-none rounded-2xl border border-white/8 bg-surface-2 px-4 py-2.5 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-brand/60"
-        />
+      <div className="grid grid-cols-[auto_1fr] gap-3 p-3">
+        <AvatarBubble src={avatarUrl} name={name} className="size-9 shrink-0" />
+        <div className="flex min-w-0 flex-col gap-3">
+          <textarea
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            onFocus={() => setFocused(true)}
+            rows={expanded ? 3 : 1}
+            placeholder={eventMode ? "Conte como vai ser o evento..." : placeholder}
+            aria-label="Escreva uma publicação"
+            className="w-full resize-none rounded-2xl border border-white/8 bg-surface-2 px-4 py-2.5 text-sm text-foreground outline-none transition-all placeholder:text-muted-foreground focus:border-brand/60"
+          />
+
+          {imagePreview && (
+            <div className="relative overflow-hidden rounded-xl border border-white/8">
+              <img src={imagePreview} alt="Prévia da imagem" className="max-h-64 w-full object-cover" />
+              <button
+                type="button"
+                onClick={() => {
+                  setImageFile(null);
+                  setImagePreview(null);
+                }}
+                aria-label="Remover imagem"
+                className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-black/70 text-foreground"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+          )}
+
+          {showLocation && (
+            <LocationAutocomplete
+              value={location}
+              onChange={setLocation}
+              placeholder={eventMode ? "Ginásio, academia, cidade..." : "Onde foi isso?"}
+              ariaLabel={eventMode ? "Local do evento" : "Localização da publicação"}
+            />
+          )}
+
+          {showLink && !eventMode && (
+            <input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              inputMode="url"
+              placeholder="https://link-do-convite.com"
+              aria-label="Link ou convite"
+              className="h-11 w-full rounded-xl border border-white/8 bg-surface-2 px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-brand/60"
+            />
+          )}
+        </div>
       </div>
 
-
-      {imagePreview && (
-        <div className="relative mx-3 mb-3 overflow-hidden rounded-xl border border-white/8">
-          <img src={imagePreview} alt="Prévia da imagem" className="max-h-64 w-full object-cover" />
+      <div className="grid grid-cols-[auto_1fr] gap-3 border-t border-white/5 px-3 pb-3">
+        <div className="size-9 shrink-0" aria-hidden="true" />
+        <div className="flex min-w-0 flex-wrap items-center gap-2">
+          <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={pickImage} />
+          <ComposerAction
+            icon={ImageIcon}
+            label={eventMode ? "Capa" : "Imagem/Vídeo"}
+            onClick={() => fileRef.current?.click()}
+            active={!!imagePreview}
+          />
+          <ComposerAction icon={MapPin} label="Local" onClick={() => setShowLocation((v) => !v)} active={showLocation} />
+          {!eventMode && (
+            <ComposerAction icon={Link2} label="Link" onClick={() => setShowLink((v) => !v)} active={showLink} />
+          )}
+          <ComposerAction
+            icon={CalendarDays}
+            label="Evento"
+            onClick={() => {
+              setEventMode((v) => !v);
+              if (!eventMode) {
+                setShowLocation(true);
+                setShowLink(false);
+              }
+            }}
+            active={eventMode}
+          />
           <button
             type="button"
-            onClick={() => {
-              setImageFile(null);
-              setImagePreview(null);
-            }}
-            aria-label="Remover imagem"
-            className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-black/70 text-foreground"
+            onClick={publish}
+            disabled={!canPost || saving}
+            className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-full bg-brand px-3 py-2 text-[11px] font-black uppercase tracking-wider text-brand-foreground transition-transform active:scale-95 disabled:opacity-40 sm:px-4 sm:text-xs"
           >
-            <X className="size-4" />
+            {saving && <Loader2 className="size-3.5 animate-spin" />}
+            {eventMode ? "Criar evento" : "Publicar"}
           </button>
         </div>
-      )}
-
-      {showLocation && (
-        <div className="px-3 pb-3">
-          <LocationAutocomplete
-            value={location}
-            onChange={setLocation}
-            placeholder={eventMode ? "Ginásio, academia, cidade..." : "Onde foi isso?"}
-            ariaLabel={eventMode ? "Local do evento" : "Localização da publicação"}
-          />
-        </div>
-      )}
-
-      {showLink && !eventMode && (
-        <div className="px-3 pb-3">
-          <input
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            inputMode="url"
-            placeholder="https://link-do-convite.com"
-            aria-label="Link ou convite"
-            className="h-11 w-full rounded-xl border border-white/8 bg-surface-2 px-4 text-sm text-foreground outline-none placeholder:text-muted-foreground focus:border-brand/60"
-          />
-        </div>
-      )}
-
-      <div className="flex items-center gap-1 border-t border-white/5 px-2 py-2">
-        <input ref={fileRef} type="file" accept="image/*,video/*" className="hidden" onChange={pickImage} />
-        <ComposerAction
-          icon={ImageIcon}
-          label={eventMode ? "Capa" : "Imagem/Vídeo"}
-          onClick={() => fileRef.current?.click()}
-          active={!!imagePreview}
-        />
-        <ComposerAction icon={MapPin} label="Local" onClick={() => setShowLocation((v) => !v)} active={showLocation} />
-        {!eventMode && (
-          <ComposerAction icon={Link2} label="Link" onClick={() => setShowLink((v) => !v)} active={showLink} />
-        )}
-        <ComposerAction
-          icon={CalendarDays}
-          label="Evento"
-          onClick={() => {
-            setEventMode((v) => !v);
-            if (!eventMode) {
-              setShowLocation(true);
-              setShowLink(false);
-            }
-          }}
-          active={eventMode}
-        />
-        <button
-          type="button"
-          onClick={publish}
-          disabled={!canPost || saving}
-          className="ml-auto inline-flex items-center gap-2 rounded-full bg-brand px-4 py-2 text-xs font-black uppercase tracking-wider text-brand-foreground transition-transform active:scale-95 disabled:opacity-40"
-        >
-          {saving && <Loader2 className="size-3.5 animate-spin" />}
-          {eventMode ? "Criar evento" : "Publicar"}
-        </button>
-
       </div>
     </section>
   );
