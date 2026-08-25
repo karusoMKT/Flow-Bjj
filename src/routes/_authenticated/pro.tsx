@@ -1,12 +1,17 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
-import { BarChart3, Check, ChevronLeft, Crown, Loader2, Sparkles, Trophy, Users } from "lucide-react";
+import { BarChart3, Brain, Check, ChevronLeft, Crown, Loader2, Sparkles, Trophy, Users } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
 import { supabase } from "@/integrations/supabase/client";
 
 const BENEFITS = [
+  {
+    icon: Brain,
+    title: "IA Coach Ilimitado",
+    description: "Acesso 24h a um assistente inteligente para tirar dúvidas técnicas, criar cronogramas de drills e ajudar no seu jogo.",
+  },
   { icon: Sparkles, title: "Selo exclusivo de Atleta PRO", description: "Seu nome com o raio neon em todo o app." },
   { icon: Trophy, title: "Tag de Competidor Oficial", description: "Chip dourado no feed e no seu perfil." },
   { icon: BarChart3, title: "Estatísticas avançadas", description: "Gráficos de longo prazo e histórico completo." },
