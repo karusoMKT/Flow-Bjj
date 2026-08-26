@@ -9,7 +9,6 @@ import { markOnboardingSeen } from "@/lib/onboarding";
 import { markPushAskPending } from "@/lib/push";
 
 export const Route = createFileRoute("/login")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Entrar — Flow Jiu-Jitsu" },
