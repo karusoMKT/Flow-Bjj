@@ -92,7 +92,7 @@ function SignupPage() {
         email: parsed.data.email,
         password: parsed.data.password,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           data: {
             full_name: parsed.data.fullName,
             username: parsed.data.email.split("@")[0],
