@@ -9,7 +9,6 @@ import { TeamCombobox } from "@/components/TeamCombobox";
 import { BELTS } from "@/lib/feed";
 
 export const Route = createFileRoute("/cadastro")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Criar conta — Flow Jiu-Jitsu" },

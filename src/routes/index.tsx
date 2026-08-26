@@ -5,7 +5,6 @@ import { Logo } from "@/components/Logo";
 import { HAS_SEEN_ONBOARDING } from "@/lib/onboarding";
 
 export const Route = createFileRoute("/")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Flow Jiu-Jitsu — Every roll tells a story" },

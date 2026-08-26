@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQueryClient } from "@tanstack/react-query";
 import { BarChart3, Brain, Check, ChevronLeft, Crown, Loader2, Sparkles, Trophy, Users } from "lucide-react";
 import { toast } from "sonner";
 import { BottomNav } from "@/components/BottomNav";
@@ -24,50 +23,35 @@ const PLANS = [
   { id: "anual", label: "Anual", price: "R$ 119,90", note: "por ano", per: "R$ 9,99/mês", highlight: true },
 ];
 
-function fireConfetti() {
-  void (async () => {
-    try {
-      const { default: confetti } = await import("canvas-confetti");
-      const colors = ["#c6ff2e", "#ffd25e", "#ffffff"];
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 }, colors, disableForReducedMotion: true });
-      window.setTimeout(
-        () => confetti({ particleCount: 70, angle: 60, spread: 60, origin: { x: 0, y: 0.7 }, colors, disableForReducedMotion: true }),
-        220,
-      );
-      window.setTimeout(
-        () => confetti({ particleCount: 70, angle: 120, spread: 60, origin: { x: 1, y: 0.7 }, colors, disableForReducedMotion: true }),
-        360,
-      );
-    } catch {
-      /* confete é opcional */
-    }
-  })();
-}
-
 function ProPage() {
   const [selected, setSelected] = useState("anual");
   const [coupon, setCoupon] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   async function subscribe() {
     if (loading) return;
     setLoading(true);
     try {
       const { data: auth } = await supabase.auth.getUser();
-      const uid = auth.user?.id;
-      if (!uid) throw new Error("Sem sessão");
+      const user = auth.user;
+      if (!user) throw new Error("Sem sessão");
 
-      const { error } = await supabase.from("profiles").update({ is_pro: true }).eq("id", uid);
-      if (error) throw error;
+      const baseLink = import.meta.env.VITE_STRIPE_PAYMENT_LINK as string | undefined;
+      if (!baseLink) {
+        toast.error("Pagamento ainda não configurado. Tente novamente em breve.");
+        setLoading(false);
+        return;
+      }
 
-      fireConfetti();
-      toast.success("Bem-vindo ao Flow PRO! 🥋");
-      await queryClient.invalidateQueries();
-      window.setTimeout(() => navigate({ to: "/perfil" }), 1600);
+      const url = new URL(baseLink);
+      url.searchParams.set("client_reference_id", user.id);
+      if (user.email) url.searchParams.set("prefilled_email", user.email);
+      url.searchParams.set("utm_plan", selected);
+
+      window.location.href = url.toString();
     } catch {
-      toast.error("Não foi possível ativar o PRO. Tente novamente.");
+      toast.error("Não foi possível iniciar o pagamento. Tente novamente.");
       setLoading(false);
     }
   }
@@ -198,7 +182,7 @@ function ProPage() {
           className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full bg-gradient-to-r from-brand to-[oklch(0.85_0.16_92)] py-3.5 text-sm font-black uppercase tracking-wide text-background shadow-[0_0_30px_-10px_var(--brand)] transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {loading ? <Loader2 className="size-4 animate-spin" /> : <Crown className="size-4" />}
-          {loading ? "Ativando..." : "Assinar Flow PRO"}
+          {loading ? "Redirecionando..." : "Assinar Flow PRO"}
         </button>
       </div>
 
