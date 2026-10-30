@@ -497,7 +497,7 @@ export const Route = createFileRoute("/_authenticated/explore")({
   ),
   errorComponent: ({ error }) => (
     <div role="alert" className="p-6 text-sm text-muted-foreground">
-      Não foi possível carregar o Explorar: {error.message}
+      Não foi possível carregar o Explorar: {error instanceof Error ? error.message : "erro desconhecido"}
     </div>
   ),
   notFoundComponent: () => <div className="p-6 text-sm text-muted-foreground">Nada por aqui.</div>,
