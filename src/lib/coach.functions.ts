@@ -37,11 +37,10 @@ export const askGeminiCoach = createServerFn({ method: "POST" })
         .limit(10),
       sb
         .from("ai_memories")
-        .select("kind, content")
+        .select("kind, content, is_active, updated_at")
         .eq("user_id", uid)
-        .eq("is_active", true)
-        .order("created_at", { ascending: false })
-        .limit(20),
+        .order("updated_at", { ascending: false })
+        .limit(30),
     ]);
 
     const profile = profileRes.data;
@@ -62,7 +61,12 @@ export const askGeminiCoach = createServerFn({ method: "POST" })
           intensity: w.intensity,
         }),
       ),
-      memories: memRes.data ?? [],
+      memories: (memRes.data ?? []).map((m: { kind: string; content: string; is_active: boolean; updated_at: string }) => ({
+        kind: m.kind,
+        content: m.content,
+        completed: !m.is_active,
+        completedAt: m.is_active ? null : new Date(m.updated_at).toLocaleDateString("pt-BR"),
+      })),
     };
 
     return generateCoachReply(data, athlete);

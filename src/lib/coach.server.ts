@@ -17,7 +17,7 @@ export type AthleteContext = {
   workoutsThisMonth: number;
   workoutsLast30: number;
   recentWorkouts: { date: string; type: string | null; minutes: number; intensity: string | null }[];
-  memories: { kind: string; content: string }[];
+  memories: { kind: string; content: string; completed: boolean; completedAt: string | null }[];
 };
 
 export type MemorySuggestion = { kind: "goal" | "favorite_position" | "difficulty"; content: string };
@@ -73,7 +73,13 @@ function describeAthlete(ctx: AthleteContext) {
   } else lines.push("Nenhum treino registrado ainda.");
   if (ctx.memories.length) {
     lines.push("Memória esportiva:");
-    for (const m of ctx.memories) lines.push(`- ${KIND_LABEL[m.kind] ?? m.kind}: ${m.content}`);
+    for (const m of ctx.memories.filter((x) => !x.completed))
+      lines.push(`- ${KIND_LABEL[m.kind] ?? m.kind}: ${m.content}`);
+    const done = ctx.memories.filter((x) => x.completed);
+    if (done.length) {
+      lines.push("Objetivos CONCLUÍDOS pelo atleta (reconheça e parabenize essa evolução quando fizer sentido, e sugira o próximo passo):");
+      for (const m of done) lines.push(`- ✅ ${m.content} (concluído em ${m.completedAt})`);
+    }
   } else lines.push("Memória esportiva: vazia.");
   return lines.join("\n");
 }
