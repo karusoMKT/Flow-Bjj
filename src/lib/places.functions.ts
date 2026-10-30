@@ -8,14 +8,21 @@ const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
 function creds() {
   const lovable = process.env["LOVABLE_API_KEY"];
   const maps = process.env["GOOGLE_MAPS_API_KEY"];
-  if (!lovable || !maps) throw new Error("Busca do Google indisponível no momento.");
+  if (!lovable || !maps) {
+    console.error("Google Places Error: credenciais ausentes", { LOVABLE_API_KEY: !!lovable, GOOGLE_MAPS_API_KEY: !!maps });
+    throw new Error("Busca do Google não configurada: conexão do Google Maps ausente no servidor.");
+  }
   return { Authorization: `Bearer ${lovable}`, "X-Connection-Api-Key": maps };
 }
 
 async function failure(res: Response) {
   const body = await res.text();
-  console.error(`[places] ${res.status}: ${body}`);
-  return res.status === 429 ? "Muitas buscas seguidas. Aguarde um instante." : "Não foi possível buscar academias agora.";
+  console.error(`Google Places Error: HTTP ${res.status}`, body);
+  if (res.status === 429) return "Muitas buscas seguidas. Aguarde um instante.";
+  if (res.status === 403) return "Google recusou a busca (403): chave sem permissão para Places API.";
+  if (res.status === 400) return "Google rejeitou os parâmetros da busca (400).";
+  if (res.status === 401) return "Credenciais do Google inválidas (401).";
+  return `Não foi possível buscar academias agora (HTTP ${res.status}).`;
 }
 
 /** Busca academias no Google Places, centralizada no usuário (GPS) ou numa cidade/bairro digitado. */
@@ -96,7 +103,7 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
       }
       return { places: places.slice(0, 15), error: null as string | null };
     } catch (e) {
-      console.error("[places]", e);
-      return { places: [] as GymPlace[], error: "Não foi possível buscar academias agora." };
+      console.error("Google Places Error:", e);
+      return { places: [] as GymPlace[], error: (e as Error)?.message || "Não foi possível buscar academias agora." };
     }
   });
