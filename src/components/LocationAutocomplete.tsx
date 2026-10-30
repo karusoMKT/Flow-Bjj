@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { searchGymPlaces } from "@/lib/places.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { ensureFreshSession, expireSessionAndRedirect } from "@/lib/session";
 
 type Place = { id: string; label: string; custom?: boolean };
 
@@ -85,18 +86,35 @@ export function LocationAutocomplete({
       try {
         const [custom, google] = await Promise.all([
           searchCustomLocations(query),
-          searchPlaces({
-            data: { query, lat: geo?.lat ?? null, lng: geo?.lng ?? null, area: area.trim() || null, country: userCountry() },
-          }).catch((error: unknown) => {
-            console.error("Google Places Error:", error);
-            const msg = (error as Error)?.message ?? "";
-            return {
-              places: [],
-              error: /auth|unauthor|401/i.test(msg)
-                ? "Sua sessão expirou. Entre novamente para buscar academias."
-                : "Não foi possível buscar academias agora.",
+          (async () => {
+            const payload = { data: { query, lat: geo?.lat ?? null, lng: geo?.lng ?? null, area: area.trim() || null, country: userCountry() } };
+            const isAuthErr = (e: unknown) => {
+              const status = (e as { status?: number })?.status;
+              return status === 401 || status === 400 || /auth|unauthor|401|jwt|token/i.test((e as Error)?.message ?? "");
             };
-          }),
+            if (!(await ensureFreshSession())) {
+              await expireSessionAndRedirect();
+              return { places: [], error: null as string | null };
+            }
+            try {
+              return await searchPlaces(payload);
+            } catch (error) {
+              console.error("Google Places Error:", error);
+              if (!isAuthErr(error)) return { places: [], error: "Não foi possível buscar academias agora." };
+              // Token rejeitado: força renovação e tenta uma vez com o novo JWT.
+              if (!(await ensureFreshSession(true))) {
+                await expireSessionAndRedirect();
+                return { places: [], error: null as string | null };
+              }
+              try {
+                return await searchPlaces(payload);
+              } catch (retryError) {
+                console.error("Google Places Error (retry):", retryError);
+                if (isAuthErr(retryError)) await expireSessionAndRedirect();
+                return { places: [], error: "Não foi possível buscar academias agora." };
+              }
+            }
+          })(),
         ]);
         if (controller.signal.aborted) return;
         if (google.error) console.error("Google Places Error:", google.error);
