@@ -1,21 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import { Loader2, MapPin, Plus, X } from "lucide-react";
+import { Crosshair, Loader2, MapPin, Plus, X } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { searchGymPlaces } from "@/lib/places.functions";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 type Place = { id: string; label: string; custom?: boolean };
 
-type MapboxFeature = { id: string; place_name: string };
+type Geo = { lat: number; lng: number } | null;
+type GeoState = "idle" | "asking" | "granted" | "denied";
 
-/** Token público do Mapbox (VITE_MAPBOX_TOKEN ou o token do connector Mapbox). */
-const MAPBOX_TOKEN: string =
-  (import.meta.env['VITE_MAPBOX_TOKEN'] as string | undefined) ??
-  (import.meta.env['VITE_LOVABLE_CONNECTOR_MAPBOX_PUBLIC_TOKEN'] as string | undefined) ??
-  "";
+/** País do usuário a partir do idioma do navegador (ex: pt-BR → BR). */
+function userCountry() {
+  const m = (navigator.language || "pt-BR").match(/-([A-Za-z]{2})$/);
+  return (m?.[1] ?? "BR").toUpperCase();
+}
 
 /**
  * Autocomplete de endereços/academias: busca locais cadastrados pela comunidade
- * (custom_locations) + Mapbox Search, com opção de cadastrar um novo local.
+ * (custom_locations) + Google Places (academias perto do usuário), com opção de cadastrar um novo local.
  */
 export function LocationAutocomplete({
   value,
@@ -33,6 +36,37 @@ export function LocationAutocomplete({
   const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const skipNext = useRef(false);
+  const searchPlaces = useServerFn(searchGymPlaces);
+  const [geo, setGeo] = useState<Geo>(null);
+  const [geoState, setGeoState] = useState<GeoState>("idle");
+  const [area, setArea] = useState("");
+  const [placesError, setPlacesError] = useState<string | null>(null);
+
+  // Pede a localização apenas quando o usuário começa a buscar.
+  function ensureGeo() {
+    if (geoState !== "idle") return;
+    const cached = sessionStorage.getItem("flow_geo");
+    if (cached) {
+      setGeo(JSON.parse(cached));
+      setGeoState("granted");
+      return;
+    }
+    if (!navigator.geolocation) {
+      setGeoState("denied");
+      return;
+    }
+    setGeoState("asking");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const g = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        sessionStorage.setItem("flow_geo", JSON.stringify(g));
+        setGeo(g);
+        setGeoState("granted");
+      },
+      () => setGeoState("denied"),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 },
+    );
+  }
 
   useEffect(() => {
     if (skipNext.current) {
@@ -49,11 +83,18 @@ export function LocationAutocomplete({
     setLoading(true);
     const timer = window.setTimeout(async () => {
       try {
-        const [custom, mapbox] = await Promise.all([
+        const [custom, google] = await Promise.all([
           searchCustomLocations(query),
-          searchMapbox(query, controller.signal),
+          searchPlaces({
+            data: { query, lat: geo?.lat ?? null, lng: geo?.lng ?? null, area: area.trim() || null, country: userCountry() },
+          }).catch(() => ({ places: [], error: "Não foi possível buscar academias agora." })),
         ]);
-        setResults([...custom, ...mapbox]);
+        if (controller.signal.aborted) return;
+        setPlacesError(google.error);
+        setResults([
+          ...custom,
+          ...google.places.map((p) => ({ id: p.id, label: p.address ? `${p.name} — ${p.address}` : p.name })),
+        ]);
         setOpen(true);
       } catch {
         /* busca cancelada ou offline */
@@ -66,7 +107,7 @@ export function LocationAutocomplete({
       controller.abort();
       window.clearTimeout(timer);
     };
-  }, [value]);
+  }, [value, geo, area]);
 
   function select(label: string) {
     skipNext.current = true;
@@ -81,7 +122,10 @@ export function LocationAutocomplete({
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        onFocus={() => setOpen(true)}
+        onFocus={() => {
+          setOpen(true);
+          ensureGeo();
+        }}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
         onKeyDown={(e) => {
           if (e.key === "Enter") {
@@ -101,6 +145,24 @@ export function LocationAutocomplete({
       />
       {loading && (
         <Loader2 className="absolute right-4 top-[1.4rem] size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+      )}
+
+      {geoState === "denied" && (
+        <div className="mt-2 flex items-center gap-2 rounded-xl border border-white/5 bg-white/[0.03] px-3">
+          <Crosshair className="size-4 shrink-0 text-brand" />
+          <input
+            value={area}
+            onChange={(e) => setArea(e.target.value)}
+            aria-label="Cidade ou bairro para centralizar a busca"
+            placeholder="Sem localização? Digite sua cidade/bairro"
+            className="min-h-11 min-w-0 flex-1 bg-transparent text-xs text-foreground outline-none placeholder:text-muted-foreground"
+          />
+        </div>
+      )}
+      {geoState === "granted" && (
+        <p className="mt-1.5 flex items-center gap-1 pl-1 text-[10px] text-brand/80">
+          <Crosshair className="size-3" /> Mostrando academias perto de você
+        </p>
       )}
 
       {open && (
@@ -125,7 +187,9 @@ export function LocationAutocomplete({
           ))}
           {results.length === 0 && !loading && (
             <li className="px-3 py-2.5 text-xs text-muted-foreground">
-              {value.trim().length < 3 ? "Digite ao menos 3 letras para buscar." : "Nenhum local encontrado."}
+              {value.trim().length < 3
+                ? "Digite ao menos 3 letras para buscar."
+                : placesError ?? "Nenhuma academia encontrada. Cadastre a sua abaixo."}
             </li>
           )}
           <li className="sticky bottom-0 border-t border-white/10 bg-[#121212] pt-1">
@@ -139,7 +203,7 @@ export function LocationAutocomplete({
               className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-semibold text-brand transition-colors hover:bg-brand/15"
             >
               <Plus className="size-4 shrink-0" />
-              Adicionar nova academia/local
+              Minha academia não aparece — cadastrar
             </button>
           </li>
         </ul>
@@ -170,24 +234,6 @@ async function searchCustomLocations(query: string): Promise<Place[]> {
     label: row.address ? `${row.name} — ${row.address}` : row.name,
     custom: true,
   }));
-}
-
-async function searchMapbox(query: string, signal: AbortSignal): Promise<Place[]> {
-  if (!MAPBOX_TOKEN) return [];
-  const params = new URLSearchParams({
-    access_token: MAPBOX_TOKEN,
-    country: "br",
-    language: "pt",
-    limit: "6",
-    types: "poi,address,place,locality,neighborhood",
-    autocomplete: "true",
-  });
-  const res = await fetch(
-    `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?${params}`,
-    { signal, headers: { Accept: "application/json" } },
-  );
-  const data = (await res.json()) as { features?: MapboxFeature[] };
-  return (data.features ?? []).map((f) => ({ id: f.id, label: f.place_name }));
 }
 
 /** Modal simples para cadastrar um novo local da comunidade. */
