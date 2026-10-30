@@ -704,6 +704,149 @@ export type Database = {
           },
         ]
       }
+      study_plan_weeks: {
+        Row: {
+          activities: Json
+          created_at: string
+          focus: string | null
+          id: string
+          plan_id: string
+          title: string
+          updated_at: string
+          user_id: string
+          week_number: number
+        }
+        Insert: {
+          activities?: Json
+          created_at?: string
+          focus?: string | null
+          id?: string
+          plan_id: string
+          title: string
+          updated_at?: string
+          user_id: string
+          week_number: number
+        }
+        Update: {
+          activities?: Json
+          created_at?: string
+          focus?: string | null
+          id?: string
+          plan_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_plan_weeks_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "study_plan_weeks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      study_plans: {
+        Row: {
+          attention_notes: string | null
+          created_at: string
+          goal: string
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attention_notes?: string | null
+          created_at?: string
+          goal: string
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attention_notes?: string | null
+          created_at?: string
+          goal?: string
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_plans_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_reflections: {
+        Row: {
+          ai_summary: string | null
+          created_at: string
+          highlight: string | null
+          id: string
+          main_difficulty: string | null
+          next_focus: string | null
+          position_worked: string | null
+          user_id: string
+          workout_id: string | null
+        }
+        Insert: {
+          ai_summary?: string | null
+          created_at?: string
+          highlight?: string | null
+          id?: string
+          main_difficulty?: string | null
+          next_focus?: string | null
+          position_worked?: string | null
+          user_id: string
+          workout_id?: string | null
+        }
+        Update: {
+          ai_summary?: string | null
+          created_at?: string
+          highlight?: string | null
+          id?: string
+          main_difficulty?: string | null
+          next_focus?: string | null
+          position_worked?: string | null
+          user_id?: string
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_reflections_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_reflections_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_achievements: {
         Row: {
           created_at: string
