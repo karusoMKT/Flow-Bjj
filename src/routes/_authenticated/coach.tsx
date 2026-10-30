@@ -9,6 +9,7 @@ import { ProBadge } from "@/components/ProBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { getNextBeltObjective } from "@/lib/belt";
 import { MemoryPanel } from "@/components/MemoryPanel";
+import { StudyPlanPanel } from "@/components/StudyPlanPanel";
 import { askGeminiCoach, saveCoachMemory } from "@/lib/coach.functions";
 import { toast } from "sonner";
 
@@ -200,6 +201,7 @@ function CoachPage() {
           FAIXA PRETA VIRTUAL
         </span>
         <MemoryPanel />
+        <StudyPlanPanel />
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-4 pt-5">
