@@ -42,6 +42,11 @@ function LoginPage() {
 
   useEffect(() => {
     markOnboardingSeen();
+    const notice = sessionStorage.getItem("flow:authNotice");
+    if (notice) {
+      sessionStorage.removeItem("flow:authNotice");
+      toast.warning(notice);
+    }
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/home", replace: true });
     });
