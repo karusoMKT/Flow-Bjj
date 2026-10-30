@@ -8,6 +8,7 @@ import { MarkdownText } from "@/components/MarkdownText";
 import { ProBadge } from "@/components/ProBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { getNextBeltObjective } from "@/lib/belt";
+import { MemoryPanel } from "@/components/MemoryPanel";
 import { askGeminiCoach, saveCoachMemory } from "@/lib/coach.functions";
 import { toast } from "sonner";
 
@@ -131,6 +132,7 @@ function CoachPage() {
       const res = await saveMemory({ data: message.suggestion });
       if (!res.ok) throw new Error();
       setMemoryState(message.id, "saved");
+      queryClient.invalidateQueries({ queryKey: ["ai-memories"] });
       toast.success("Salvo na sua memória esportiva");
     } catch {
       setMemoryState(message.id, "idle");
@@ -197,6 +199,7 @@ function CoachPage() {
         <span className="rounded-full bg-brand/15 px-2 py-0.5 text-[10px] font-bold tracking-wider text-brand">
           FAIXA PRETA VIRTUAL
         </span>
+        <MemoryPanel />
       </header>
 
       <main className="mx-auto w-full max-w-md flex-1 space-y-4 px-4 pt-5">
