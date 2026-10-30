@@ -8,13 +8,27 @@ import { MarkdownText } from "@/components/MarkdownText";
 import { ProBadge } from "@/components/ProBadge";
 import { supabase } from "@/integrations/supabase/client";
 import { getNextBeltObjective } from "@/lib/belt";
-import { askGeminiCoach } from "@/lib/coach.functions";
+import { askGeminiCoach, saveCoachMemory } from "@/lib/coach.functions";
+import { toast } from "sonner";
 
 // System Prompt: Você é um professor faixa preta de Jiu-Jitsu. Ajude o atleta com drills, táticas e prevenção de lesões.
 
 const FREE_LIMIT = 3;
 
-type Message = { id: string; role: "assistant" | "user"; text: string };
+type Suggestion = { kind: "goal" | "favorite_position" | "difficulty"; content: string };
+type Message = {
+  id: string;
+  role: "assistant" | "user";
+  text: string;
+  suggestion?: Suggestion | null;
+  memoryState?: "idle" | "saving" | "saved" | "dismissed";
+};
+
+const KIND_LABEL: Record<Suggestion["kind"], string> = {
+  goal: "Objetivo",
+  favorite_position: "Posição favorita",
+  difficulty: "Dificuldade",
+};
 
 const QUICK_PROMPTS = [
   "Como evitar ser raspado na meia-guarda?",
@@ -104,6 +118,25 @@ function CoachPage() {
   }, [messages, typing]);
 
   const askCoach = useServerFn(askGeminiCoach);
+  const saveMemory = useServerFn(saveCoachMemory);
+
+  function setMemoryState(id: string, memoryState: Message["memoryState"]) {
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, memoryState } : m)));
+  }
+
+  async function handleSaveMemory(message: Message) {
+    if (!message.suggestion) return;
+    setMemoryState(message.id, "saving");
+    try {
+      const res = await saveMemory({ data: message.suggestion });
+      if (!res.ok) throw new Error();
+      setMemoryState(message.id, "saved");
+      toast.success("Salvo na sua memória esportiva");
+    } catch {
+      setMemoryState(message.id, "idle");
+      toast.error("Não foi possível salvar agora.");
+    }
+  }
 
   async function send(text: string) {
     const value = text.trim();
@@ -136,6 +169,8 @@ function CoachPage() {
           id: `a-${Date.now()}`,
           role: "assistant",
           text: result.error ? `⚠️ ${result.error}` : result.text,
+          suggestion: result.error ? null : result.suggestion,
+          memoryState: "idle",
         },
       ]);
     } catch (err) {
@@ -213,6 +248,35 @@ function CoachPage() {
               <CoachAvatar />
               <div className="min-w-0 flex-1 rounded-2xl rounded-tl-sm border border-white/5 bg-surface px-4 py-3">
                 <MarkdownText content={message.text} />
+                {message.suggestion && message.memoryState !== "dismissed" && (
+                  <div className="mt-3 rounded-xl border border-brand/30 bg-brand/5 p-3">
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-brand">
+                      {KIND_LABEL[message.suggestion.kind]}
+                    </p>
+                    <p className="mt-0.5 text-sm">{message.suggestion.content}</p>
+                    {message.memoryState === "saved" ? (
+                      <p className="mt-2 text-xs font-semibold text-brand">✓ Salvo na memória</p>
+                    ) : (
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          type="button"
+                          disabled={message.memoryState === "saving"}
+                          onClick={() => handleSaveMemory(message)}
+                          className="min-h-11 rounded-lg bg-brand px-3 text-xs font-bold text-brand-foreground disabled:opacity-60"
+                        >
+                          {message.memoryState === "saving" ? "Salvando..." : "Salvar objetivo"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMemoryState(message.id, "dismissed")}
+                          className="min-h-11 rounded-lg px-3 text-xs text-muted-foreground"
+                        >
+                          Agora não
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ) : (
