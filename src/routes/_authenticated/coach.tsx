@@ -142,7 +142,11 @@ function CoachPage() {
       console.error(err);
       setMessages((prev) => [
         ...prev,
-        { id: `a-${Date.now()}`, role: "assistant", text: "⚠️ Não consegui falar com o Coach agora." },
+        {
+          id: `a-${Date.now()}`,
+          role: "assistant",
+          text: "⚠️ Não consegui falar com o Coach agora. Verifique sua conexão e tente novamente.",
+        },
       ]);
     } finally {
       setTyping(false);
