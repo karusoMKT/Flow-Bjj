@@ -87,9 +87,19 @@ export function LocationAutocomplete({
           searchCustomLocations(query),
           searchPlaces({
             data: { query, lat: geo?.lat ?? null, lng: geo?.lng ?? null, area: area.trim() || null, country: userCountry() },
-          }).catch(() => ({ places: [], error: "Não foi possível buscar academias agora." })),
+          }).catch((error: unknown) => {
+            console.error("Google Places Error:", error);
+            const msg = (error as Error)?.message ?? "";
+            return {
+              places: [],
+              error: /auth|unauthor|401/i.test(msg)
+                ? "Sua sessão expirou. Entre novamente para buscar academias."
+                : "Não foi possível buscar academias agora.",
+            };
+          }),
         ]);
         if (controller.signal.aborted) return;
+        if (google.error) console.error("Google Places Error:", google.error);
         setPlacesError(google.error);
         setResults([
           ...custom,
