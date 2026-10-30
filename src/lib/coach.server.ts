@@ -112,10 +112,10 @@ function extractSuggestion(text: string): { text: string; suggestion: MemorySugg
 function friendlyError(error: unknown) {
   const msg = getErrorMessage(error).toLowerCase();
   if (msg.includes("timeout")) return "O Coach demorou demais para responder. Tente novamente em instantes.";
-  if (msg.includes("429") || msg.includes("quota") || msg.includes("rate"))
-    return "Muitas perguntas ao mesmo tempo. Aguarde um minuto e tente de novo.";
   if (msg.includes("503") || msg.includes("overloaded") || msg.includes("high demand") || msg.includes("unavailable"))
     return "O Coach está com alta demanda agora. Tente novamente em alguns instantes.";
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("rate limit"))
+    return "Muitas perguntas ao mesmo tempo. Aguarde um minuto e tente de novo.";
   if (msg.includes("safety") || msg.includes("blocked"))
     return "Não posso responder a essa pergunta. Tente reformular com foco no treino.";
   return "Não consegui falar com o Coach agora. Tente novamente em instantes.";
