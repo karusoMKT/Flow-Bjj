@@ -41,6 +41,7 @@
   --color-surface-2: var(--surface-2);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-gold: var(--gold);
   --font-display: "Archivo", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Barlow", ui-sans-serif, system-ui, sans-serif;
 }
@@ -65,6 +66,7 @@
   --accent-foreground: oklch(0.97 0 0);
   --brand: oklch(0.9 0.21 118);
   --brand-foreground: oklch(0.2 0 0);
+  --gold: oklch(0.82 0.16 85);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.99 0 0);
   --border: oklch(1 0 0 / 10%);
