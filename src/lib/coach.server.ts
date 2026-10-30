@@ -18,6 +18,8 @@ export type AthleteContext = {
   workoutsLast30: number;
   recentWorkouts: { date: string; type: string | null; minutes: number; intensity: string | null }[];
   memories: { kind: string; content: string; completed: boolean; completedAt: string | null }[];
+  activePlan?: { title: string; goal: string; status: string; attention: string | null; weeks: { n: number; title: string; done: number; total: number; pending: string[] }[] } | null;
+  reflections?: { date: string; position: string | null; difficulty: string | null; summary: string | null; nextFocus: string | null }[];
 };
 
 export type MemorySuggestion = { kind: "goal" | "favorite_position" | "difficulty"; content: string };
@@ -81,6 +83,18 @@ function describeAthlete(ctx: AthleteContext) {
       for (const m of done) lines.push(`- ✅ ${m.content} (concluído em ${m.completedAt})`);
     }
   } else lines.push("Memória esportiva: vazia.");
+  if (ctx.activePlan) {
+    const p = ctx.activePlan;
+    lines.push(`Plano de estudo ${p.status === "paused" ? "PAUSADO" : "ATIVO"}: "${p.title}" (objetivo: ${p.goal})`);
+    for (const w of p.weeks)
+      lines.push(`- Semana ${w.n}: ${w.title} — ${w.done}/${w.total} atividades${w.pending.length ? ` (pendentes: ${w.pending.slice(0, 3).join("; ")})` : ""}`);
+    if (p.attention) lines.push(`Pontos de atenção atuais: ${p.attention}`);
+  }
+  if (ctx.reflections?.length) {
+    lines.push("Notas pós-treino recentes:");
+    for (const r of ctx.reflections)
+      lines.push(`- ${r.date}: posição ${r.position ?? "-"}, dificuldade ${r.difficulty ?? "-"}. ${r.summary ?? ""}${r.nextFocus ? ` Próximo foco: ${r.nextFocus}` : ""}`);
+  }
   return lines.join("\n");
 }
 
@@ -98,10 +112,10 @@ function extractSuggestion(text: string): { text: string; suggestion: MemorySugg
 function friendlyError(error: unknown) {
   const msg = getErrorMessage(error).toLowerCase();
   if (msg.includes("timeout")) return "O Coach demorou demais para responder. Tente novamente em instantes.";
-  if (msg.includes("429") || msg.includes("quota") || msg.includes("rate"))
-    return "Muitas perguntas ao mesmo tempo. Aguarde um minuto e tente de novo.";
   if (msg.includes("503") || msg.includes("overloaded") || msg.includes("high demand") || msg.includes("unavailable"))
     return "O Coach está com alta demanda agora. Tente novamente em alguns instantes.";
+  if (msg.includes("429") || msg.includes("quota") || msg.includes("rate limit"))
+    return "Muitas perguntas ao mesmo tempo. Aguarde um minuto e tente de novo.";
   if (msg.includes("safety") || msg.includes("blocked"))
     return "Não posso responder a essa pergunta. Tente reformular com foco no treino.";
   return "Não consegui falar com o Coach agora. Tente novamente em instantes.";
@@ -198,5 +212,40 @@ export async function generateCoachReply(data: CoachInput, athlete: AthleteConte
   } catch (error) {
     console.error("[gemini-coach] Falha ao gerar resposta:", error);
     return { text: "", suggestion: null, error: friendlyError(error) };
+  }
+}
+
+/** Gera JSON estruturado com o Gemini (planos de estudo e análise pós-treino). */
+export async function generateCoachJson<T>(prompt: string): Promise<{ data: T | null; error: string | null }> {
+  const apiKey = process.env["GEMINI_API_KEY"];
+  if (!apiKey) return { data: null, error: "O Coach está temporariamente indisponível." };
+  try {
+    const client = new GoogleGenerativeAI(apiKey);
+    const run = (modelName: string) => {
+      const model = client.getGenerativeModel({
+        model: modelName,
+        systemInstruction:
+          "Você é o Flow AI, Coach faixa preta de Jiu-Jitsu. Responda SOMENTE com JSON válido, em português do Brasil, prático e adaptado ao nível do atleta.",
+      });
+      return Promise.race([
+        model.generateContent({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 4096, responseMimeType: "application/json" },
+        }),
+        new Promise<never>((_, reject) => setTimeout(() => reject(new Error("timeout")), TIMEOUT_MS)),
+      ]);
+    };
+    let result;
+    try {
+      result = await run(PRIMARY_MODEL);
+    } catch (e) {
+      if (!isModelNotFoundError(e)) throw e;
+      result = await run(FALLBACK_MODEL);
+    }
+    const raw = result.response.text().trim().replace(/^```(?:json)?/i, "").replace(/```$/, "").trim();
+    return { data: JSON.parse(raw) as T, error: null };
+  } catch (error) {
+    console.error("[gemini-coach-json]", error);
+    return { data: null, error: friendlyError(error) };
   }
 }

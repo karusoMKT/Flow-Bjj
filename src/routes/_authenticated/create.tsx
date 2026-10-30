@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Battery, Camera, ChevronRight, Clock, Flame, ImagePlus, MapPin, Trophy, X, Zap } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { AchievementModal } from "@/components/AchievementModal";
+import { PostTrainingSheet } from "@/components/PostTrainingSheet";
 import { LevelUpModal } from "@/components/LevelUpModal";
 
 import type { Achievement } from "@/lib/achievements";
@@ -54,6 +55,7 @@ function CreatePost() {
   const [duration, setDuration] = useState("90");
   const [intensity, setIntensity] = useState("Moderado");
   const [saving, setSaving] = useState(false);
+  const [reflection, setReflection] = useState<{ workoutId: string; run: () => void } | null>(null);
   const [queue, setQueue] = useState<Achievement[]>([]);
   const [levelUp, setLevelUp] = useState<{ level: number; xp: number } | null>(null);
   const unlocked = queue[0] ?? null;
@@ -246,7 +248,8 @@ function CreatePost() {
     const unlockedList = await runWorkoutAchievements(uid);
     queryClient.invalidateQueries({ queryKey: ["achievements"] });
     queryClient.invalidateQueries({ queryKey: ["challenges"] });
-    showUnlocked(unlockedList, leveled);
+    // Fluxo opcional de análise pós-treino antes das celebrações.
+    setReflection({ workoutId: workout.id, run: () => showUnlocked(unlockedList, leveled) });
 
   }
 
@@ -581,6 +584,17 @@ function CreatePost() {
         </button>
 
       </main>
+
+      <PostTrainingSheet
+        open={!!reflection}
+        workoutId={reflection?.workoutId ?? null}
+        onDone={() => {
+          const next = reflection?.run;
+          setReflection(null);
+          queryClient.invalidateQueries({ queryKey: ["study-plans"] });
+          next?.();
+        }}
+      />
 
       <AchievementModal
         achievement={unlocked}
