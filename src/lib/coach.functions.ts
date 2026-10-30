@@ -24,7 +24,7 @@ export const askGeminiCoach = createServerFn({ method: "POST" })
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const last30 = new Date(now.getTime() - 30 * 864e5).toISOString();
 
-    const [profileRes, totalRes, monthRes, last30Res, recentRes, memRes] = await Promise.all([
+    const [profileRes, totalRes, monthRes, last30Res, recentRes, memRes, planRes, reflRes] = await Promise.all([
       sb.from("profiles").select("full_name, belt, stripes, created_at, is_competitor").eq("id", uid).maybeSingle(),
       sb.from("workouts").select("id", { count: "exact", head: true }).eq("user_id", uid),
       sb.from("workouts").select("id", { count: "exact", head: true }).eq("user_id", uid).gte("created_at", monthStart),
@@ -41,7 +41,15 @@ export const askGeminiCoach = createServerFn({ method: "POST" })
         .eq("user_id", uid)
         .order("updated_at", { ascending: false })
         .limit(30),
+      sb.from("study_plans").select("id, title, goal, status, attention_notes").eq("user_id", uid).in("status", ["active", "paused"]).order("updated_at", { ascending: false }).limit(1),
+      sb.from("training_reflections").select("created_at, position_worked, main_difficulty, ai_summary, next_focus").eq("user_id", uid).order("created_at", { ascending: false }).limit(3),
     ]);
+    const plan = planRes.data?.[0] ?? null;
+    let planWeeks: { week_number: number; title: string; activities: { text: string; done: boolean }[] }[] = [];
+    if (plan) {
+      const { data: w } = await sb.from("study_plan_weeks").select("week_number, title, activities").eq("plan_id", plan.id).order("week_number");
+      planWeeks = w ?? [];
+    }
 
     const profile = profileRes.data;
     const athlete: AthleteContext = {
@@ -66,6 +74,25 @@ export const askGeminiCoach = createServerFn({ method: "POST" })
         content: m.content,
         completed: !m.is_active,
         completedAt: m.is_active ? null : new Date(m.updated_at).toLocaleDateString("pt-BR"),
+      })),
+      activePlan: plan
+        ? {
+            title: plan.title,
+            goal: plan.goal,
+            status: plan.status,
+            attention: plan.attention_notes,
+            weeks: planWeeks.map((w) => {
+              const acts = Array.isArray(w.activities) ? w.activities : [];
+              return { n: w.week_number, title: w.title, done: acts.filter((a) => a.done).length, total: acts.length, pending: acts.filter((a) => !a.done).map((a) => a.text) };
+            }),
+          }
+        : null,
+      reflections: (reflRes.data ?? []).map((r: { created_at: string; position_worked: string | null; main_difficulty: string | null; ai_summary: string | null; next_focus: string | null }) => ({
+        date: new Date(r.created_at).toLocaleDateString("pt-BR"),
+        position: r.position_worked,
+        difficulty: r.main_difficulty,
+        summary: r.ai_summary,
+        nextFocus: r.next_focus,
       })),
     };
 
