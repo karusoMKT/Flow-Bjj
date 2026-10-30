@@ -47,38 +47,54 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
         if (loc) ({ lat, lng } = loc);
       }
 
-      const body: Record<string, unknown> = {
-        textQuery: data.query,
-        includedType: "gym",
-        regionCode: data.country,
-        languageCode: "pt-BR",
-        pageSize: 8,
+      // Busca livre (sem trava de categoria): local priorizado pela posição + filiais no país.
+      const search = async (textQuery: string, biased: boolean) => {
+        const body: Record<string, unknown> = { textQuery, regionCode: data.country, languageCode: "pt-BR", pageSize: 10 };
+        if (biased && lat !== null && lng !== null) {
+          body.locationBias = { circle: { center: { latitude: lat, longitude: lng }, radius: 50000 } };
+        }
+        const res = await fetch(`${GATEWAY_URL}/places/v1/places:searchText`, {
+          method: "POST",
+          headers: {
+            ...headers,
+            "Content-Type": "application/json",
+            "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location",
+          },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) throw new Error(await failure(res));
+        const json = (await res.json()) as {
+          places?: { id: string; displayName?: { text: string }; formattedAddress?: string; location?: { latitude: number; longitude: number } }[];
+        };
+        return json.places ?? [];
       };
-      if (lat !== null && lng !== null) {
-        body.locationBias = { circle: { center: { latitude: lat, longitude: lng }, radius: 30000 } };
-      }
 
-      const res = await fetch(`${GATEWAY_URL}/places/v1/places:searchText`, {
-        method: "POST",
-        headers: {
-          ...headers,
-          "Content-Type": "application/json",
-          "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location",
-        },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) return { places: [] as GymPlace[], error: await failure(res) };
-      const json = (await res.json()) as {
-        places?: { id: string; displayName?: { text: string }; formattedAddress?: string; location?: { latitude: number; longitude: number } }[];
-      };
-      const places: GymPlace[] = (json.places ?? []).map((p) => ({
-        id: p.id,
-        name: p.displayName?.text ?? "Academia",
-        address: p.formattedAddress ?? "",
-        lat: p.location?.latitude ?? null,
-        lng: p.location?.longitude ?? null,
-      }));
-      return { places, error: null as string | null };
+      const hasBjj = /jiu|jitsu|bjj/i.test(data.query);
+      const [near, national] = await Promise.allSettled([
+        search(data.query, true),
+        // Termos parciais/marcas: contexto "jiu-jitsu" ajuda a achar redes (Alliance, Gracie Barra, Checkmat).
+        search(hasBjj ? data.query : `${data.query} jiu-jitsu`, false),
+      ]);
+      if (near.status === "rejected" && national.status === "rejected") {
+        return { places: [] as GymPlace[], error: (near.reason as Error).message };
+      }
+      const seen = new Set<string>();
+      const places: GymPlace[] = [];
+      for (const r of [near, national]) {
+        if (r.status !== "fulfilled") continue;
+        for (const p of r.value) {
+          if (seen.has(p.id)) continue;
+          seen.add(p.id);
+          places.push({
+            id: p.id,
+            name: p.displayName?.text ?? "Academia",
+            address: p.formattedAddress ?? "",
+            lat: p.location?.latitude ?? null,
+            lng: p.location?.longitude ?? null,
+          });
+        }
+      }
+      return { places: places.slice(0, 15), error: null as string | null };
     } catch (e) {
       console.error("[places]", e);
       return { places: [] as GymPlace[], error: "Não foi possível buscar academias agora." };
