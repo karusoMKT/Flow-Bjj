@@ -3,7 +3,8 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type GymPlace = { id: string; name: string; address: string; lat: number | null; lng: number | null };
 
-const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
+const GOOGLE_MAPS_BASE = "https://maps.googleapis.com";
+const GOOGLE_PLACES_BASE = "https://places.googleapis.com";
 
 async function failure(res: Response) {
   const body = await res.text();
@@ -29,27 +30,18 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
-      // Read injected secrets at request time, strictly inside the server handler.
-      const maps = process.env["GOOGLE_MAPS_API_KEY"];
-      const lovable = process.env["LOVABLE_API_KEY"];
-      if (!maps) {
+      // Chave do Google Cloud lida diretamente do segredo nativo do projeto.
+      const apiKey = process.env["GOOGLE_MAPS_API_KEY"];
+      if (!apiKey) {
         throw new Error("Busca do Google não configurada: GOOGLE_MAPS_API_KEY não está disponível no servidor.");
       }
-      if (!lovable) {
-        throw new Error("Busca do Google não configurada: LOVABLE_API_KEY não está disponível no servidor.");
-      }
-      // This is the connection key: the gateway injects Google's provider key.
-      const headers = {
-        Authorization: `Bearer ${lovable}`,
-        "X-Connection-Api-Key": maps,
-      };
+
       let { lat, lng } = data;
 
       // Fallback: sem GPS, centraliza pela cidade/bairro informado (Geocoding).
       if ((lat === null || lng === null) && data.area) {
         const g = await fetch(
-          `${GATEWAY_URL}/maps/api/geocode/json?address=${encodeURIComponent(data.area)}&region=${data.country.toLowerCase()}&components=country:${data.country}&language=pt-BR`,
-          { headers },
+          `${GOOGLE_MAPS_BASE}/maps/api/geocode/json?address=${encodeURIComponent(data.area)}&region=${data.country.toLowerCase()}&components=country:${data.country}&language=pt-BR&key=${apiKey}`,
         );
         if (!g.ok) return { places: [] as GymPlace[], error: await failure(g) };
         const gj = (await g.json()) as { results?: { geometry: { location: { lat: number; lng: number } } }[] };
@@ -63,10 +55,9 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
         if (biased && lat !== null && lng !== null) {
           body.locationBias = { circle: { center: { latitude: lat, longitude: lng }, radius: 50000 } };
         }
-        const res = await fetch(`${GATEWAY_URL}/places/v1/places:searchText`, {
+        const res = await fetch(`${GOOGLE_PLACES_BASE}/v1/places:searchText?key=${apiKey}`, {
           method: "POST",
           headers: {
-            ...headers,
             "Content-Type": "application/json",
             "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location",
           },
