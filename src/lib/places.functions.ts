@@ -5,16 +5,6 @@ export type GymPlace = { id: string; name: string; address: string; lat: number 
 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
 
-function creds() {
-  const lovable = process.env["LOVABLE_API_KEY"];
-  const maps = process.env["GOOGLE_MAPS_API_KEY"];
-  if (!lovable || !maps) {
-    console.error("Google Places Error: credenciais ausentes", { LOVABLE_API_KEY: !!lovable, GOOGLE_MAPS_API_KEY: !!maps });
-    throw new Error("Busca do Google não configurada: conexão do Google Maps ausente no servidor.");
-  }
-  return { Authorization: `Bearer ${lovable}`, "X-Connection-Api-Key": maps };
-}
-
 async function failure(res: Response) {
   const body = await res.text();
   console.error(`Google Places Error: HTTP ${res.status}`, body);
@@ -31,15 +21,28 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
   .inputValidator((d: { query: string; lat?: number | null; lng?: number | null; area?: string | null; country?: string | null }) => {
     const query = String(d?.query ?? "").trim().slice(0, 100);
     if (query.length < 2) throw new Error("Busca muito curta");
-    const lat = Number.isFinite(d?.lat) && Math.abs(d!.lat!) <= 90 ? d!.lat! : null;
-    const lng = Number.isFinite(d?.lng) && Math.abs(d!.lng!) <= 180 ? d!.lng! : null;
+    const lat = typeof d?.lat === "number" && Number.isFinite(d.lat) && Math.abs(d.lat) <= 90 ? d.lat : null;
+    const lng = typeof d?.lng === "number" && Number.isFinite(d.lng) && Math.abs(d.lng) <= 180 ? d.lng : null;
     const area = d?.area ? String(d.area).trim().slice(0, 100) : null;
-    const country = /^[a-z]{2}$/i.test(String(d?.country ?? "")) ? String(d!.country).toUpperCase() : "BR";
+    const country = /^[a-z]{2}$/i.test(String(d?.country ?? "")) ? String(d.country).toUpperCase() : "BR";
     return { query, lat, lng, area, country };
   })
   .handler(async ({ data }) => {
     try {
-      const headers = creds();
+      // Read injected secrets at request time, strictly inside the server handler.
+      const maps = process.env["GOOGLE_MAPS_API_KEY"];
+      const lovable = process.env["LOVABLE_API_KEY"];
+      if (!maps) {
+        throw new Error("Busca do Google não configurada: GOOGLE_MAPS_API_KEY não está disponível no servidor.");
+      }
+      if (!lovable) {
+        throw new Error("Busca do Google não configurada: LOVABLE_API_KEY não está disponível no servidor.");
+      }
+      // This is the connection key: the gateway injects Google's provider key.
+      const headers = {
+        Authorization: `Bearer ${lovable}`,
+        "X-Connection-Api-Key": maps,
+      };
       let { lat, lng } = data;
 
       // Fallback: sem GPS, centraliza pela cidade/bairro informado (Geocoding).
