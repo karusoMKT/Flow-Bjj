@@ -3,11 +3,44 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type GymPlace = { id: string; name: string; address: string; lat: number | null; lng: number | null };
 
-const GOOGLE_MAPS_BASE = "https://maps.googleapis.com";
-const GOOGLE_PLACES_BASE = "https://places.googleapis.com";
+// Conexão Google Maps gerenciada pelo Lovable: as chamadas passam pelo gateway,
+// que injeta a chave do Google. As credenciais ficam apenas no servidor.
+const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
+
+function gatewayHeaders(fieldMask?: string): Record<string, string> {
+  const lovableKey = process.env["LOVABLE_API_KEY"];
+  const mapsKey = process.env["GOOGLE_MAPS_API_KEY"];
+  if (!lovableKey || !mapsKey) {
+    throw new Error("Conexão do Google Maps não está disponível no servidor.");
+  }
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${lovableKey}`,
+    "X-Connection-Api-Key": mapsKey,
+  };
+  if (fieldMask) headers["X-Goog-FieldMask"] = fieldMask;
+  return headers;
+}
+
+/** Lê o motivo do bloqueio no corpo do erro 403 do Google e traduz para o usuário. */
+async function describe403(res: Response): Promise<string> {
+  let details: Array<{ reason?: string }> = [];
+  try {
+    details = (await res.json())?.error?.details ?? [];
+  } catch {
+    /* corpo não-JSON: mantém a mensagem genérica */
+  }
+  const reason = details.find((d) => d.reason)?.reason;
+  if (reason === "API_KEY_HTTP_REFERRER_BLOCKED") {
+    return "A chave do Google Maps tem restrição de site, o que bloqueia buscas do servidor. No Google Cloud Console, defina as restrições de aplicação da chave de servidor como \"Nenhuma\" ou \"Endereços IP\".";
+  }
+  if (reason === "API_KEY_SERVICE_BLOCKED") {
+    return "A chave do Google Maps não tem a Places API liberada. No Google Cloud Console, adicione a Places API (New) às APIs permitidas da chave.";
+  }
+  return "Google recusou a busca (403): a chave do Google Maps não tem permissão para esta API.";
+}
 
 async function failure(res: Response) {
-  const body = await res.text();
+  const body = await res.text().catch(() => "");
   console.error(`Google Places Error: HTTP ${res.status}`, body);
   if (res.status === 429) return "Muitas buscas seguidas. Aguarde um instante.";
   if (res.status === 403) return "Google recusou a busca (403): chave sem permissão para Places API.";
@@ -30,10 +63,9 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
   })
   .handler(async ({ data }) => {
     try {
-      // Chave do Google Cloud lida diretamente do segredo nativo do projeto.
-      const apiKey = process.env["GOOGLE_MAPS_API_KEY"];
-      if (!apiKey) {
-        throw new Error("Busca do Google não configurada: GOOGLE_MAPS_API_KEY não está disponível no servidor.");
+      // Gateway do conector: precisa das duas credenciais do servidor.
+      if (!process.env["LOVABLE_API_KEY"] || !process.env["GOOGLE_MAPS_API_KEY"]) {
+        throw new Error("Conexão do Google Maps não está disponível no servidor.");
       }
 
       let { lat, lng } = data;
@@ -41,9 +73,13 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
       // Fallback: sem GPS, centraliza pela cidade/bairro informado (Geocoding).
       if ((lat === null || lng === null) && data.area) {
         const g = await fetch(
-          `${GOOGLE_MAPS_BASE}/maps/api/geocode/json?address=${encodeURIComponent(data.area)}&region=${data.country.toLowerCase()}&components=country:${data.country}&language=pt-BR&key=${apiKey}`,
+          `${GATEWAY_URL}/maps/api/geocode/json?address=${encodeURIComponent(data.area)}&region=${data.country.toLowerCase()}&components=country:${data.country}&language=pt-BR`,
+          { headers: gatewayHeaders() },
         );
-        if (!g.ok) return { places: [] as GymPlace[], error: await failure(g) };
+        if (!g.ok) {
+          const error = g.status === 403 ? await describe403(g) : await failure(g);
+          return { places: [] as GymPlace[], error };
+        }
         const gj = (await g.json()) as { results?: { geometry: { location: { lat: number; lng: number } } }[] };
         const loc = gj.results?.[0]?.geometry.location;
         if (loc) ({ lat, lng } = loc);
@@ -55,15 +91,15 @@ export const searchGymPlaces = createServerFn({ method: "POST" })
         if (biased && lat !== null && lng !== null) {
           body.locationBias = { circle: { center: { latitude: lat, longitude: lng }, radius: 50000 } };
         }
-        const res = await fetch(`${GOOGLE_PLACES_BASE}/v1/places:searchText?key=${apiKey}`, {
+        const res = await fetch(`${GATEWAY_URL}/places/v1/places:searchText`, {
           method: "POST",
           headers: {
+            ...gatewayHeaders("places.id,places.displayName,places.formattedAddress,places.location"),
             "Content-Type": "application/json",
-            "X-Goog-FieldMask": "places.id,places.displayName,places.formattedAddress,places.location",
           },
           body: JSON.stringify(body),
         });
-        if (!res.ok) throw new Error(await failure(res));
+        if (!res.ok) throw new Error(res.status === 403 ? await describe403(res) : await failure(res));
         const json = (await res.json()) as {
           places?: { id: string; displayName?: { text: string }; formattedAddress?: string; location?: { latitude: number; longitude: number } }[];
         };
