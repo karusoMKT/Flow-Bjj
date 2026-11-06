@@ -8,9 +8,14 @@ export type GymPlace = { id: string; name: string; address: string; lat: number 
 const GATEWAY_URL = "https://connector-gateway.lovable.dev/google_maps";
 
 function gatewayHeaders(fieldMask?: string): Record<string, string> {
+  const lovableKey = process.env["LOVABLE_API_KEY"];
+  const mapsKey = process.env["GOOGLE_MAPS_API_KEY"];
+  if (!lovableKey || !mapsKey) {
+    throw new Error("Conexão do Google Maps não está disponível no servidor.");
+  }
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${process.env["LOVABLE_API_KEY"]}`,
-    "X-Connection-Api-Key": process.env["GOOGLE_MAPS_API_KEY"],
+    Authorization: `Bearer ${lovableKey}`,
+    "X-Connection-Api-Key": mapsKey,
   };
   if (fieldMask) headers["X-Goog-FieldMask"] = fieldMask;
   return headers;
